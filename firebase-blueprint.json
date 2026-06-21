@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "UserProfile",
+      "description": "Public and private metadata for an authenticated user.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "User's full name from authentication provider."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Primary email address."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Profile picture URL."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of account creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of last update."
+        }
+      },
+      "required": ["email", "createdAt", "updatedAt"]
+    },
+    "savedReport": {
+      "title": "SavedReport",
+      "description": "A saved TextLens rhetorical analysis report.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns the report."
+        },
+        "name": {
+          "type": "string",
+          "description": "Document title or custom name of the report."
+        },
+        "originalText": {
+          "type": "string",
+          "description": "The raw input text analyzed."
+        },
+        "summaryJudgement": {
+          "type": "string",
+          "description": "A summary judgement of the rhetorical audit."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of report creation."
+        }
+      },
+      "required": ["userId", "name", "originalText", "summaryJudgement", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "Root collection for authenticated user profiles."
+    },
+    "/users/{userId}/reports/{reportId}": {
+      "schema": "savedReport",
+      "description": "Nested collection of TextLens audit reports saved by the user."
+    }
+  }
+}

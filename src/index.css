@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Space Grotesk", sans-serif;
+
+  /* Restoring a highly tailored, beautiful, muted steel-indigo color system */
+  --color-indigo-50: #f0f3fa;
+  --color-indigo-100: #e2e8f5;
+  --color-indigo-200: #cdd9ed;
+  --color-indigo-300: #adbdd6;
+  --color-indigo-400: #8da1be;
+  --color-indigo-500: #6b82a5;
+  --color-indigo-600: #4b6285; /* Elegant, premium muted steel-blue for buttons and active headers */
+  --color-indigo-700: #3b4d6b;
+  --color-indigo-800: #2b3a51;
+  --color-indigo-900: #1c2638;
+  --color-indigo-950: #121926;
+}
+
+/* Custom styles for Clean Minimalism */
+body {
+  background-color: #fafafa;
+  color: #171717;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom thin clean lines style */
+hr {
+  border-color: rgba(226, 232, 240, 0.6);
+}
+
+/* Scrollbar tweaks to render clean and thin */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fcfcfc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5e5e5;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4d4d4;
+}
+
+/* Let's style the application title and headings globally */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+/* Animation presets for elegant transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 350ms;
+}

@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Path Variable helper
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. Common Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return (isSignedIn() && request.auth.uid == userId) || userId == 'workspace-auditor-local';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 3.5 Test connection path to verify connection health
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // 4. User Profile Rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && incoming().keys().hasAll(['email', 'createdAt', 'updatedAt'])
+                    && incoming().keys().size() <= 5
+                    && incoming().email is string
+                    && incoming().createdAt == request.time
+                    && incoming().updatedAt == request.time;
+      allow update: if isOwner(userId)
+                    && incoming().email == existing().email
+                    && incoming().updatedAt == request.time
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']);
+      allow delete: if false;
+
+      // 5. Nested Saved Reports Rules
+      match /reports/{reportId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && isValidId(reportId)
+                      && incoming().userId == userId
+                      && incoming().keys().hasAll(['userId', 'name', 'originalText', 'summaryJudgement', 'createdAt'])
+                      && incoming().name is string && incoming().name.size() <= 2000
+                      && incoming().originalText is string && incoming().originalText.size() <= 1000000
+                      && incoming().summaryJudgement is string && incoming().summaryJudgement.size() <= 500000
+                      && incoming().createdAt == request.time;
+        allow update: if false; // Reports are immutable audit logs once filed
+        allow delete: if isOwner(userId) && isValidId(reportId);
+      }
+    }
+  }
+}

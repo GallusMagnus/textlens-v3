@@ -1,0 +1,8 @@
+{
+  "name": "Remix: TextLens v3",
+  "description": "An AI-assisted text analysis platform for detecting, explaining and documenting antisemitism, bias, and rhetorical distortions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
