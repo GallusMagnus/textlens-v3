@@ -525,21 +525,6 @@ export default function AnalyseTab({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Workspace Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-205 pb-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">TextLens Analysis Workspace</h1>
-        </div>
-      </div>
-
-      {/* Instruction Banner */}
-      <div className="bg-indigo-50/50 border border-indigo-100/60 rounded-xl p-4 flex items-start space-x-3.5 shadow-3xs">
-        <Info className="w-5 h-5 text-indigo-650 shrink-0 mt-0.5" />
-        <div className="text-xs text-indigo-950 leading-relaxed font-sans font-medium">
-          Step 1: Select the Analysis Mode. Step 2: Paste or upload the text. Step 3: Provide text and source information. Step 4: Run it
-        </div>
-      </div>
-
       {analysisError && (
         <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg flex items-start space-x-3 text-xs leading-relaxed animate-in fade-in duration-300">
           <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
@@ -561,8 +546,8 @@ export default function AnalyseTab({
       )}
 
       {/* ── STEP 1: SELECT COGNITIVE ANALYSIS MODE ── */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-3xs space-y-4 hover:border-slate-300/80 transition-all duration-300">
-        <div className="flex items-center space-x-2.5 pb-2 border-b border-slate-100">
+      <div className="bg-indigo-50/25 border border-indigo-100/80 rounded-xl p-5 shadow-3xs space-y-4 hover:border-indigo-200/80 transition-all duration-300">
+        <div className="flex items-center space-x-2.5 pb-2 border-b border-indigo-100/70">
           <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-mono font-bold">1</div>
           <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-900">Step 1: Select the Analysis Mode</h2>
         </div>
@@ -603,6 +588,8 @@ export default function AnalyseTab({
             }`}>
               {family.modes.map((mode) => {
             const isActive = metadata.analysisMode === mode;
+            const sharedActiveBorderClass = 'border-indigo-300 bg-indigo-50/20 shadow-[inset_4px_0_0_0_#4f46e5]';
+            const sharedActiveTextClass = 'text-indigo-950 text-xs block font-mono font-bold';
             let modeDetails = {
               title: '',
               desc: '',
@@ -615,49 +602,49 @@ export default function AnalyseTab({
               modeDetails = {
                 title: 'Community / General Review Mode',
                 desc: 'Community monitoring, scoring and response triage',
-                badgeColor: 'bg-violet-50 text-violet-850',
-                activeBorderClass: 'border-violet-305 bg-violet-50/10 shadow-[inset_4px_0_0_0_#7c3aed]',
-                activeTextClass: 'text-violet-950 text-xs block font-mono font-bold font-semibold'
+                badgeColor: 'bg-indigo-50 text-indigo-850',
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: `${sharedActiveTextClass} font-semibold`
               };
             } else if (mode === 'general') {
               modeDetails = {
                 title: 'Consensus Standards Mode',
                 desc: 'Core antisemitism frameworks with stronger guardrails',
                 badgeColor: 'bg-slate-100 text-slate-850',
-                activeBorderClass: 'border-slate-350 bg-slate-50/40 shadow-[inset_4px_0_0_0_#475569]',
-                activeTextClass: 'text-slate-950 text-xs block font-mono font-bold'
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
               };
             } else if (mode === 'healthcare') {
               modeDetails = {
                 title: 'Healthcare Publishing Mode',
                 desc: 'Healthcare publication ethics, rhetoric and conflict terminology',
                 badgeColor: 'bg-emerald-50 text-emerald-800',
-                activeBorderClass: 'border-emerald-350 bg-emerald-50/10 shadow-[inset_4px_0_0_0_#059669]',
-                activeTextClass: 'text-emerald-950 text-xs block font-mono font-bold'
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
               };
             } else if (mode === 'academic') {
               modeDetails = {
                 title: 'Academic/University Mode',
                 desc: 'Academic freedom, institutional standards and evidence handling',
                 badgeColor: 'bg-blue-50 text-blue-800',
-                activeBorderClass: 'border-blue-350 bg-blue-50/10 shadow-[inset_4px_0_0_0_#2563eb]',
-                activeTextClass: 'text-blue-950 text-xs block font-mono font-bold'
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
               };
             } else if (mode === 'bccsa') {
               modeDetails = {
                 title: 'BCCSA Mode',
                 desc: 'South African broadcast standards and complaint support',
                 badgeColor: 'bg-indigo-50 text-indigo-850',
-                activeBorderClass: 'border-indigo-350 bg-indigo-50/10 shadow-[inset_4px_0_0_0_#4f46e5]',
-                activeTextClass: 'text-indigo-950 text-xs block font-mono font-bold'
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
               };
             } else if (mode === 'press_code') {
               modeDetails = {
                 title: 'Press Code Mode',
                 desc: 'South African press standards for news and comment',
                 badgeColor: 'bg-amber-50 text-amber-850',
-                activeBorderClass: 'border-amber-305 bg-amber-50/10 shadow-[inset_4px_0_0_0_#d97706]',
-                activeTextClass: 'text-amber-955 text-xs block font-mono font-bold'
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
               };
             }
 
@@ -703,10 +690,10 @@ export default function AnalyseTab({
       </div>
 
       {/* ── STEP 2: PASTE OR UPLOAD THE TEXT ── */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-3xs space-y-4 hover:border-slate-300/80 transition-all duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+      <div className="bg-sky-50/25 border border-sky-100/80 rounded-xl p-5 shadow-3xs space-y-4 hover:border-sky-200/80 transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-sky-100/70">
           <div className="flex items-center space-x-2.5">
-            <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-mono font-bold">2</div>
+            <div className="w-6 h-6 bg-sky-600 text-white rounded-full flex items-center justify-center text-xs font-mono font-bold">2</div>
             <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-900">Step 2: Paste or Upload the Text</h2>
           </div>
 
@@ -716,7 +703,7 @@ export default function AnalyseTab({
               id="preset-sample-selector"
               value={selectedSampleId}
               onChange={(e) => handleLoadSample(e.target.value)}
-              className="bg-indigo-50/40 border border-indigo-200 hover:border-indigo-300 text-indigo-950 text-[11px] font-medium rounded px-2.5 py-1 focus:outline-hidden focus:bg-white cursor-pointer transition-all shadow-3xs max-w-[200px]"
+              className="bg-sky-50/60 border border-sky-200 hover:border-sky-300 text-sky-950 text-[11px] font-medium rounded px-2.5 py-1 focus:outline-hidden focus:bg-white cursor-pointer transition-all shadow-3xs max-w-[200px]"
               disabled={isAnalyzing}
             >
               <option value="">-- Start with Empty Canvas --</option>
@@ -745,7 +732,7 @@ export default function AnalyseTab({
           Paste the editorial, media release, or transcript to analyze below. You can also upload PDF/Word files in the controller box below to extract text directly.
         </p>
 
-        <div className="relative border border-slate-200 rounded-lg focus-within:ring-2 focus-within:ring-indigo-150 transition-all">
+        <div className="relative border border-sky-150 rounded-lg bg-white/70 focus-within:ring-2 focus-within:ring-sky-150 transition-all">
           <textarea
             id="raw-text-textarea"
             value={originalText}
@@ -754,11 +741,11 @@ export default function AnalyseTab({
               if (selectedSampleId) setSelectedSampleId('');
             }}
             placeholder="Place your source text here"
-            className="w-full min-h-[280px] p-4 text-slate-850 text-xs font-sans focus:outline-hidden resize-y leading-relaxed bg-slate-50/10 focus:bg-white rounded-t-lg border-b border-slate-100"
+            className="w-full min-h-[280px] p-4 text-slate-850 text-xs font-sans focus:outline-hidden resize-y leading-relaxed bg-white/70 focus:bg-white rounded-t-lg border-b border-sky-100"
             disabled={isAnalyzing}
           />
 
-          <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-500 bg-slate-50 p-2.5 rounded-b-lg">
+          <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-500 bg-sky-50/60 p-2.5 rounded-b-lg">
             <div className="flex space-x-3">
               <span>{charCount} characters</span>
               <span>•</span>
@@ -777,11 +764,11 @@ export default function AnalyseTab({
         </div>
 
         {/* Upload Workspace Embedded in Step 2 */}
-        <div className="bg-slate-50/40 border border-slate-150 rounded-lg p-4 space-y-3">
+        <div className="bg-sky-50/45 border border-sky-100 rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <FileUp className="w-3.5 h-3.5 text-slate-600" />
-              <span className="text-[10px] font-mono font-bold text-slate-700 uppercase tracking-wider">Document Upload Workspace (PDF / DOCX, up to 5 documents)</span>
+              <FileUp className="w-3.5 h-3.5 text-sky-700" />
+              <span className="text-[10px] font-mono font-bold text-sky-900 uppercase tracking-wider">Document Upload Workspace (PDF / DOCX, up to 5 documents)</span>
             </div>
           </div>
 
@@ -802,8 +789,8 @@ export default function AnalyseTab({
                 onDrop={handleDrop}
                 className={`h-full min-h-[110px] flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-all ${
                   dragActive 
-                    ? 'border-indigo-500 bg-indigo-50/20 shadow-inner' 
-                    : 'border-slate-200 hover:border-indigo-400 bg-white hover:bg-indigo-50/10'
+                    ? 'border-sky-500 bg-sky-50/40 shadow-inner' 
+                    : 'border-sky-150 hover:border-sky-400 bg-white hover:bg-sky-50/20'
                 }`}
               >
                 <input 
@@ -814,13 +801,13 @@ export default function AnalyseTab({
                   className="hidden" 
                   disabled={isAnalyzing}
                 />
-                <FileUp className="w-6 h-6 text-indigo-400 mb-1" />
+                <FileUp className="w-6 h-6 text-sky-500 mb-1" />
                 <span className="text-[11px] font-bold text-slate-800">Drag & drop files</span>
-                <span className="text-[9px] text-indigo-600 mt-0.5">or click to browse (.pdf, .docx)</span>
+                <span className="text-[9px] text-sky-700 mt-0.5">or click to browse (.pdf, .docx)</span>
               </label>
             </div>
 
-            <div className="md:col-span-3 border border-slate-200 rounded-lg bg-white p-3 flex flex-col justify-between min-h-[110px]">
+            <div className="md:col-span-3 border border-sky-100 rounded-lg bg-white/85 p-3 flex flex-col justify-between min-h-[110px]">
               {uploadedFiles.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 text-slate-400 font-mono text-[10px]">
                   <Paperclip className="w-5 h-5 text-slate-300 mb-1" />
@@ -836,7 +823,7 @@ export default function AnalyseTab({
                           <button
                             type="button"
                             onClick={() => handleLoadFileText(f)}
-                            className="px-2 py-0.5 text-[9px] font-mono text-indigo-600 hover:text-indigo-900 border border-indigo-100 rounded bg-indigo-50/30 cursor-pointer"
+                            className="px-2 py-0.5 text-[9px] font-mono text-sky-700 hover:text-sky-900 border border-sky-100 rounded bg-sky-50/40 cursor-pointer"
                           >
                             Load Text
                           </button>
@@ -857,7 +844,7 @@ export default function AnalyseTab({
                     <button
                       type="button"
                       onClick={handleMergeAllFiles}
-                      className="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-mono text-[10px] flex items-center space-x-1 cursor-pointer"
+                      className="px-2 py-0.5 bg-sky-600 hover:bg-sky-700 text-white rounded font-mono text-[10px] flex items-center space-x-1 cursor-pointer"
                     >
                       <span>Merge all files</span>
                     </button>
@@ -869,9 +856,9 @@ export default function AnalyseTab({
         </div>
       </div>
       {/* ── STEP 3: PROVIDE DATA ABOUT THE TEXT AND SOURCE (METADATA) ── */}
-      <div id="step-3-section" className="bg-white border border-slate-200 rounded-xl p-5 shadow-3xs space-y-4 hover:border-slate-300/80 transition-all duration-300 animate-in fade-in duration-300">
-        <div className="flex items-center space-x-2.5 pb-2 border-b border-slate-100">
-          <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-mono font-bold">3</div>
+      <div id="step-3-section" className="bg-teal-50/20 border border-teal-100/80 rounded-xl p-5 shadow-3xs space-y-4 hover:border-teal-200/80 transition-all duration-300 animate-in fade-in duration-300">
+        <div className="flex items-center space-x-2.5 pb-2 border-b border-teal-100/70">
+          <div className="w-6 h-6 bg-teal-600 text-white rounded-full flex items-center justify-center text-xs font-mono font-bold">3</div>
           <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-900">STEP 3: PROVIDE INFORMATION ABOUT THE TEXT AND ITS SOURCE</h2>
         </div>
 
@@ -880,18 +867,18 @@ export default function AnalyseTab({
         </p>
 
         {uploadedFiles.length > 0 && (
-          <div className="bg-slate-50/50 border border-slate-150 rounded-lg p-4 space-y-3.5 mb-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="bg-teal-50/40 border border-teal-100 rounded-lg p-4 space-y-3.5 mb-4 animate-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
+                <div className="w-5 h-5 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center">
                   <Sliders className="w-3 h-3" />
                 </div>
                 <h3 className="text-[10px] font-mono font-bold text-slate-700 uppercase tracking-wider">
                   Uploaded Document Matrix & Intents
                 </h3>
               </div>
-              <span className="text-[8px] bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded-full font-mono flex items-center space-x-1">
-                <Sparkles className="w-2.5 h-2.5 animate-pulse text-indigo-500" />
+              <span className="text-[8px] bg-teal-50 text-teal-700 border border-teal-100 px-1.5 py-0.5 rounded-full font-mono flex items-center space-x-1">
+                <Sparkles className="w-2.5 h-2.5 animate-pulse text-teal-500" />
                 <span>AI Auto-Extraction Active</span>
               </span>
             </div>
@@ -1462,12 +1449,12 @@ export default function AnalyseTab({
 
         {/* C. Community / General Review Mode specific diagnostics - Publication Prominence Tier scales */}
         {metadata.analysisMode === 'consumer' && (
-          <div className="p-4 bg-violet-50/50 border border-violet-200 rounded-lg space-y-3 animate-in slide-in-from-top-1 duration-250">
-            <div className="flex items-center space-x-2 pb-2 border-b border-violet-100">
-              <Sliders className="w-4 h-4 text-violet-705" />
+          <div className="p-4 bg-teal-50/45 border border-teal-100 rounded-lg space-y-3 animate-in slide-in-from-top-1 duration-250">
+            <div className="flex items-center space-x-2 pb-2 border-b border-teal-100">
+              <Sliders className="w-4 h-4 text-teal-700" />
               <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">PUBLICATION PROMINENCE TIER</h3>
             </div>
-            <p className="text-[11px] text-violet-900 leading-relaxed font-sans">
+            <p className="text-[11px] text-teal-900 leading-relaxed font-sans">
               Please select the publication tier. This is used in the "Worthy of Response" calculation.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5">
@@ -1486,14 +1473,14 @@ export default function AnalyseTab({
                     onClick={() => setMetadata(prev => ({ ...prev, publicationProminenceTier: tier as any }))}
                     className={`p-2.5 rounded flex flex-col items-center justify-center transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-violet-50/40 text-violet-950 border-2 border-violet-600 font-semibold shadow-xs'
-                        : 'bg-white text-slate-700 border border-slate-200 hover:border-violet-300 hover:bg-violet-50/40'
+                        ? 'bg-teal-50/50 text-teal-950 border-2 border-teal-600 font-semibold shadow-xs'
+                        : 'bg-white/90 text-slate-700 border border-teal-100 hover:border-teal-300 hover:bg-teal-50/35'
                     }`}
                     disabled={isAnalyzing}
                   >
-                    <span className={`text-xs font-bold font-mono ${isSelected ? 'text-violet-600' : 'text-slate-400'}`}>Tier {tier}</span>
-                    <span className={`text-[9px] font-sans font-bold tracking-tight mt-0.5 whitespace-nowrap ${isSelected ? 'text-violet-900' : 'text-slate-700'}`}>{title}</span>
-                    <span className={`text-[8px] font-sans mt-0.5 truncate max-w-full ${isSelected ? 'text-violet-600/75' : 'text-slate-400/80'}`}>{example}</span>
+                    <span className={`text-xs font-bold font-mono ${isSelected ? 'text-teal-700' : 'text-slate-400'}`}>Tier {tier}</span>
+                    <span className={`text-[9px] font-sans font-bold tracking-tight mt-0.5 whitespace-nowrap ${isSelected ? 'text-teal-950' : 'text-slate-700'}`}>{title}</span>
+                    <span className={`text-[8px] font-sans mt-0.5 truncate max-w-full ${isSelected ? 'text-teal-700/75' : 'text-slate-400/80'}`}>{example}</span>
                   </button>
                 );
               })}
@@ -1503,7 +1490,7 @@ export default function AnalyseTab({
       </div>
 
       {/* ── ACTION FOOTER & SIMULATED RUNNING STATE ── */}
-      <div className="bg-slate-900 text-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+      <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-5 shadow-3xs space-y-4">
         {showValidation && getMissingFields().length > 0 && (
           <div className="bg-red-950/40 border border-red-800/60 p-4 rounded-lg flex items-start space-x-3 text-red-100 font-sans">
             <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
@@ -1524,62 +1511,49 @@ export default function AnalyseTab({
         {isAnalyzing ? (
           <div className="space-y-3 font-mono text-[11px] animate-pulse">
             <div className="flex items-center justify-between">
-              <span className="text-indigo-400 font-bold uppercase tracking-wider flex items-center space-x-2">
+              <span className="text-indigo-700 font-bold uppercase tracking-wider flex items-center space-x-2">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>TextLens Parsing Core Loading...</span>
               </span>
-              <span className="text-emerald-400 font-black">RUNNING ANALYSIS</span>
+              <span className="text-emerald-700 font-black">RUNNING ANALYSIS</span>
             </div>
-            <div className="space-y-1 text-slate-300">
+            <div className="space-y-1 text-slate-600">
               <div className="flex items-center space-x-2">
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-ping"></span>
+                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping"></span>
                 <span>Calibrating core engine match schema for mode: 「{metadata.analysisMode}」...</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-ping"></span>
+                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping"></span>
                 <span>Parsing lexical constructs & linguistic layers...</span>
               </div>
             </div>
-            <div className="h-1.5 bg-slate-850 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div className="h-full bg-indigo-500 w-3/4 rounded-full transition-all"></div>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2 text-slate-300">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                <span className="text-[10px] font-mono uppercase tracking-wider font-bold">Workspace Ready</span>
-              </div>
-              <p className="text-xs text-slate-400">
-                {originalText.trim() ? "Analysis prepared. Hit run to analyze original document and details." : "Input text or select standard case template above to activate analysis."}
-              </p>
-            </div>
-
+          <div className="flex items-center justify-start gap-3.5">
             <div className="flex items-center space-x-3.5">
+              <button
+                id="workspace-analyze-btn"
+                type="button"
+                onClick={handleRunAnalysis}
+                className="px-5 py-2.5 text-xs font-bold text-white bg-indigo-650 hover:bg-indigo-700 border-2 border-indigo-800 hover:border-indigo-900 font-mono rounded flex items-center space-x-2 transition-all shadow-sm cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-300 disabled:pointer-events-none hover:shadow-md active:scale-[0.985]"
+                disabled={isAnalyzing || !originalText.trim()}
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Run TextLens Analysis</span>
+              </button>
+
               <button
                 id="workspace-clear-btn"
                 type="button"
                 onClick={handleClear}
-                className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 font-mono rounded transition-all cursor-pointer disabled:opacity-55 disabled:pointer-events-none active:scale-[0.985]"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 hover:border-slate-300 font-mono rounded transition-all cursor-pointer disabled:opacity-55 disabled:pointer-events-none active:scale-[0.985]"
                 disabled={isAnalyzing}
               >
                 Reset
               </button>
-
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0 shadow-xs" title="Step 4">4</div>
-                <button
-                  id="workspace-analyze-btn"
-                  type="button"
-                  onClick={handleRunAnalysis}
-                  className="px-5 py-2.5 text-xs font-bold text-slate-950 bg-white hover:bg-slate-100 border border-white font-mono rounded flex items-center space-x-2 transition-all shadow-md cursor-pointer disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-755 disabled:pointer-events-none hover:shadow-lg active:scale-[0.985]"
-                  disabled={isAnalyzing || !originalText.trim()}
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Run TextLens Analysis</span>
-                </button>
-              </div>
             </div>
           </div>
         )}

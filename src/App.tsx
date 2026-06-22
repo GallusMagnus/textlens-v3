@@ -654,15 +654,6 @@ export default function App() {
                 )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-[10px] font-mono text-emerald-800 font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-250 px-2.5 py-1 rounded">
-                  Active Audit Node
-                </span>
-              </div>
             </div>
 
           </div>
@@ -679,7 +670,7 @@ export default function App() {
                 onClick={() => setActiveTab('analyse')}
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>1. Analyse Text</span>
+                <span>Text Analysis</span>
               </button>
 
               <button
@@ -689,17 +680,7 @@ export default function App() {
                 onClick={() => setActiveTab('metadata')}
               >
                 <Tag className="w-3.5 h-3.5" />
-                <span>2. Data & Source (Metadata)</span>
-              </button>
-
-              <button
-                id="tab-btn-standards"
-                type="button"
-                className={getTabClass('standards')}
-                onClick={() => setActiveTab('standards')}
-              >
-                <Scale className="w-3.5 h-3.5" />
-                <span>3. Standards</span>
+                <span>Data & Source (Metadata)</span>
               </button>
 
               <button
@@ -712,17 +693,7 @@ export default function App() {
                 {activeReport && (
                   <span className="w-1.5 h-1.5 bg-indigo-650 rounded-full animate-ping shrink-0 mr-1 inline-block"></span>
                 )}
-                <span>4. Report</span>
-              </button>
-
-              <button
-                id="tab-btn-methods"
-                type="button"
-                className={getTabClass('methods')}
-                onClick={() => setActiveTab('methods')}
-              >
-                <Cpu className="w-3.5 h-3.5" />
-                <span>5. Methods</span>
+                <span>Report</span>
               </button>
 
               <button
@@ -732,7 +703,32 @@ export default function App() {
                 onClick={() => setActiveTab('export')}
               >
                 <FolderUp className="w-3.5 h-3.5" />
-                <span>6. Export</span>
+                <span>Export</span>
+              </button>
+
+              <div
+                aria-hidden="true"
+                className="my-3 h-6 w-px shrink-0 bg-slate-200"
+              />
+
+              <button
+                id="tab-btn-methods"
+                type="button"
+                className={getTabClass('methods')}
+                onClick={() => setActiveTab('methods')}
+              >
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Methods</span>
+              </button>
+
+              <button
+                id="tab-btn-standards"
+                type="button"
+                className={getTabClass('standards')}
+                onClick={() => setActiveTab('standards')}
+              >
+                <Scale className="w-3.5 h-3.5" />
+                <span>Standards</span>
               </button>
             </nav>
           </div>
