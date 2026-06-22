@@ -1538,7 +1538,7 @@ export default function AnalyseTab({
                 id="workspace-analyze-btn"
                 type="button"
                 onClick={handleRunAnalysis}
-                className="px-5 py-2.5 text-xs font-bold text-white bg-indigo-650 hover:bg-indigo-700 border-2 border-indigo-800 hover:border-indigo-900 font-mono rounded flex items-center space-x-2 transition-all shadow-sm cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-300 disabled:pointer-events-none hover:shadow-md active:scale-[0.985]"
+                className="px-5 py-2.5 text-xs font-bold text-white bg-slate-700 hover:bg-slate-800 border-2 border-slate-800 hover:border-slate-900 font-mono rounded flex items-center space-x-2 transition-all shadow-sm cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-300 disabled:pointer-events-none hover:shadow-md active:scale-[0.985]"
                 disabled={isAnalyzing || !originalText.trim()}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
