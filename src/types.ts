@@ -76,6 +76,11 @@ export interface HumanReviewPrompt {
   contextNote: string;
 }
 
+export interface AnalysisTrace {
+  analyzedAt: string;
+  model: string;
+}
+
 export interface AnalysisReport {
   id: string;
   name: string;
@@ -108,6 +113,7 @@ export interface AnalysisReport {
   }[];
   limitations?: string[];
   suggestedComplaintOrResponse?: string;
+  analysisTrace?: AnalysisTrace;
 
   // Consumer Mode scores
   consumerScores?: {

@@ -567,10 +567,6 @@ export default function AnalyseTab({
           <h2 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-900">Step 1: Select the Analysis Mode</h2>
         </div>
         
-        <p className="text-xs text-slate-500 leading-relaxed">
-          TextLens has two mode families. <strong className="text-slate-800">Consumer Mode</strong> is for community monitoring and response triage. <strong className="text-slate-800">Professional Modes</strong> are for standards-based review using more specific frameworks, codes and source boundaries.
-        </p>
-
         {([
           {
             id: 'consumer-family',
@@ -618,7 +614,7 @@ export default function AnalyseTab({
             if (mode === 'consumer') {
               modeDetails = {
                 title: 'Community / General Review Mode',
-                desc: 'Community monitoring, practical scoring and response triage',
+                desc: 'Community monitoring, scoring and response triage',
                 badgeColor: 'bg-violet-50 text-violet-850',
                 activeBorderClass: 'border-violet-305 bg-violet-50/10 shadow-[inset_4px_0_0_0_#7c3aed]',
                 activeTextClass: 'text-violet-950 text-xs block font-mono font-bold font-semibold'
@@ -785,7 +781,7 @@ export default function AnalyseTab({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <FileUp className="w-3.5 h-3.5 text-slate-600" />
-              <span className="text-[10px] font-mono font-bold text-slate-700 uppercase tracking-wider">Document Upload Workspace (PDF / DOCX)</span>
+              <span className="text-[10px] font-mono font-bold text-slate-700 uppercase tracking-wider">Document Upload Workspace (PDF / DOCX, up to 5 documents)</span>
             </div>
           </div>
 

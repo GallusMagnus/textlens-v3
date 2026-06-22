@@ -36,6 +36,19 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     return 'Extreme';
   };
 
+  const formatAnalysisTimestamp = (value?: string) => {
+    if (!value) return 'Not recorded';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleString('en-ZA', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   if (!activeReport) {
     return (
       <div id="export-no-report-cta" className="bg-white border border-gray-200 rounded-lg p-12 text-center max-w-2xl mx-auto my-8 space-y-4">
@@ -57,6 +70,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   }
 
   const { metadata, flaggedPassages, evidentiaryIssues } = activeReport;
+  const analysisDateText = formatAnalysisTimestamp(activeReport.analysisTrace?.analyzedAt);
+  const analysisModelText = activeReport.analysisTrace?.model || 'Not recorded';
 
   const generatePlainTextReport = () => {
     let report = "";
@@ -65,7 +80,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     report += "                     Official Case Docket & Compliance Brief\n";
     report += "================================================================================\n";
     report += `Case Reference ID: #${activeReport.id.toUpperCase()}\n`;
-    report += `Generated Date:    ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC\n\n`;
+    report += `Analysis Date:     ${analysisDateText}\n`;
+    report += `Model:             ${analysisModelText}\n\n`;
     
     report += "I. DOCUMENT METADATA\n";
     report += "--------------------------------------------------------------------------------\n";
@@ -74,6 +90,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     report += `Broadcaster/Platform:  ${metadata.platform || "Uploaded Document"}\n`;
     report += `Broadcast/Pub Date:    ${metadata.date || "Unknown Date"}\n`;
     report += `Standard Doc Type:     ${metadata.textType}\n`;
+    report += `Analysis Model:        ${analysisModelText}\n`;
     report += `Overall Concern Level: ${(activeReport.overallConcernLevel || 'High').toUpperCase()}\n`;
     report += `Confidence Level:      ${(activeReport.confidence || 'High').toUpperCase()}\n\n`;
 
@@ -306,7 +323,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           doc.setFont('Helvetica', 'normal');
           doc.setFontSize(8);
           doc.setTextColor(100, 116, 139); // slate-500
-          doc.text("TEXTLENS COMPLIANCE AUDIT DISCIPLINE", marginX, 10);
+          doc.text("TEXTLENS ANALYSIS DOSSIER", marginX, 10);
           doc.setDrawColor(226, 232, 240); // slate-200
           doc.setLineWidth(0.2);
           doc.line(marginX, 12, pageWidth - marginX, 12);
@@ -341,10 +358,10 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         currentY += (titleLines.length * 8) + 5;
 
         // Metadata block (Sub-table / key-value list)
-        checkPageOverflow(40);
+        checkPageOverflow(52);
         doc.setFillColor(248, 250, 252); // slate-50
         doc.setDrawColor(226, 232, 240); // slate-200
-        doc.rect(marginX, currentY, widthMax, 32, 'FD');
+        doc.rect(marginX, currentY, widthMax, 44, 'FD');
 
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(9);
@@ -353,7 +370,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         doc.text("Title:", marginX + 4, currentY + 6);
         doc.text("Author/Creator:", marginX + 4, currentY + 12);
         doc.text("Platform/Broadcaster:", marginX + 4, currentY + 18);
-        doc.text("Date/Version Type:", marginX + 4, currentY + 24);
+        doc.text("Original Pub Date:", marginX + 4, currentY + 24);
+        doc.text("Analysis Date:", marginX + 4, currentY + 30);
+        doc.text("Model:", marginX + 4, currentY + 36);
 
         doc.setFont('Helvetica', 'normal');
         doc.setTextColor(30, 41, 59);
@@ -363,12 +382,14 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         doc.text(titleVal, marginX + 40, currentY + 6);
         doc.text(metadata.author || "Unknown", marginX + 40, currentY + 12);
         doc.text(metadata.platform || "Platform", marginX + 40, currentY + 18);
-        doc.text(`${metadata.date || 'N/A'} (Mode: ${metadata.textType})`, marginX + 40, currentY + 24);
+        doc.text(metadata.date || 'N/A', marginX + 40, currentY + 24);
+        doc.text(analysisDateText, marginX + 40, currentY + 30);
+        doc.text(analysisModelText, marginX + 40, currentY + 36);
 
         // Add overall concern level badge right inside the rect
         doc.setFillColor(254, 242, 242); // red-50
         doc.setDrawColor(254, 202, 202); // red-200
-        doc.rect(pageWidth - marginX - 45, currentY + 4, 40, 24, 'FD');
+        doc.rect(pageWidth - marginX - 45, currentY + 4, 40, 36, 'FD');
 
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(8);
@@ -377,7 +398,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         doc.setFontSize(11);
         doc.text((activeReport.overallConcernLevel || 'High').toUpperCase(), pageWidth - marginX - 41, currentY + 18);
 
-        currentY += 38;
+        currentY += 50;
 
         // 2. Executive summary
         checkPageOverflow(30);
@@ -833,6 +854,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             <div><strong>Original Pub Date:</strong> {metadata.date || 'Undated'}</div>
             <div><strong>Content Standard:</strong> {metadata.textType}</div>
             <div><strong>Concern Level:</strong> <span className="uppercase font-bold text-red-650 font-sans">{(activeReport.overallConcernLevel || 'High').toUpperCase()}</span></div>
+            <div><strong>Analysis Date:</strong> {analysisDateText}</div>
+            <div><strong>Model:</strong> {analysisModelText}</div>
           </div>
         </div>
 

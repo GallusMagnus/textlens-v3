@@ -268,6 +268,7 @@ export default function App() {
           publicCorrectionRequest: "Please reference the Suggested Complaint Or Response Draft text."
         },
         suggestedComplaintOrResponse: data.suggestedComplaintOrResponse || "",
+        analysisTrace: data.analysisTrace,
         limitations: data.limitations || [],
         consumerScores: {
           antisemitismScore: data.antisemitismScore || 0,
@@ -313,7 +314,8 @@ export default function App() {
       protectedNonTriggersConsidered: data.protectedNonTriggersConsidered,
       guardrailFindings: data.guardrailFindings,
       limitations: data.limitations,
-      suggestedComplaintOrResponse: formalText
+      suggestedComplaintOrResponse: formalText,
+      analysisTrace: data.analysisTrace
     };
   };
 
@@ -334,6 +336,10 @@ export default function App() {
         setIsAnalyzing(false);
         setActiveReport({
           ...matchingPreset,
+          analysisTrace: matchingPreset.analysisTrace || {
+            analyzedAt: new Date().toISOString(),
+            model: 'preset-case-study'
+          },
           metadata: { ...metadata } // Preserve metadata overrides
         });
         setActiveTab('report');

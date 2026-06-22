@@ -21,7 +21,7 @@ import { communicationTypes, rhetoricalFunctions } from '../communicationContext
 interface SpiderScores { antisemitism: number; antiZionist: number; rhetorical: number; worthy: number; }
 
 function ConsumerSpiderChart({ scores }: { scores: SpiderScores }) {
-  const cx = 140, cy = 140, r = 95;
+  const cx = 140, cy = 138, r = 82;
   const a = scores.antisemitism / 100, az = scores.antiZionist / 100;
   const rd = scores.rhetorical / 100, wo = scores.worthy / 100;
   const top    = { x: cx,           y: cy - r * a  };
@@ -52,12 +52,12 @@ function ConsumerSpiderChart({ scores }: { scores: SpiderScores }) {
       <circle cx={bottom.x} cy={bottom.y} r="4.5" fill="#3b82f6" />
       <circle cx={left.x}   cy={left.y}   r="4.5" fill="#7c3aed" />
       <circle cx={cx} cy={cy} r="3" fill="#cbd5e1" />
-      <text x={cx} y={cy - r - 10} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#ef4444" fontFamily="Arial">Antisemitism</text>
-      <text x={cx + r + 6} y={cy - 5} textAnchor="start" fontSize="9" fontWeight="bold" fill="#d97706" fontFamily="Arial">Anti-Zionist</text>
-      <text x={cx + r + 6} y={cy + 8} textAnchor="start" fontSize="8" fill="#92400e" fontFamily="Arial">Intensity ⊹</text>
-      <text x={cx} y={cy + r + 16} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#3b82f6" fontFamily="Arial">Rhetorical</text>
-      <text x={cx - r - 6} y={cy - 5} textAnchor="end" fontSize="9" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Response</text>
-      <text x={cx - r - 6} y={cy + 8} textAnchor="end" fontSize="9" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Value</text>
+      <text x={cx} y={cy - r - 12} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#ef4444" fontFamily="Arial">Antisemitism</text>
+      <text x={cx + r + 12} y={cy - 3} textAnchor="start" fontSize="8.5" fontWeight="bold" fill="#d97706" fontFamily="Arial">Anti-Zionist</text>
+      <text x={cx + r + 12} y={cy + 10} textAnchor="start" fontSize="8.5" fontWeight="bold" fill="#d97706" fontFamily="Arial">Intensity ⊹</text>
+      <text x={cx} y={cy + r + 18} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#3b82f6" fontFamily="Arial">Rhetorical</text>
+      <text x={cx - r - 12} y={cy - 3} textAnchor="end" fontSize="8.5" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Response</text>
+      <text x={cx - r - 12} y={cy + 10} textAnchor="end" fontSize="8.5" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Value</text>
     </svg>
   );
 }
@@ -110,6 +110,19 @@ export default function ReportTab({
     );
   }
 
+  const formatAnalysisTimestamp = (value?: string) => {
+    if (!value) return 'Not recorded';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleString('en-ZA', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   // ── Consumer Mode View ───────────────────────────────────────────────────────
   if (activeReport.metadata.analysisMode === 'consumer' && activeReport.consumerScores) {
     const cs = activeReport.consumerScores;
@@ -135,6 +148,13 @@ export default function ReportTab({
           <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-violet-50 border border-violet-200 text-violet-700">Community / General Review Mode</span>
           <h2 className="text-xl font-bold text-gray-950 mt-1.5">{activeReport.metadata.title}</h2>
           <p className="text-xs text-gray-500 mt-1 font-mono">{activeReport.metadata.author} — {activeReport.metadata.platform} ({activeReport.metadata.date})</p>
+          {activeReport.analysisTrace && (
+            <p className="text-[11px] text-slate-500 mt-1 font-mono">
+              Analysis date: <strong className="text-slate-700">{formatAnalysisTimestamp(activeReport.analysisTrace.analyzedAt)}</strong>
+              {" · "}
+              Model: <strong className="text-slate-700">{activeReport.analysisTrace.model}</strong>
+            </p>
+          )}
           {onSaveReport && (
             <button type="button" onClick={onSaveReport} disabled={isSaving || isSaved}
               className={`mt-3 px-3 py-1.5 text-[11px] font-semibold rounded border font-mono flex items-center space-x-1.5 transition-all shadow-3xs cursor-pointer ${isSaved ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
@@ -379,6 +399,12 @@ export default function ReportTab({
         <div className="text-xs font-mono space-y-1 bg-gray-50 border border-gray-200 p-3 rounded shrink-0">
           <div><span className="text-gray-400">Jurisdiction:</span> <strong className="text-gray-750 font-semibold">{metadata.jurisdiction}</strong></div>
           <div><span className="text-gray-400">Assessment:</span> <strong className="text-gray-750 font-semibold uppercase">{metadata.analysisMode} Mode</strong></div>
+          {activeReport.analysisTrace && (
+            <>
+              <div><span className="text-gray-400">Analysis Date:</span> <strong className="text-gray-750 font-semibold">{formatAnalysisTimestamp(activeReport.analysisTrace.analyzedAt)}</strong></div>
+              <div><span className="text-gray-400">Model:</span> <strong className="text-gray-750 font-semibold">{activeReport.analysisTrace.model}</strong></div>
+            </>
+          )}
           {metadata.communicationType && (() => {
             const label = communicationTypes.find(c => c.id === metadata.communicationType)?.label || metadata.communicationType;
             return <div><span className="text-gray-400">Type:</span> <strong className="text-gray-750 font-semibold capitalize">{label}</strong></div>;

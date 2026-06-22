@@ -315,7 +315,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
         <div class="card">
           <span class="badge">Consumer Mode</span>
           <h3>Community / General Review Mode</h3>
-          <p>Used for community monitoring, practical scoring, response triage and broad public-facing review. It is not a regulatory or legal mode.</p>
+          <p>Used for community monitoring, scoring, response triage and broad public-facing review. It is not a regulatory or legal mode.</p>
         </div>
         <div class="card">
           <span class="badge">Professional Modes</span>

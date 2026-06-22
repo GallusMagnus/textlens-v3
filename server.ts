@@ -189,6 +189,13 @@ async function startServer() {
     return process.env.TEXTLENS_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
   }
 
+  function buildAnalysisTrace() {
+    return {
+      analyzedAt: new Date().toISOString(),
+      model: getAnalysisModel(),
+    };
+  }
+
   function closeJsonSchema(node: any): any {
     if (!node || typeof node !== "object" || Array.isArray(node)) {
       return node;
@@ -567,6 +574,7 @@ Return structured JSON matching the required schema exactly.`;
 
         return res.json({
           _mode: "consumer",
+          analysisTrace: buildAnalysisTrace(),
           antisemitismScore: Math.round(Math.max(0, Math.min(100, consumerData.antisemitismScore || 0))),
           antisemitismNarrative: consumerData.antisemitismNarrative || "",
           antiZionistIntensityScore: Math.round(Math.max(0, Math.min(100, consumerData.antiZionistIntensityScore || 0))),
@@ -597,6 +605,7 @@ Return structured JSON matching the required schema exactly.`;
         });
 
         sanitizeReport(reportData, selectedMode, originalText, metadata);
+        reportData.analysisTrace = buildAnalysisTrace();
         return res.json(reportData);
       }
 
@@ -924,6 +933,7 @@ Please perform the assessment and return the analysis strictly as structured JSO
       
       // Backend validation and safety sanitation
       sanitizeReport(reportData, selectedMode, originalText, metadata);
+      reportData.analysisTrace = buildAnalysisTrace();
       
       // Send the raw structured response back
       res.json(reportData);

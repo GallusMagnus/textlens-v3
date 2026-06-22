@@ -115,6 +115,10 @@ interface StagedAnalysisOutput {
   overallConcernLevel: "none" | "low" | "moderate" | "high" | "severe" | "uncertain";
   confidence: EngineConfidence;
   analysisMode: string;
+  analysisTrace?: {
+    analyzedAt: string;
+    model: string;
+  };
   communicationType: string;
   rhetoricalFunction: string;
   shortSummary: string;
