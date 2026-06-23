@@ -25,9 +25,9 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
         <div className="flex items-start space-x-3 pb-3 border-b border-slate-100">
           <Info className="w-5 h-5 text-slate-800 mt-0.5 shrink-0" />
           <div>
-            <h2 className="text-sm font-bold text-slate-950 font-display uppercase tracking-wider">Document Data & Source Registry (Metadata)</h2>
+            <h2 className="text-sm font-bold text-slate-950 font-display uppercase tracking-wider">Source &amp; Context</h2>
             <p className="text-slate-600 text-xs font-sans mt-0.5">
-              Establishing rigorous, legalistic context is prerequisite for academic and media complaints. Accurate bibliographic properties are referenced in suggested response letters.
+              Add or review the source details used in the analysis and report.
             </p>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1" htmlFor="meta-date">
-                  Publication / Broadcast Date *
+                  Publication / Broadcast Date
                 </label>
                 <input
                   id="meta-date"
@@ -113,7 +113,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1" htmlFor="meta-type">
-                  Content / Text Type *
+                  Content / Text Type
                 </label>
                 <input
                   id="meta-type"
@@ -128,7 +128,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1" htmlFor="meta-jurisdiction">
-                  Jurisdiction / Legal Territory *
+                  Jurisdiction / Legal Territory
                 </label>
                 <select
                   id="meta-jurisdiction"
@@ -147,7 +147,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1" htmlFor="meta-mode">
-                  Active Analysis Mode *
+                  Active Analysis Mode
                 </label>
                 <select
                   id="meta-mode"
@@ -167,7 +167,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1" htmlFor="meta-comm-type">
-                  Communication Type *
+                  Communication Type
                 </label>
                 <select
                   id="meta-comm-type"
@@ -185,13 +185,8 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
             </div>
 
             {/* Contextual interpretive guidance block */}
-            {metadata.communicationType && (
-              <div className="mt-4 p-3.5 bg-indigo-50/40 border border-indigo-150 rounded-md space-y-2.5 animate-[fadeIn_0.15s_ease-out]">
-                <div className="flex items-center space-x-1.5 text-indigo-900 font-bold uppercase tracking-wider text-[9px]">
-                  <Sliders className="w-3.5 h-3.5" />
-                  <span>Interpretive Context Diagnostics</span>
-                </div>
-                
+            {metadata.communicationType && metadata.communicationType !== 'unspecified' && (
+              <div className="mt-4 p-3.5 bg-sky-50/35 border border-sky-150 rounded-md space-y-2.5 animate-[fadeIn_0.15s_ease-out]">
                 <div className="grid grid-cols-1 gap-4 text-slate-700 leading-normal text-[11px] font-sans">
                   {(() => {
                     const ct = communicationTypes.find(c => c.id === metadata.communicationType);
@@ -417,28 +412,28 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
           {/* Section 4: Community / General Review Mode — Publication Prominence */}
           {metadata.analysisMode === 'consumer' && (
-            <div className="space-y-3 p-4 bg-violet-50/50 border border-violet-200/60 rounded-lg animate-[fadeIn_0.2s_ease-out]">
-               <div className="flex items-center space-x-2 pb-2 border-b border-violet-200/60">
-                <Users className="w-4 h-4 text-violet-700" />
-                <h3 className="text-[10px] font-bold text-violet-900 uppercase tracking-widest">2. Community / General Review Mode — Publication Prominence</h3>
+            <div className="space-y-3 p-4 bg-teal-50/40 border border-teal-150/70 rounded-lg animate-[fadeIn_0.2s_ease-out]">
+               <div className="flex items-center space-x-2 pb-2 border-b border-teal-150/70">
+                <Users className="w-4 h-4 text-teal-700" />
+                <h3 className="text-[10px] font-bold text-teal-900 uppercase tracking-widest">2. Community / General Review Mode — Publication Prominence</h3>
               </div>
-              <p className="text-[11px] text-violet-800 font-sans leading-relaxed">
-                Select the prominence tier of the publication or platform. This is used to calculate the <strong>Worthy of Response</strong> score — higher-reach outlets amplify the urgency of any findings.
+              <p className="text-[11px] text-teal-900 font-sans leading-relaxed">
+                Select the publication or platform tier. This is used in the <strong>Worthy of Response</strong> score.
               </p>
               <div className="grid grid-cols-1 gap-2">
                 {([
-                  [5, 'Major international or national outlet', 'e.g. BBC, CNN, New York Times, Al Jazeera, Guardian, major national broadcaster'],
-                  [4, 'Regional outlet', 'e.g. Regional newspaper, regional TV/radio station, large community publication'],
-                  [3, 'Specialist or niche publication', 'e.g. Professional journal, specialist magazine, industry newsletter'],
-                  [2, 'Social media / online platform', 'e.g. Twitter/X account, Facebook page, YouTube channel, online-only outlet'],
                   [1, 'Blog, independent, or minor outlet', 'e.g. Personal blog, Substack, small independent website, minor community publication'],
+                  [2, 'Social media / online platform', 'e.g. Twitter/X account, Facebook page, YouTube channel, online-only outlet'],
+                  [3, 'Specialist or niche publication', 'e.g. Professional journal, specialist magazine, industry newsletter'],
+                  [4, 'Regional outlet', 'e.g. Regional newspaper, regional TV/radio station, large community publication'],
+                  [5, 'Major international or national outlet', 'e.g. BBC, CNN, New York Times, Al Jazeera, Guardian, major national broadcaster'],
                 ] as [number, string, string][]).map(([tier, label, example]) => (
                   <label
                     key={tier}
                     className={`flex items-start space-x-3 p-2.5 rounded border cursor-pointer transition-all ${
                       (metadata.publicationProminenceTier ?? 3) === tier
-                        ? 'bg-violet-100 border-violet-400 text-violet-900'
-                        : 'bg-white border-slate-200 text-slate-700 hover:border-violet-300'
+                        ? 'bg-teal-50/65 border-teal-500 text-teal-950'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-teal-300 hover:bg-teal-50/25'
                     }`}
                   >
                     <input
@@ -447,7 +442,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
                       value={tier}
                       checked={(metadata.publicationProminenceTier ?? 3) === tier}
                       onChange={() => setMetadata(prev => ({ ...prev, publicationProminenceTier: tier as 1|2|3|4|5 }))}
-                      className="mt-0.5 accent-violet-600 shrink-0"
+                      className="mt-0.5 accent-teal-600 shrink-0"
                     />
                     <div>
                       <span className="text-[11px] font-bold font-mono block">Tier {tier}: {label}</span>
@@ -464,8 +459,8 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
       <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-5 flex items-start space-x-3">
         <AlertTriangle className="w-5 h-5 text-slate-700 mt-0.5 shrink-0" />
         <div className="text-xs text-slate-700 leading-relaxed">
-          <span className="font-semibold block mb-1 text-slate-900 font-sans">Administrative Transparency Notice</span>
-          Changes made in this metadata console will propagate directly to the <strong className="font-semibold text-slate-900">Report</strong> and <strong className="font-semibold text-slate-900">Export</strong> modules. Setting precise publication details ensures that regulatory complaint letters target relevant statutes and oversight committees without errors.
+          <span className="font-semibold block mb-1 text-slate-900 font-sans">Metadata note</span>
+          Changes made here update the <strong className="font-semibold text-slate-900">Report</strong> and <strong className="font-semibold text-slate-900">Export</strong> sections. Accurate source details improve the quality of the output.
         </div>
       </div>
     </div>

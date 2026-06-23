@@ -13,7 +13,8 @@ interface AnalyseTabProps {
   setActiveReport: (report: AnalysisReport | null) => void;
   onAnalysisStart: () => void;
   isAnalyzing: boolean;
-  onNavigateToMetadata: () => void;
+  onNavigateToSourceContext: () => void;
+  onNavigateToReport: () => void;
   analysisError?: string | null;
   clearAnalysisError?: () => void;
   savedReports?: AnalysisReport[];
@@ -28,7 +29,8 @@ export default function AnalyseTab({
   setActiveReport,
   onAnalysisStart,
   isAnalyzing,
-  onNavigateToMetadata,
+  onNavigateToSourceContext,
+  onNavigateToReport,
   analysisError,
   clearAnalysisError,
   savedReports
@@ -1559,13 +1561,25 @@ export default function AnalyseTab({
         )}
       </div>
 
+      {!activeReport && !isAnalyzing && originalText.trim() && (
+        <div className="bg-sky-50/50 border border-sky-150 rounded-lg p-5 flex items-start space-x-3 shadow-3xs">
+          <Info className="w-5 h-5 text-sky-600 shrink-0 opacity-80" />
+          <div className="flex-1">
+            <span className="font-bold text-xs text-sky-950 block">Text ready for analysis</span>
+            <p className="text-xs text-sky-850 mt-1 leading-relaxed">
+              Review or refine the details in <strong className="font-semibold text-sky-900 cursor-pointer underline" onClick={onNavigateToSourceContext}>Source &amp; Context</strong>, then run the analysis.
+            </p>
+          </div>
+        </div>
+      )}
+
       {activeReport && !isAnalyzing && (
         <div className="bg-emerald-50/50 border border-emerald-150 rounded-lg p-5 flex items-start space-x-3 shadow-3xs">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 opacity-80" />
           <div className="flex-1">
-            <span className="font-bold text-xs text-emerald-950 block">Evaluation Report Generated Successfully!</span>
+            <span className="font-bold text-xs text-emerald-950 block">Analysis report ready</span>
             <p className="text-xs text-emerald-850 mt-1 leading-relaxed">
-              Our AI completed scanning your document according to your configured parameters. Run over to the <strong className="font-semibold text-indigo-900 cursor-pointer underline" onClick={onNavigateToMetadata}>Report tab</strong> to inspect findings!
+              View the findings in the <strong className="font-semibold text-indigo-900 cursor-pointer underline" onClick={onNavigateToReport}>Report</strong>.
             </p>
           </div>
         </div>

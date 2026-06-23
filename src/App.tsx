@@ -399,7 +399,8 @@ export default function App() {
             setActiveReport={setActiveReport}
             onAnalysisStart={handleStartAnalysis}
             isAnalyzing={isAnalyzing}
-            onNavigateToMetadata={() => setActiveTab('metadata')}
+            onNavigateToSourceContext={() => setActiveTab('metadata')}
+            onNavigateToReport={() => setActiveTab('report')}
             analysisError={analysisError}
             clearAnalysisError={() => setAnalysisError(null)}
             savedReports={savedReports}
@@ -670,7 +671,7 @@ export default function App() {
                 onClick={() => setActiveTab('analyse')}
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>Text Analysis</span>
+                <span>Analysis</span>
               </button>
 
               <button
@@ -680,7 +681,7 @@ export default function App() {
                 onClick={() => setActiveTab('metadata')}
               >
                 <Tag className="w-3.5 h-3.5" />
-                <span>Data & Source (Metadata)</span>
+                <span>Source & Context</span>
               </button>
 
               <button
