@@ -57,6 +57,12 @@ interface CandidatePassage {
   sourceSegmentId: string;
 }
 
+interface CandidateWithGuardrailContext extends CandidatePassage {
+  guardrailStatus?: GuardrailAssessment["status"];
+  guardrailIds?: string[];
+  guardrailRationale?: string;
+}
+
 interface GuardrailAssessment {
   candidateId: string;
   status: "blocked" | "proceed" | "ambiguous";
@@ -138,7 +144,10 @@ interface StagedAnalysisOutput {
     alternativeBenignInterpretation: string;
   }>;
   guardrailFindings: Array<{
+    reviewStatus: "blocked" | "ambiguous";
+    reviewLabel: string;
     protectedCategory: string;
+    quoteExcerpt: string;
     whyRelevant: string;
     effectOnInterpretation: string;
   }>;
@@ -559,6 +568,12 @@ function buildPreprocessWarnings(
   return warnings;
 }
 
+function hasEscalationCue(text: string) {
+  return /(\bgenocid(?:e|al)\b|\bapartheid\b|\bsettler[- ]colonial(?:ism)?\b|\bcolonial(?:ism)?\b|\bfascis(?:m|t)\b|\bwhite[- ]supremac(?:y|ist)\b|\bnazi\b|\bholocaust\b|\bdual loyalty\b|\bblood libel\b|\bcabal\b|\blobby\b|\billegitimat(?:e|cy)\b|\bno right to exist\b|\berase\b|\beradicate\b|\bliquidat(?:e|ion)\b|\beliminat(?:e|ion)\b|\bwipe\b|\bdismantl(?:e|ing)\b|\bentity\b|\bparasite\b|\bcancer\b|\bvirus\b|\bzionis[mt]\b)/i.test(
+    text
+  );
+}
+
 function chunkArray<T>(items: T[], size: number) {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
@@ -571,14 +586,32 @@ async function runGuardrailStage(
   generateStructuredJson: StructuredJsonGenerator,
   candidates: CandidatePassage[],
   metadata: TextLensMetadata,
-  mode: CoreAnalysisMode
+  mode: CoreAnalysisMode,
+  allowedTaxonomyItems: TaxonomyItem[]
 ) {
   const protectedItems = getProtectedNonTriggerItems();
+  const policy = getModePolicy(mode);
+  const sourceRules = getRelevantSourceRules(mode);
+  const escalationCues = allowedTaxonomyItems
+    .filter(
+      (item) =>
+        item.primaryScoreImpact === "High" || item.primaryScoreImpact === "Moderate"
+    )
+    .map((item) => ({
+      id: item.id,
+      categoryTitle: item.categoryTitle,
+      definition: item.definition,
+      boundaryNote: item.boundaryNote,
+    }));
+  const triggerSignals = Array.from(
+    new Set(sourceRules.flatMap((rule) => rule.triggerSignals))
+  );
   const batches = chunkArray(candidates, 6);
   const assessments: GuardrailAssessment[] = [];
 
   for (const batch of batches) {
-    const input = `Mode: ${mode}
+    const input = `Mode (internal key): ${mode}
+Mode (user-facing label): ${policy?.label || mode}
 Communication Type: ${metadata.communicationType || "unspecified"}
 Rhetorical Function: ${metadata.rhetoricalFunction || "unspecified"}
 
@@ -593,6 +626,12 @@ ${JSON.stringify(
       null,
       2
     )}
+
+Do not auto-block if any escalation cue is plausibly present:
+${JSON.stringify(escalationCues, null, 2)}
+
+Trigger signals that can override a simple guardrail block:
+${JSON.stringify(triggerSignals, null, 2)}
 
 Candidate passages:
 ${JSON.stringify(batch, null, 2)}
@@ -645,7 +684,10 @@ Rules:
 - "ambiguous" means the guardrail might apply, but the passage still warrants narrow later review.
 - Return only candidate IDs that were supplied.
 - Keep rationale precise and restrained.
-- Do not invent surrounding context or motive.`;
+- Do not invent surrounding context or motive.
+- A passage should be "blocked" only when it is straightforwardly protected political criticism, BDS advocacy, or constitutional/state-model advocacy and does not plausibly contain any escalation cue or trigger signal.
+- If a passage plausibly contains delegitimising threshold-testing language, collective accusation, essentialising or group-based blame, dehumanising/pathologising language, eliminationist framing, Nazi/Holocaust inversion, or any comparable escalation cue, do NOT mark it "blocked". Use "ambiguous" or "proceed".
+- In Consensus Standards Mode specifically, harsh Israel/Zionism criticism is not automatically exempt. If genocide, apartheid, colonialism, illegitimacy, or similar claims plausibly test the boundary between protected criticism and antisemitic delegitimisation, keep the passage available for later classification.`;
 
     const result = await generateStructuredJson<{ assessments: GuardrailAssessment[] }>({
       instructions,
@@ -662,7 +704,7 @@ Rules:
 
 async function runClassificationStage(
   generateStructuredJson: StructuredJsonGenerator,
-  candidates: CandidatePassage[],
+  candidates: CandidateWithGuardrailContext[],
   metadata: TextLensMetadata,
   mode: CoreAnalysisMode,
   allowedTaxonomyItems: TaxonomyItem[],
@@ -706,7 +748,7 @@ ${JSON.stringify(
       2
     )}
 
-Candidate passages:
+Candidate passages with guardrail context:
 ${JSON.stringify(batch, null, 2)}
 `;
 
@@ -760,6 +802,8 @@ Rules:
 - Use only the supplied taxonomy items.
 - Classify only if the candidate passage itself supports the finding.
 - If the evidence is weak, ambiguous, excerpted or not clearly within the taxonomy, return "abstain".
+- Treat guardrail context as important but not dispositive. A prior "blocked" guardrail status does NOT bar a flagged finding if the passage itself plausibly crosses a supplied taxonomy threshold.
+- If a passage combines harsh Israel/Zionism criticism with genocide/apartheid/colonial/illegitimacy/eliminationist or comparable escalation language, test it against the supplied taxonomy rather than automatically abstaining.
 - Do not invent intent, chronology, omitted context or unseen material.
 - Keep explanations narrow.
 - Every candidateId must come from the supplied batch.`;
@@ -927,9 +971,15 @@ function deriveOverallConfidence(
   return "low";
 }
 
-function buildGuardrailFindings(assessments: GuardrailAssessment[]) {
+function buildGuardrailFindings(
+  assessments: GuardrailAssessment[],
+  candidates: CandidatePassage[]
+) {
   const protectedItems = new Map(
     getProtectedNonTriggerItems().map((item) => [item.id, item.categoryTitle])
+  );
+  const candidateQuotes = new Map(
+    candidates.map((candidate) => [candidate.id, candidate.exactQuote])
   );
 
   return assessments
@@ -938,17 +988,27 @@ function buildGuardrailFindings(assessments: GuardrailAssessment[]) {
         assessment.guardrailIds.length > 0 &&
         (assessment.status === "blocked" || assessment.status === "ambiguous")
     )
-    .map((assessment) => ({
-      protectedCategory:
-        assessment.guardrailIds
-          .map((id) => protectedItems.get(id) || id)
-          .join(", ") || "Protected guardrail",
-      whyRelevant: assessment.rationale,
-      effectOnInterpretation:
-        assessment.status === "blocked"
-          ? "This passage was treated as protected or presumptively protected political speech unless other evidence clearly displaced that protection."
-          : "This passage remained bounded by a guardrail, so any later interpretation should stay narrow and uncertainty-aware.",
-    }));
+    .map((assessment) => {
+      const reviewStatus: "blocked" | "ambiguous" =
+        assessment.status === "blocked" ? "blocked" : "ambiguous";
+      return {
+        reviewStatus,
+        reviewLabel:
+          assessment.status === "blocked"
+            ? "Protected-Speech Guardrail Applied"
+            : "Boundary Tested: Review Continued",
+        protectedCategory:
+          assessment.guardrailIds
+            .map((id) => protectedItems.get(id) || id)
+            .join(", ") || "Protected guardrail",
+        quoteExcerpt: candidateQuotes.get(assessment.candidateId) || "",
+        whyRelevant: assessment.rationale,
+        effectOnInterpretation:
+          assessment.status === "blocked"
+            ? "This passage was treated as protected or presumptively protected political speech unless other evidence clearly displaced that protection."
+            : "A guardrail was considered, but it did not justify automatic exemption. This passage remained available for later classification against the applicable taxonomy and standards.",
+      };
+    });
 }
 
 async function runSynthesisStage(
@@ -957,7 +1017,10 @@ async function runSynthesisStage(
   metadata: TextLensMetadata,
   findings: ScoredFinding[],
   guardrailFindings: Array<{
+    reviewStatus: "blocked" | "ambiguous";
+    reviewLabel: string;
     protectedCategory: string;
+    quoteExcerpt: string;
     whyRelevant: string;
     effectOnInterpretation: string;
   }>,
@@ -966,6 +1029,7 @@ async function runSynthesisStage(
   overallConfidence: EngineConfidence
 ) {
   const policy = getModePolicy(mode);
+  const modeLabel = policy?.label || mode;
 
   const input = `Mode policy:
 ${JSON.stringify(policy, null, 2)}
@@ -973,7 +1037,8 @@ ${JSON.stringify(policy, null, 2)}
 Metadata:
 ${JSON.stringify(
     {
-      analysisMode: metadata.analysisMode,
+      analysisModeInternal: metadata.analysisMode,
+      analysisModeLabel: modeLabel,
       communicationType: metadata.communicationType,
       rhetoricalFunction: metadata.rhetoricalFunction,
       title: metadata.title,
@@ -1041,6 +1106,7 @@ Rules:
 - Synthesize ONLY from the supplied structured findings, guardrails, limitations and mode policy.
 - Do not reopen the raw text or invent new evidence.
 - Be objective and restrained.
+- When naming the analysis mode in prose, use this exact user-facing label: "${modeLabel}".
 - Make clear that TextLens is an analytical aid rather than a legal or regulatory adjudicator.
 - Human review prompts should be concrete and useful.
 - The draft response should be professionally toned and proportional to the findings.`;
@@ -1060,6 +1126,7 @@ export async function runStagedAnalysis({
   allowedTaxonomyItems,
   generateStructuredJson,
 }: StagedAnalysisInput): Promise<StagedAnalysisOutput> {
+  const analysisStartedAt = Date.now();
   const normalizedText = normalizeWhitespace(originalText);
   const policy = getModePolicy(selectedMode);
   const sourceRules = getRelevantSourceRules(selectedMode);
@@ -1076,32 +1143,62 @@ export async function runStagedAnalysis({
     selectedMode
   );
   const candidates = extractCandidatePassages(originalText, segments);
+  console.log(
+    `[TextLens] Staged analysis prepared ${segments.length} segments and ${candidates.length} candidate passages for mode "${selectedMode}".`
+  );
+
+  const guardrailStartedAt = Date.now();
   const guardrailAssessments = await runGuardrailStage(
     generateStructuredJson,
     candidates,
     metadata,
-    selectedMode
+    selectedMode,
+    allowedTaxonomyItems
+  );
+  console.log(
+    `[TextLens] Guardrail stage completed in ${((Date.now() - guardrailStartedAt) / 1000).toFixed(2)}s with ${guardrailAssessments.length} assessments.`
   );
 
   const guardrailMap = new Map(
     guardrailAssessments.map((assessment) => [assessment.candidateId, assessment])
   );
-  const eligibleCandidates = candidates.filter((candidate) => {
-    const assessment = guardrailMap.get(candidate.id);
-    return !assessment || assessment.status !== "blocked";
-  });
+  const reviewableCandidates: CandidateWithGuardrailContext[] = candidates
+    .filter((candidate) => {
+      const assessment = guardrailMap.get(candidate.id);
+      if (!assessment) return true;
+      if (assessment.status !== "blocked") return true;
+      return hasEscalationCue(
+        `${candidate.exactQuote}\n${candidate.surroundingContext}\n${assessment.rationale || ""}`
+      );
+    })
+    .map((candidate) => {
+      const assessment = guardrailMap.get(candidate.id);
+      return {
+        ...candidate,
+        guardrailStatus: assessment?.status,
+        guardrailIds: assessment?.guardrailIds || [],
+        guardrailRationale: assessment?.rationale || "",
+      };
+    });
+  console.log(
+    `[TextLens] ${reviewableCandidates.length} candidate passages advanced to classification.`
+  );
 
+  const classificationStartedAt = Date.now();
   const classificationFindings = await runClassificationStage(
     generateStructuredJson,
-    eligibleCandidates,
+    reviewableCandidates,
     metadata,
     selectedMode,
     allowedTaxonomyItems,
     sourceRules
   );
+  console.log(
+    `[TextLens] Classification stage completed in ${((Date.now() - classificationStartedAt) / 1000).toFixed(2)}s with ${classificationFindings.length} findings.`
+  );
   const scoredFindings = scoreFindings(
     selectedMode,
-    eligibleCandidates,
+    reviewableCandidates,
     classificationFindings,
     allowedTaxonomyItems
   );
@@ -1114,7 +1211,7 @@ export async function runStagedAnalysis({
     guardrailAssessments,
     preprocessWarnings
   );
-  const guardrailFindings = buildGuardrailFindings(guardrailAssessments);
+  const guardrailFindings = buildGuardrailFindings(guardrailAssessments, candidates);
   const limitations = Array.from(
     new Set([
       ...preprocessWarnings.map((warning) => warning.message),
@@ -1128,6 +1225,7 @@ export async function runStagedAnalysis({
     ].filter(Boolean))
   );
 
+  const synthesisStartedAt = Date.now();
   const synthesis = await runSynthesisStage(
     generateStructuredJson,
     selectedMode,
@@ -1137,6 +1235,9 @@ export async function runStagedAnalysis({
     limitations,
     overallConcernLevel,
     overallConfidence
+  );
+  console.log(
+    `[TextLens] Synthesis stage completed in ${((Date.now() - synthesisStartedAt) / 1000).toFixed(2)}s.`
   );
 
   const finalLimitations = Array.from(
@@ -1150,6 +1251,9 @@ export async function runStagedAnalysis({
   );
   const protectedNonTriggersConsidered = Array.from(
     new Set(guardrailAssessments.flatMap((assessment) => assessment.guardrailIds))
+  );
+  console.log(
+    `[TextLens] Staged analysis completed in ${((Date.now() - analysisStartedAt) / 1000).toFixed(2)}s with ${scoredFindings.length} flagged passages and concern level "${overallConcernLevel}".`
   );
 
   return {

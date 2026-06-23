@@ -153,7 +153,7 @@ export default function App() {
     date: new Date().toISOString().split('T')[0],
     url: '',
     textType: '',
-    jurisdiction: 'Generic / Global',
+    jurisdiction: 'Global / Multi-Jurisdiction',
     analysisMode: 'consumer',
     communicationType: 'unspecified',
     rhetoricalFunction: 'unspecified'

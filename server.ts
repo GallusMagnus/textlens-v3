@@ -235,6 +235,7 @@ async function startServer() {
   }): Promise<T> {
     const client = getOpenAIClient();
     const model = getAnalysisModel();
+    const startedAt = Date.now();
     const request: any = {
       model,
       input,
@@ -252,8 +253,12 @@ async function startServer() {
       request.instructions = instructions;
     }
 
-    console.log(`Calling OpenAI Responses API with model: ${model}`);
+    console.log(`[TextLens] Calling OpenAI Responses API (${schemaName}) with model: ${model}`);
     const response = await client.responses.create(request);
+    const elapsedMs = Date.now() - startedAt;
+    console.log(
+      `[TextLens] OpenAI Responses API completed (${schemaName}) in ${(elapsedMs / 1000).toFixed(2)}s`
+    );
     const outputText = response.output_text?.trim();
     if (!outputText) {
       throw new Error(`Empty response received from the model (${model}).`);
@@ -427,6 +432,7 @@ ${truncatedText}`;
 
   // Master AI analysis endpoint
   app.post("/api/analyse", async (req, res) => {
+    const analysisStartedAt = Date.now();
     try {
       const { originalText, metadata } = req.body;
 
@@ -435,6 +441,7 @@ ${truncatedText}`;
       }
 
       const selectedMode = metadata?.analysisMode || "general";
+      const selectedModeLabel = getModePolicy(selectedMode)?.label || selectedMode;
       const actualCommunicationType = metadata?.communicationType || "unspecified";
       const actualRhetoricalFunction = metadata?.rhetoricalFunction || "unspecified";
 
@@ -671,7 +678,7 @@ ${limits || "    * Not specified"}`;
 
       const systemInstruction = `You are an expert, objective legal, academic, rhetoric, and media analysis copilot.
 Your job is to run a rigorous "TextLens Audit" of the user's submitted text.
-You must carefully evaluate the text under the requested mode: "${selectedMode}".
+You must carefully evaluate the text under the requested mode: "${selectedModeLabel}" (internal key: "${selectedMode}").
 
 CORE MANDATORY DIRECTIVES YOU MUST ABSOLUTELY FOLLOW:
 1. USE ONLY THE TAXONOMY ITEMS SUPPLIED. DO NOT INVENT TAXONOMY CATEGORIES.
@@ -692,7 +699,7 @@ CORE MANDATORY DIRECTIVES YOU MUST ABSOLUTELY FOLLOW:
 11. LABEL UNCERTAINTY CLEARLY. Use appropriate confidence levels ('low', 'moderate', 'high') and flag borderline or doubtful evaluations.
 12. DO NOT PRODUCE A LEGAL CONCLUSION. Your role is as an analyst providing support and analytical evidence for human editors and reviewers.
 13. STANDARDS & SOURCE SUMMARIES APPLICATION:
-    - You MUST only apply the standards, source texts, and group-descriptors that are explicitly listed as valid for the current analysis mode "${selectedMode}" (listed under the "Relevant standards and source summaries for this selected mode" section).
+    - You MUST only apply the standards, source texts, and group-descriptors that are explicitly listed as valid for the current analysis mode "${selectedModeLabel}" (listed under the "Relevant standards and source summaries for this selected mode" section).
     - You MUST NOT invent source text, clauses, guidelines, or details that are not provided in the summaries.
     - Cite the sources only if they appear in the provided list.
     - If the provided summaries in the source catalog are insufficient, you MUST explicitly note this as a limitation under the 'limitations' array of your final JSON response, rather than filling in or expanding details from outer-model trained knowledge.
@@ -733,14 +740,15 @@ Interpretation context guidance:
 ${originalText}
 """
 
-Active Analysis Mode: ${selectedMode}
+Active Analysis Mode: ${selectedModeLabel}
+Active Analysis Mode Internal Key: ${selectedMode}
 Selected Communication Type: ${actualCommunicationType}
 Selected Rhetorical Function: ${actualRhetoricalFunction}
 
 Submitted Document Metadata:
 ${JSON.stringify(metadata, null, 2)}
 
-Active TextLens Taxonomy Items Relevant to this Active Mode "${selectedMode}" (You MUST only map issues inside 'flaggedPassages' to these categories):
+Active TextLens Taxonomy Items Relevant to this Active Mode "${selectedModeLabel}" (You MUST only map issues inside 'flaggedPassages' to these categories):
 ${filteredTaxonomyContext}
 
 Protected Non-Trigger Categories (You MUST actively use these as analytical guardrails and document them in the 'guardrailFindings' field):
@@ -940,6 +948,9 @@ Please perform the assessment and return the analysis strictly as structured JSO
     } catch (err: any) {
       console.error("AI Analysis Error:", err);
       res.status(500).json({ error: err.message || "An error occurred during AI analysis." });
+    } finally {
+      const elapsedMs = Date.now() - analysisStartedAt;
+      console.log(`[TextLens] /api/analyse completed in ${(elapsedMs / 1000).toFixed(2)}s`);
     }
   });
 

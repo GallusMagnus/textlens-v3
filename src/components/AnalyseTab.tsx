@@ -471,7 +471,7 @@ export default function AnalyseTab({
       date: new Date().toISOString().split('T')[0],
       url: '',
       textType: 'Unspecified Text',
-      jurisdiction: 'Generic / Global',
+      jurisdiction: 'Global / Multi-Jurisdiction',
       analysisMode: 'consumer'
     });
   };
@@ -588,7 +588,7 @@ export default function AnalyseTab({
             }`}>
               {family.modes.map((mode) => {
             const isActive = metadata.analysisMode === mode;
-            const sharedActiveBorderClass = 'border-indigo-300 bg-indigo-50/20 shadow-[inset_4px_0_0_0_#4f46e5]';
+            const sharedActiveBorderClass = 'border-indigo-200 bg-indigo-50/25 shadow-[inset_5px_0_0_0_#4f678c]';
             const sharedActiveTextClass = 'text-indigo-950 text-xs block font-mono font-bold';
             let modeDetails = {
               title: '',

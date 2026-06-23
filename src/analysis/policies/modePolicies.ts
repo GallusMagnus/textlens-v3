@@ -9,12 +9,12 @@ const PROTECTED_GUARDRAILS = [
 export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
   general: {
     mode: "general",
-    label: "General / Standard Mode",
+    label: "Consensus Standards Mode",
     purpose:
       "Apply the core antisemitism frameworks together with the shared TextLens taxonomy for a context-sensitive rhetorical audit.",
     sourceRuleKeys: ["ihra", "jda", "nexus", "textlens_framework"],
     boundaryNote:
-      "[TextLens Boundary Note: This analysis was conducted in General/Standard mode. It is an independent analytical assessment using compiled source rules and the TextLens taxonomy, not a legal or regulatory adjudication.]",
+      "[TextLens Boundary Note: This analysis was conducted in Consensus Standards Mode. It is an independent analytical assessment using compiled source rules and the TextLens taxonomy, not a legal or regulatory adjudication.]",
     reportPositioning:
       "Use the core antisemitism frameworks as the main external reference set and identify clearly where TextLens is adding its own interpretive taxonomy.",
     hallucinationPolicy:

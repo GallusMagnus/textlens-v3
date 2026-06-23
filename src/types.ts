@@ -107,7 +107,10 @@ export interface AnalysisReport {
   taxonomyItemsConsidered?: string[];
   protectedNonTriggersConsidered?: string[];
   guardrailFindings?: {
+    reviewStatus?: 'blocked' | 'ambiguous';
+    reviewLabel?: string;
     protectedCategory: string;
+    quoteExcerpt?: string;
     whyRelevant: string;
     effectOnInterpretation: string;
   }[];

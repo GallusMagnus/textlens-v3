@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { AnalysisReport, FlaggedPassage } from '../types';
 import { standardsList } from '../standardsData';
-import { communicationTypes, rhetoricalFunctions } from '../communicationContext';
+import { getAnalysisModeLabel } from '../utils/modeLabels';
 
 // ---- Consumer Mode Spider Chart ----
 interface SpiderScores { antisemitism: number; antiZionist: number; rhetorical: number; worthy: number; }
@@ -397,22 +397,13 @@ export default function ReportTab({
           )}
         </div>
         <div className="text-xs font-mono space-y-1 bg-gray-50 border border-gray-200 p-3 rounded shrink-0">
-          <div><span className="text-gray-400">Jurisdiction:</span> <strong className="text-gray-750 font-semibold">{metadata.jurisdiction}</strong></div>
-          <div><span className="text-gray-400">Assessment:</span> <strong className="text-gray-750 font-semibold uppercase">{metadata.analysisMode} Mode</strong></div>
+          <div><span className="text-gray-400">Analysis Mode:</span> <strong className="text-gray-750 font-semibold">{getAnalysisModeLabel(metadata.analysisMode)}</strong></div>
           {activeReport.analysisTrace && (
             <>
               <div><span className="text-gray-400">Analysis Date:</span> <strong className="text-gray-750 font-semibold">{formatAnalysisTimestamp(activeReport.analysisTrace.analyzedAt)}</strong></div>
               <div><span className="text-gray-400">Model:</span> <strong className="text-gray-750 font-semibold">{activeReport.analysisTrace.model}</strong></div>
             </>
           )}
-          {metadata.communicationType && (() => {
-            const label = communicationTypes.find(c => c.id === metadata.communicationType)?.label || metadata.communicationType;
-            return <div><span className="text-gray-400">Type:</span> <strong className="text-gray-750 font-semibold capitalize">{label}</strong></div>;
-          })()}
-          {metadata.rhetoricalFunction && (() => {
-            const label = rhetoricalFunctions.find(r => r.id === metadata.rhetoricalFunction)?.label || metadata.rhetoricalFunction;
-            return <div><span className="text-gray-400">Rhetoric:</span> <strong className="text-gray-750 font-semibold capitalize">{label}</strong></div>;
-          })()}
         </div>
       </div>
 
@@ -500,23 +491,66 @@ export default function ReportTab({
         <div className="space-y-3">
           <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 flex items-center space-x-2">
             <Layers className="w-4 h-4 text-slate-400" />
-            <span>Active Guardrails & Protected Exemptions Audit Listing</span>
+            <span>Guardrail Boundary Reviews</span>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {activeReport.guardrailFindings.map((finding, idx) => (
-              <div key={idx} className="bg-indigo-50/40 border border-indigo-100/80 p-4 rounded-lg space-y-2">
-                <div className="flex items-center space-x-1.5">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <h4 className="text-xs font-bold text-indigo-950">{finding.protectedCategory}</h4>
+            {activeReport.guardrailFindings.map((finding, idx) => {
+              const isProtected = finding.reviewStatus === 'blocked';
+              return (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg space-y-3 border ${
+                    isProtected
+                      ? 'bg-emerald-50/35 border-emerald-150/80'
+                      : 'bg-amber-50/30 border-amber-150/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      {isProtected ? (
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                      )}
+                      <h4 className="text-xs font-bold text-slate-950 truncate">
+                        {finding.reviewLabel || (isProtected ? 'Protected-Speech Guardrail Applied' : 'Boundary Tested: Review Continued')}
+                      </h4>
+                    </div>
+                    <span
+                      className={`shrink-0 text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${
+                        isProtected
+                          ? 'text-emerald-700 bg-white border-emerald-200'
+                          : 'text-amber-800 bg-white border-amber-200'
+                      }`}
+                    >
+                      {isProtected ? 'Protected' : 'Not Exempted'}
+                    </span>
+                  </div>
+
+                  <div className="text-[10px] text-slate-500 font-mono">
+                    <strong>Guardrail tested:</strong> {finding.protectedCategory}
+                  </div>
+
+                  {finding.quoteExcerpt && (
+                    <div className="bg-white/80 border border-slate-200 rounded p-3">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                        Passage Reviewed
+                      </span>
+                      <p className="text-[11px] text-slate-800 leading-relaxed italic">
+                        "{finding.quoteExcerpt}"
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="text-[11px] text-gray-700 leading-relaxed font-sans">
+                    <strong>Why this guardrail was considered:</strong> {finding.whyRelevant}
+                  </div>
+                  <div className="text-[10px] text-slate-600 font-sans pt-2 border-t border-slate-200/70">
+                    <strong>Outcome:</strong> {finding.effectOnInterpretation}
+                  </div>
                 </div>
-                <div className="text-[11px] text-gray-700 leading-relaxed font-sans">
-                  <strong>Relevance context:</strong> {finding.whyRelevant}
-                </div>
-                <div className="text-[10px] text-slate-500 font-sans italic pt-1 border-t border-indigo-100/50">
-                  <strong>Interpretation filter:</strong> {finding.effectOnInterpretation}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -527,10 +561,10 @@ export default function ReportTab({
           <div>
             <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 flex items-center space-x-2">
               <Layers className="w-4 h-4 text-slate-400" />
-              <span>Core Evidence & Diagnostic Verdict Table (Unified Analysis)</span>
+              <span>Core Evidence Table</span>
             </h3>
             <p className="text-slate-500 text-[11px] mt-0.5">
-              The audited flagged segments mapping standards, explanations, and direct citation sources.
+              Flagged passages, linked standards, and explanation.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[9px] font-mono text-gray-500">
@@ -540,50 +574,70 @@ export default function ReportTab({
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse table-auto">
-              <thead>
-                <tr className="border-b border-gray-200 text-[9px] font-mono text-gray-400 uppercase tracking-widest bg-gray-50/50">
-                  <th className="py-3 px-4 w-[22%]">Quoted Passage</th>
-                  <th className="py-3 px-4 w-[11%]">Issue Detected</th>
-                  <th className="py-3 px-4 w-[11%]">TextLens Layer</th>
-                  <th className="py-3 px-4 w-[13%]">Relevant Standard</th>
-                  <th className="py-3 px-4 w-[25%]">Explanation</th>
-                  <th className="py-3 px-4 w-[10%]">Confidence</th>
-                  <th className="py-3 px-4 w-[8%] text-center">Human Review</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-150 text-[11px] font-sans">
-                {flaggedPassages.map((passage) => {
-                  const isReviewed = !!reviewedPassages[passage.id];
-                  
-                  // Vibrant but muted tone-on-tone row themes with specific side accents
-                  let rowBgClass = 'transition-all duration-150 text-gray-800 border-l-4 ';
-                  if (passage.layer === 1) {
-                    rowBgClass += 'bg-red-50/20 hover:bg-red-50/30 border-l-red-500/80';
-                  } else if (passage.layer === 2) {
-                    rowBgClass += 'bg-amber-50/15 hover:bg-amber-50/25 border-l-amber-500/75';
-                  } else {
-                    rowBgClass += 'bg-indigo-50/15 hover:bg-indigo-50/25 border-l-indigo-400/70';
-                  }
+        <div className="space-y-4">
+          {flaggedPassages.map((passage) => {
+            const isReviewed = !!reviewedPassages[passage.id];
 
-                  return (
-                    <tr key={passage.id} className={rowBgClass}>
-                      {/* 1. Quoted Passage */}
-                      <td className="py-3.5 px-4 font-serif italic text-gray-905 leading-relaxed">
-                        "{passage.textSnippet}"
-                      </td>
+            let rowBgClass = 'transition-all duration-150 text-gray-800 border-l-4 ';
+            if (passage.layer === 1) {
+              rowBgClass += 'bg-red-50/20 hover:bg-red-50/30 border-l-red-500/80';
+            } else if (passage.layer === 2) {
+              rowBgClass += 'bg-amber-50/15 hover:bg-amber-50/25 border-l-amber-500/75';
+            } else {
+              rowBgClass += 'bg-indigo-50/15 hover:bg-indigo-50/25 border-l-indigo-400/70';
+            }
 
-                      {/* 2. Issue Detected */}
-                      <td className="py-3.5 px-4">
+            return (
+              <div
+                key={passage.id}
+                className={`${rowBgClass} border border-gray-200 rounded-lg shadow-xs overflow-hidden`}
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+                  <div className="lg:col-span-3 p-4 border-b lg:border-b-0 lg:border-r border-gray-150/80">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">
+                      Quoted Passage
+                    </span>
+                    <p className="font-serif italic text-gray-905 leading-relaxed text-[13px]">
+                      "{passage.textSnippet}"
+                    </p>
+                  </div>
+
+                  <div className="lg:col-span-6 p-4 border-b lg:border-b-0 lg:border-r border-gray-150/80">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">
+                      Explanation
+                    </span>
+                    <div className="text-gray-655 leading-relaxed font-sans text-xs whitespace-pre-line">
+                      {passage.explanation}
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-3 p-4 bg-white/65">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">
+                      Review Details
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded border border-gray-150 bg-white p-2">
+                        <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          Issue
+                        </span>
                         <span className={`inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded border leading-tight ${getSeverityBadgeClass(passage.severity)}`}>
                           {passage.severity}
                         </span>
-                      </td>
+                      </div>
 
-                      {/* 3. TextLens Layer */}
-                      <td className="py-3.5 px-4 font-mono font-semibold">
+                      <div className="rounded border border-gray-150 bg-white p-2">
+                        <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          Confidence
+                        </span>
+                        <span className={`inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded border leading-tight ${getUncertaintyBadgeClass(passage.uncertaintyLabel)}`}>
+                          {passage.uncertaintyLabel}
+                        </span>
+                      </div>
+
+                      <div className="rounded border border-gray-150 bg-white p-2">
+                        <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          TextLens Layer
+                        </span>
                         <span className={`inline-flex items-center space-x-1 text-[10px] px-1.5 py-0.5 rounded ${
                           passage.layer === 1 ? 'text-red-700 bg-red-50 border border-red-100' :
                           passage.layer === 2 ? 'text-amber-700 bg-amber-50 border border-amber-100' :
@@ -595,54 +649,48 @@ export default function ReportTab({
                           }`}></span>
                           <span>Layer {passage.layer}</span>
                         </span>
-                      </td>
+                      </div>
 
-                      {/* 4. Relevant Standard */}
-                      <td className="py-3.5 px-4 font-mono">
-                        <div className="flex flex-col gap-1">
-                          {passage.standardsApplied.map((sa, idx) => (
-                            <div key={idx} className="bg-gray-50 border border-gray-150 rounded p-1 text-[10px]">
-                              <span className="font-bold text-indigo-650 block text-[9.5px]">{sa.clauseId}</span>
-                              <span className="text-gray-500 block text-[9px] truncate line-clamp-1 font-sans" title={sa.clauseTitle}>{sa.clauseTitle}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-
-                      {/* 5. Explanation */}
-                      <td className="py-3.5 px-4 text-gray-655 leading-relaxed font-sans pr-2 text-xs">
-                        {passage.explanation}
-                      </td>
-
-                      {/* 6. Confidence */}
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded border leading-tight ${getUncertaintyBadgeClass(passage.uncertaintyLabel)}`}>
-                          {passage.uncertaintyLabel}
+                      <div className="rounded border border-gray-150 bg-white p-2">
+                        <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          Human Review
                         </span>
-                      </td>
-
-                      {/* 7. Human Review Needed */}
-                      <td className="py-3.5 px-4 text-center">
-                        <div className="flex flex-col items-center justify-center space-y-1">
+                        <div className="flex items-center justify-between gap-2">
                           <input
-                             type="checkbox"
-                             checked={isReviewed}
-                             onChange={() => setReviewedPassages(prev => ({ ...prev, [passage.id]: !prev[passage.id] }))}
-                             className="h-3.5 w-3.5 text-slate-950 focus:ring-slate-900 border-gray-200 rounded cursor-pointer accent-slate-950"
+                            type="checkbox"
+                            checked={isReviewed}
+                            onChange={() => setReviewedPassages(prev => ({ ...prev, [passage.id]: !prev[passage.id] }))}
+                            className="h-3.5 w-3.5 text-slate-950 focus:ring-slate-900 border-gray-200 rounded cursor-pointer accent-slate-950"
                           />
-                          <span className={`text-[8px] font-mono font-bold uppercase tracking-wider ${
-                            isReviewed ? 'text-emerald-600' : 'text-amber-600 animate-pulse font-bold'
+                          <span className={`text-[8px] font-mono font-bold uppercase tracking-wider text-right ${
+                            isReviewed ? 'text-emerald-600' : 'text-amber-600 animate-pulse'
                           }`}>
                             {isReviewed ? 'Audited ✓' : 'Review ⚠'}
                           </span>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+
+                      <div className="col-span-2 rounded border border-gray-150 bg-white p-2">
+                        <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          Relevant Standard
+                        </span>
+                        <div className="flex flex-col gap-1">
+                          {passage.standardsApplied.map((sa, idx) => (
+                            <div key={idx} className="bg-gray-50 border border-gray-150 rounded p-1 text-[10px]">
+                              <span className="font-bold text-indigo-650 block text-[9.5px]">{sa.clauseId}</span>
+                              <span className="text-gray-500 block text-[9px] font-sans leading-tight" title={sa.clauseTitle}>
+                                {sa.clauseTitle}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -693,10 +741,10 @@ export default function ReportTab({
       <div id="report-human-prompts" className="space-y-3 bg-white border border-gray-200 rounded-lg p-5 shadow-xs">
         <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
           <HelpCircle className="w-5 h-5 text-gray-700" />
-          <span>Fiduciary & Academic Human Review Guidelines</span>
+          <span>Human Review Prompts</span>
         </h3>
         <p className="text-xs text-gray-650 leading-relaxed">
-          Because TextLens runs as an analytical copilot rather than a monolithic black box, we recommend human reviewers address these investigatory prompts during structural hearings:
+          Use these prompts to review the report and check any areas that need closer inspection and judgment.
         </p>
         <div className="space-y-2 pt-2">
           {humanReviewPrompts.map((prompt) => (
