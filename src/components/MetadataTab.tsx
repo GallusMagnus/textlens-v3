@@ -1,7 +1,7 @@
 import React from 'react';
-import { Save, Info, AlertTriangle, Radio, Film, Heart, Sliders, HelpCircle, Users } from 'lucide-react';
+import { Info, AlertTriangle, Film, Heart, HelpCircle, Users } from 'lucide-react';
 import { TextLensMetadata } from '../types';
-import { communicationTypes, rhetoricalFunctions } from '../communicationContext';
+import { communicationTypes } from '../communicationContext';
 
 interface MetadataTabProps {
   metadata: TextLensMetadata;
@@ -185,39 +185,27 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
             </div>
 
             {/* Contextual interpretive guidance block */}
-            {metadata.communicationType && metadata.communicationType !== 'unspecified' && (
-              <div className="mt-4 p-3.5 bg-sky-50/35 border border-sky-150 rounded-md space-y-2.5 animate-[fadeIn_0.15s_ease-out]">
-                <div className="grid grid-cols-1 gap-4 text-slate-700 leading-normal text-[11px] font-sans">
-                  {(() => {
-                    const ct = communicationTypes.find(c => c.id === metadata.communicationType);
-                    if (!ct) return null;
-                    const isUrgentAppealsType = ['open_letter', 'public_petition', 'institutional_statement'].includes(ct.id);
-                    return (
-                      <div className="space-y-1.5">
-                        <span className="text-[10px] uppercase font-mono font-bold text-slate-400 block">Communication Type Focus: "{ct.label}"</span>
-                        <p className="text-slate-600 text-xs">{ct.description}</p>
-                        <p className="text-slate-650 bg-white/70 p-2 rounded border border-slate-150 text-[11px]">
-                          <strong>Interpretation:</strong> {ct.interpretiveRisks}
-                        </p>
-                        
-                        {isUrgentAppealsType && (
-                          <div className="bg-amber-50/60 text-amber-900 border border-amber-200 p-2.5 rounded text-[11px] space-y-1">
-                            <span className="font-mono font-bold uppercase tracking-wide text-[9px] block">Scholarly Appeals Guidance:</span>
-                            <ul className="list-disc pl-4 space-y-0.5 text-slate-700">
-                              <li>May function as moral appeals/mobilisation documents rather than neutral reports</li>
-                              <li>May compress complex events into urgent moral binaries</li>
-                              <li>May use signatures, professional identity or institutional authority as credibility signals</li>
-                              <li>May omit context, victims, chronology, or baseline uncertainty</li>
-                              <li className="italic text-slate-500 font-mono text-[9px] list-none mt-1">Note: These features are not automatically antisemitic, but are relevant to rhetorical and evidentiary analysis.</li>
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
+            {metadata.communicationType && metadata.communicationType !== 'unspecified' && (() => {
+              const ct = communicationTypes.find(c => c.id === metadata.communicationType);
+              if (!ct) return null;
+
+              return (
+                <details className="mt-4 bg-sky-50/35 border border-sky-150 rounded-md p-3 animate-[fadeIn_0.15s_ease-out]">
+                  <summary className="flex items-center space-x-2 cursor-pointer list-none text-sky-900">
+                    <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-[10px] uppercase font-mono font-bold tracking-wider">Context note</span>
+                  </summary>
+                  <div className="mt-2 space-y-2 text-slate-700 leading-normal text-[11px] font-sans">
+                    <p className="text-slate-600 text-xs">
+                      <strong>{ct.label}:</strong> {ct.description}
+                    </p>
+                    <p className="text-slate-650 bg-white/70 p-2 rounded border border-slate-150 text-[11px]">
+                      <strong>Interpretation:</strong> {ct.interpretiveRisks}
+                    </p>
+                  </div>
+                </details>
+              );
+            })()}
           </div>
 
           {/* Section 2: Conditional BCCSA Form */}

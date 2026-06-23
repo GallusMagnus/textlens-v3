@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   FileText,
-  Tag,
   Scale,
   Clipboard,
   Layers,
@@ -25,7 +24,6 @@ import { standardsList } from './standardsData';
 import { textLensTaxonomy } from './taxonomyData';
 
 import AnalyseTab from './components/AnalyseTab';
-import MetadataTab from './components/MetadataTab';
 import StandardsTab from './components/StandardsTab';
 import ReportTab from './components/ReportTab';
 import MethodsTab from './components/MethodsTab';
@@ -33,7 +31,7 @@ import ExportTab from './components/ExportTab';
 
 import { saveUserReport, listUserReports } from './lib/reportsService';
 
-type TabId = 'analyse' | 'metadata' | 'standards' | 'report' | 'methods' | 'export';
+type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export';
 
 // Stabilize mock user representation outside the component to prevent referential-trigger re-renders
 const DEFAULT_USER = { uid: 'workspace-auditor-local' };
@@ -399,18 +397,10 @@ export default function App() {
             setActiveReport={setActiveReport}
             onAnalysisStart={handleStartAnalysis}
             isAnalyzing={isAnalyzing}
-            onNavigateToSourceContext={() => setActiveTab('metadata')}
             onNavigateToReport={() => setActiveTab('report')}
             analysisError={analysisError}
             clearAnalysisError={() => setAnalysisError(null)}
             savedReports={savedReports}
-          />
-        );
-      case 'metadata':
-        return (
-          <MetadataTab
-            metadata={metadata}
-            setMetadata={setMetadata}
           />
         );
       case 'standards':
@@ -672,16 +662,6 @@ export default function App() {
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>Analysis</span>
-              </button>
-
-              <button
-                id="tab-btn-metadata"
-                type="button"
-                className={getTabClass('metadata')}
-                onClick={() => setActiveTab('metadata')}
-              >
-                <Tag className="w-3.5 h-3.5" />
-                <span>Source & Context</span>
               </button>
 
               <button

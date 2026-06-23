@@ -13,7 +13,6 @@ interface AnalyseTabProps {
   setActiveReport: (report: AnalysisReport | null) => void;
   onAnalysisStart: () => void;
   isAnalyzing: boolean;
-  onNavigateToSourceContext: () => void;
   onNavigateToReport: () => void;
   analysisError?: string | null;
   clearAnalysisError?: () => void;
@@ -29,7 +28,6 @@ export default function AnalyseTab({
   setActiveReport,
   onAnalysisStart,
   isAnalyzing,
-  onNavigateToSourceContext,
   onNavigateToReport,
   analysisError,
   clearAnalysisError,
@@ -1194,45 +1192,6 @@ export default function AnalyseTab({
           </div>
         </div>
 
-        {/* Dynamic Context Interpretive Guidance Panel */}
-        {metadata.communicationType && metadata.communicationType !== 'unspecified' && (
-          <div className="p-3.5 bg-indigo-50/40 border border-indigo-150 rounded-lg space-y-2.5 animate-in slide-in-from-top-1 duration-200">
-            <div className="flex items-center space-x-1.5 text-indigo-900 font-bold uppercase tracking-wider text-[9px] font-mono">
-              <Sliders className="w-3.5 h-3.5" />
-              <span>Interpretive Context Diagnostics</span>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4 text-slate-700 leading-normal text-[11px] font-sans">
-              {(() => {
-                const ct = communicationTypes.find(c => c.id === metadata.communicationType);
-                if (!ct) return null;
-                const isUrgentAppealsType = ['open_letter', 'public_petition', 'institutional_statement'].includes(ct.id);
-                return (
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] uppercase font-mono font-bold text-slate-400 block">Communication Type Focus: "{ct.label}"</span>
-                    <p className="text-slate-600 text-[11px] leading-relaxed">{ct.description}</p>
-                    <p className="text-slate-705 bg-white/70 p-2 rounded border border-slate-150 text-[11px] leading-relaxed">
-                      <strong>Interpretation:</strong> {ct.interpretiveRisks}
-                    </p>
-                    
-                    {isUrgentAppealsType && (
-                      <div className="bg-amber-50/60 text-amber-900 border border-amber-200 p-2.5 rounded text-[11px] space-y-1">
-                        <span className="font-mono font-bold uppercase tracking-wide text-[9px] block">Scholarly Appeals Guidance:</span>
-                        <ul className="list-disc pl-4 space-y-0.5 text-slate-700">
-                          <li>May function as moral appeals/mobilisation documents rather than neutral reports</li>
-                          <li>May compress complex events into urgent moral binaries</li>
-                          <li>May use signatures, professional identity or institutional authority as credibility signals</li>
-                          <li>May omit context, victims, chronology, or baseline uncertainty</li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        )}
-
         {/* ── MODE-SPECIFIC CONDITIONAL DIAGNOSTICS SECTION ── */}
 
         {/* A. BCCSA Diagnostics block */}
@@ -1567,7 +1526,7 @@ export default function AnalyseTab({
           <div className="flex-1">
             <span className="font-bold text-xs text-sky-950 block">Text ready for analysis</span>
             <p className="text-xs text-sky-850 mt-1 leading-relaxed">
-              Review or refine the details in <strong className="font-semibold text-sky-900 cursor-pointer underline" onClick={onNavigateToSourceContext}>Source &amp; Context</strong>, then run the analysis.
+              Review or refine the source details above, then run the analysis.
             </p>
           </div>
         </div>

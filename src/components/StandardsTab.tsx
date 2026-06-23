@@ -435,10 +435,10 @@ export default function StandardsTab() {
           <span>How TextLens Uses These Sources</span>
         </h3>
         <p>
-          This registry combines <strong>official clauses where a source is codified</strong> with <strong>operationalized review checkpoints where a source is a framework, guidance document, or research paper</strong>. In other words, some entries reflect formal code language, while others summarize how TextLens uses that source in practice.
+          This registry includes both <strong>codified clauses</strong> and <strong>practical review checkpoints</strong>. Some entries quote source language directly, while others summarize how TextLens applies that source.
         </p>
         <p>
-          Contrastingly, broad consensus definitions such as the <strong>Jerusalem Declaration (JDA)</strong> and the <strong>Nexus Document</strong> serve as interpretive frameworks. Rather than adding independent duplicate text clauses, their analytical guidelines are directly mapped to and evaluated through the core <strong>TextLens Working Taxonomy of {totalTaxonomyItems} key diagnostic elements</strong>. The entry shown under <em>Rhetorical Frameworks</em> below is a condensed summary of that taxonomy, not the full registry. This prevents redundant codes while ensuring thorough coverage across all selected audit modes.
+          Broad consensus definitions such as the <strong>Jerusalem Declaration (JDA)</strong> and the <strong>Nexus Document</strong> are used as interpretive frameworks. Their guidance is mapped through the core <strong>TextLens taxonomy of {totalTaxonomyItems} diagnostic elements</strong>. The entry under <em>Rhetorical Frameworks</em> below is a summary of that taxonomy, not the full registry.
         </p>
       </div>
 

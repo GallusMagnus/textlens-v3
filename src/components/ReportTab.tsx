@@ -16,6 +16,7 @@ import {
 import { AnalysisReport, FlaggedPassage } from '../types';
 import { standardsList } from '../standardsData';
 import { getAnalysisModeLabel } from '../utils/modeLabels';
+import { getSourceContextFields } from '../utils/sourceContextFields';
 
 // ---- Consumer Mode Spider Chart ----
 interface SpiderScores { antisemitism: number; antiZionist: number; rhetorical: number; worthy: number; }
@@ -122,6 +123,32 @@ export default function ReportTab({
       minute: '2-digit',
     });
   };
+
+  const sourceContextFields = getSourceContextFields(activeReport.metadata);
+
+  const renderSourceContextSection = () => (
+    <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+          <Info className="w-5 h-5 text-gray-700" />
+          <span>Source &amp; Context</span>
+        </h3>
+        <p className="text-xs text-gray-650 mt-1">
+          Source details captured with this analysis.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        {sourceContextFields.map((field) => (
+          <div key={field.label} className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              {field.label}
+            </span>
+            <span className="text-slate-800 break-words">{field.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   // ── Consumer Mode View ───────────────────────────────────────────────────────
   if (activeReport.metadata.analysisMode === 'consumer' && activeReport.consumerScores) {
@@ -289,6 +316,7 @@ export default function ReportTab({
             </ul>
           </div>
         )}
+        {renderSourceContextSection()}
       </div>
     );
   }
@@ -894,6 +922,8 @@ export default function ReportTab({
           </>
         )}
       </div>
+
+      {renderSourceContextSection()}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { AnalysisReport } from '../types';
 import { jsPDF } from 'jspdf';
+import { getSourceContextFields } from '../utils/sourceContextFields';
 
 interface ExportTabProps {
   activeReport: AnalysisReport | null;
@@ -72,6 +73,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   const { metadata, flaggedPassages, evidentiaryIssues } = activeReport;
   const analysisDateText = formatAnalysisTimestamp(activeReport.analysisTrace?.analyzedAt);
   const analysisModelText = activeReport.analysisTrace?.model || 'Not recorded';
+  const sourceContextFields = getSourceContextFields(metadata);
 
   const generatePlainTextReport = () => {
     let report = "";
@@ -160,6 +162,13 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       report += "................................................................................\n";
       report += `${activeReport.suggestedComplaintLanguage.publicCorrectionRequest}\n\n`;
     }
+
+    report += "SOURCE & CONTEXT RECORD\n";
+    report += "--------------------------------------------------------------------------------\n";
+    sourceContextFields.forEach((field) => {
+      report += `${field.label}: ${field.value}\n`;
+    });
+    report += "\n";
 
     report += "--------------------------------------------------------------------------------\n";
     report += "End of official compliance brief.\n";
@@ -785,6 +794,37 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           }
         }
 
+        // 6. Source & Context record
+        checkPageOverflow(25);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Source & Context Record", marginX, currentY);
+        currentY += 6;
+
+        const sourceContextLineHeight = 5;
+        sourceContextFields.forEach((field) => {
+          const wrappedValue = doc.splitTextToSize(field.value, widthMax - 55);
+          const blockHeight = 4 + wrappedValue.length * sourceContextLineHeight;
+          checkPageOverflow(blockHeight + 2);
+
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`${field.label}:`, marginX, currentY);
+
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(30, 41, 59);
+          let valueY = currentY;
+          wrappedValue.forEach((line: string) => {
+            doc.text(line, marginX + 45, valueY);
+            valueY += sourceContextLineHeight;
+          });
+
+          currentY = valueY + 1;
+        });
+
         // Apply headers & footer page numbers across pages
         drawFooter();
 
@@ -1072,6 +1112,20 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             </div>
           </div>
         )}
+
+        <div className="mt-8 page-break">
+          <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">Source &amp; Context Record</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            {sourceContextFields.map((field) => (
+              <div key={field.label} className="border border-slate-200 bg-slate-50/40 rounded p-3 break-inside-avoid">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">
+                  {field.label}
+                </div>
+                <div className="text-slate-800 break-words">{field.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* PRINT FOOTER */}
         <div className="mt-12 pt-6 border-t border-slate-300 text-center text-[10px] font-mono text-slate-400">
