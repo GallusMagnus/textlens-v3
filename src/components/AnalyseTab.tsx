@@ -729,7 +729,7 @@ export default function AnalyseTab({
         </div>
 
         <p className="text-xs text-slate-500 leading-relaxed">
-          Paste the editorial, media release, or transcript to analyze below. You can also upload PDF/Word files in the controller box below to extract text directly.
+          Paste text below, or upload a PDF or Word file to extract it automatically.
         </p>
 
         <div className="relative border border-sky-150 rounded-lg bg-white/70 focus-within:ring-2 focus-within:ring-sky-150 transition-all">

@@ -724,11 +724,11 @@ export default function App() {
       {/* 4. Footer Panel */}
       <footer className="border-t border-gray-200 bg-white py-4 mt-12 font-mono text-[10px] text-gray-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span>TextLens Platform — Secure Audit Registry</span>
+          <span>TextLens</span>
           <div className="flex space-x-4">
-            <span>Jurisdictional Compliance Matrix 2026.1</span>
+            <span>Build 2026.1</span>
             <span>•</span>
-            <span>Ref: {new Date().toISOString().split('T')[0]}</span>
+            <span>{new Date().toISOString().split('T')[0]}</span>
           </div>
         </div>
       </footer>
