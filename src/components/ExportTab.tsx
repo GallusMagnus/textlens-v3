@@ -50,6 +50,21 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     });
   };
 
+  const formatDuration = (value?: number) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return 'Not recorded';
+    if (value < 1000) return `${Math.round(value)} ms`;
+    const seconds = value / 1000;
+    if (seconds < 60) return `${seconds.toFixed(seconds >= 10 ? 1 : 2)} s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+
+  const formatTokenCount = (value?: number) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return 'Not recorded';
+    return value.toLocaleString('en-ZA');
+  };
+
   if (!activeReport) {
     return (
       <div id="export-no-report-cta" className="bg-white border border-gray-200 rounded-lg p-12 text-center max-w-2xl mx-auto my-8 space-y-4">
@@ -74,6 +89,17 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   const analysisDateText = formatAnalysisTimestamp(activeReport.analysisTrace?.analyzedAt);
   const analysisModelText = activeReport.analysisTrace?.model || 'Not recorded';
   const sourceContextFields = getSourceContextFields(metadata);
+  const analysisTrace = activeReport.analysisTrace;
+  const hasAnalysisTrace = Boolean(analysisTrace);
+  const isPresetAnalysis = analysisTrace?.model === 'preset-case-study';
+  const analysisMetricsRows = [
+    ['Total Runtime', formatDuration(analysisTrace?.runtimeMs)],
+    ['Model Calls', typeof analysisTrace?.modelCallCount === 'number' ? String(analysisTrace.modelCallCount) : 'Not recorded'],
+    ['Input Tokens', formatTokenCount(analysisTrace?.tokenUsage?.inputTokens)],
+    ['Output Tokens', formatTokenCount(analysisTrace?.tokenUsage?.outputTokens)],
+    ['Total Tokens', formatTokenCount(analysisTrace?.tokenUsage?.totalTokens)],
+    ['AI Call Time', formatDuration(analysisTrace?.modelRuntimeMs)],
+  ];
 
   const generatePlainTextReport = () => {
     let report = "";
@@ -169,6 +195,18 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       report += `${field.label}: ${field.value}\n`;
     });
     report += "\n";
+
+    if (hasAnalysisTrace) {
+      report += "ANALYSIS METRICS\n";
+      report += "--------------------------------------------------------------------------------\n";
+      if (isPresetAnalysis) {
+        report += "Note: This report was loaded from a preset case study, so live runtime and token metrics were not recorded.\n";
+      }
+      analysisMetricsRows.forEach(([label, value]) => {
+        report += `${label}: ${value}\n`;
+      });
+      report += "\n";
+    }
 
     report += "--------------------------------------------------------------------------------\n";
     report += "End of official compliance brief.\n";
@@ -825,6 +863,46 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           currentY = valueY + 1;
         });
 
+        if (hasAnalysisTrace) {
+          checkPageOverflow(25);
+          currentY += 4;
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.setTextColor(15, 23, 42);
+          doc.text("Analysis Metrics", marginX, currentY);
+          currentY += 6;
+
+          if (isPresetAnalysis) {
+            const presetNote = doc.splitTextToSize(
+              "Note: This report was loaded from a preset case study, so live runtime and token metrics were not recorded.",
+              widthMax
+            );
+            doc.setFont('Helvetica', 'italic');
+            doc.setFontSize(8);
+            doc.setTextColor(146, 64, 14);
+            presetNote.forEach((line: string) => {
+              checkPageOverflow(5);
+              doc.text(line, marginX, currentY);
+              currentY += 4.5;
+            });
+            currentY += 1;
+          }
+
+          analysisMetricsRows.forEach(([label, value]) => {
+            checkPageOverflow(6);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`${label}:`, marginX, currentY);
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(30, 41, 59);
+            doc.text(value, marginX + 45, currentY);
+            currentY += 5;
+          });
+        }
+
         // Apply headers & footer page numbers across pages
         drawFooter();
 
@@ -1126,6 +1204,27 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             ))}
           </div>
         </div>
+
+        {hasAnalysisTrace && (
+          <div className="mt-8 break-inside-avoid">
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">Analysis Metrics</h2>
+            {isPresetAnalysis && (
+              <div className="mb-3 border border-amber-200 bg-amber-50 rounded p-3 text-xs text-amber-900 leading-relaxed">
+                This report was loaded from a preset case study, so live runtime and token metrics were not recorded.
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {analysisMetricsRows.map(([label, value]) => (
+                <div key={label} className="border border-slate-200 bg-slate-50/40 rounded p-3 break-inside-avoid">
+                  <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    {label}
+                  </div>
+                  <div className="text-slate-800">{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* PRINT FOOTER */}
         <div className="mt-12 pt-6 border-t border-slate-300 text-center text-[10px] font-mono text-slate-400">

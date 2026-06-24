@@ -124,7 +124,88 @@ export default function ReportTab({
     });
   };
 
+  const formatDuration = (value?: number) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return 'Not recorded';
+    if (value < 1000) return `${Math.round(value)} ms`;
+    const seconds = value / 1000;
+    if (seconds < 60) return `${seconds.toFixed(seconds >= 10 ? 1 : 2)} s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+
+  const formatTokenCount = (value?: number) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return 'Not recorded';
+    return value.toLocaleString('en-ZA');
+  };
+
   const sourceContextFields = getSourceContextFields(activeReport.metadata);
+  const analysisTrace = activeReport.analysisTrace;
+  const hasAnalysisTrace = Boolean(analysisTrace);
+  const isPresetAnalysis = analysisTrace?.model === 'preset-case-study';
+
+  const renderAnalysisMetricsSection = () => {
+    if (!hasAnalysisTrace || !analysisTrace) return null;
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+            <Info className="w-5 h-5 text-gray-700" />
+            <span>Analysis Metrics</span>
+          </h3>
+          <p className="text-xs text-gray-650 mt-1">
+            Runtime and token usage captured during report generation.
+          </p>
+        </div>
+        {isPresetAnalysis && (
+          <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-900 leading-relaxed">
+            This report was loaded from a preset case study, so live runtime and token metrics were not recorded.
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 text-xs">
+          <div className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              Total Runtime
+            </span>
+            <span className="text-slate-800">{formatDuration(analysisTrace.runtimeMs)}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              Model Calls
+            </span>
+            <span className="text-slate-800">
+              {typeof analysisTrace.modelCallCount === 'number' ? analysisTrace.modelCallCount : 'Not recorded'}
+            </span>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              Input Tokens
+            </span>
+            <span className="text-slate-800">{formatTokenCount(analysisTrace.tokenUsage?.inputTokens)}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              Output Tokens
+            </span>
+            <span className="text-slate-800">{formatTokenCount(analysisTrace.tokenUsage?.outputTokens)}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              Total Tokens
+            </span>
+            <span className="text-slate-800">{formatTokenCount(analysisTrace.tokenUsage?.totalTokens)}</span>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded p-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              AI Call Time
+            </span>
+            <span className="text-slate-800">{formatDuration(analysisTrace.modelRuntimeMs)}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderSourceContextSection = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
@@ -316,6 +397,7 @@ export default function ReportTab({
             </ul>
           </div>
         )}
+        {renderAnalysisMetricsSection()}
         {renderSourceContextSection()}
       </div>
     );
@@ -430,6 +512,12 @@ export default function ReportTab({
             <>
               <div><span className="text-gray-400">Analysis Date:</span> <strong className="text-gray-750 font-semibold">{formatAnalysisTimestamp(activeReport.analysisTrace.analyzedAt)}</strong></div>
               <div><span className="text-gray-400">Model:</span> <strong className="text-gray-750 font-semibold">{activeReport.analysisTrace.model}</strong></div>
+              {typeof activeReport.analysisTrace.runtimeMs === 'number' && (
+                <div><span className="text-gray-400">Runtime:</span> <strong className="text-gray-750 font-semibold">{formatDuration(activeReport.analysisTrace.runtimeMs)}</strong></div>
+              )}
+              {typeof activeReport.analysisTrace.tokenUsage?.totalTokens === 'number' && (
+                <div><span className="text-gray-400">Total Tokens:</span> <strong className="text-gray-750 font-semibold">{formatTokenCount(activeReport.analysisTrace.tokenUsage.totalTokens)}</strong></div>
+              )}
             </>
           )}
         </div>
@@ -923,6 +1011,7 @@ export default function ReportTab({
         )}
       </div>
 
+      {renderAnalysisMetricsSection()}
       {renderSourceContextSection()}
     </div>
   );

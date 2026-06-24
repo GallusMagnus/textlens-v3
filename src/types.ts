@@ -79,6 +79,14 @@ export interface HumanReviewPrompt {
 export interface AnalysisTrace {
   analyzedAt: string;
   model: string;
+  runtimeMs?: number;
+  modelCallCount?: number;
+  modelRuntimeMs?: number;
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+  };
 }
 
 export interface AnalysisReport {

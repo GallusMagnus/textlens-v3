@@ -189,10 +189,65 @@ async function startServer() {
     return process.env.TEXTLENS_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
   }
 
-  function buildAnalysisTrace() {
+  function createAnalysisTraceCollector() {
+    const state = {
+      modelCallCount: 0,
+      modelRuntimeMs: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+    };
+
+    const toSafeWholeNumber = (value: unknown) => {
+      const normalized = Number(value);
+      if (!Number.isFinite(normalized) || normalized < 0) {
+        return 0;
+      }
+      return Math.round(normalized);
+    };
+
+    return {
+      recordResponse(response: any, elapsedMs: number) {
+        state.modelCallCount += 1;
+        state.modelRuntimeMs += toSafeWholeNumber(elapsedMs);
+
+        const usage = response?.usage || {};
+        const inputTokens = toSafeWholeNumber(usage.input_tokens ?? usage.inputTokens);
+        const outputTokens = toSafeWholeNumber(usage.output_tokens ?? usage.outputTokens);
+        const totalTokens = toSafeWholeNumber(
+          usage.total_tokens ?? usage.totalTokens ?? inputTokens + outputTokens
+        );
+
+        state.inputTokens += inputTokens;
+        state.outputTokens += outputTokens;
+        state.totalTokens += totalTokens;
+      },
+      snapshot() {
+        return {
+          modelCallCount: state.modelCallCount,
+          modelRuntimeMs: state.modelRuntimeMs,
+          tokenUsage: {
+            inputTokens: state.inputTokens,
+            outputTokens: state.outputTokens,
+            totalTokens: state.totalTokens,
+          },
+        };
+      },
+    };
+  }
+
+  function buildAnalysisTrace(options?: {
+    runtimeMs?: number;
+    metrics?: ReturnType<ReturnType<typeof createAnalysisTraceCollector>["snapshot"]>;
+  }) {
     return {
       analyzedAt: new Date().toISOString(),
       model: getAnalysisModel(),
+      runtimeMs:
+        typeof options?.runtimeMs === "number" ? Math.max(0, Math.round(options.runtimeMs)) : undefined,
+      modelCallCount: options?.metrics?.modelCallCount,
+      modelRuntimeMs: options?.metrics?.modelRuntimeMs,
+      tokenUsage: options?.metrics?.tokenUsage,
     };
   }
 
@@ -227,11 +282,13 @@ async function startServer() {
     input,
     schemaName,
     schema,
+    traceCollector,
   }: {
     instructions?: string;
     input: string;
     schemaName: string;
     schema: Record<string, unknown>;
+    traceCollector?: ReturnType<typeof createAnalysisTraceCollector>;
   }): Promise<T> {
     const client = getOpenAIClient();
     const model = getAnalysisModel();
@@ -256,6 +313,7 @@ async function startServer() {
     console.log(`[TextLens] Calling OpenAI Responses API (${schemaName}) with model: ${model}`);
     const response = await client.responses.create(request);
     const elapsedMs = Date.now() - startedAt;
+    traceCollector?.recordResponse(response, elapsedMs);
     console.log(
       `[TextLens] OpenAI Responses API completed (${schemaName}) in ${(elapsedMs / 1000).toFixed(2)}s`
     );
@@ -433,6 +491,7 @@ ${truncatedText}`;
   // Master AI analysis endpoint
   app.post("/api/analyse", async (req, res) => {
     const analysisStartedAt = Date.now();
+    const analysisTraceCollector = createAnalysisTraceCollector();
     try {
       const { originalText, metadata } = req.body;
 
@@ -444,6 +503,16 @@ ${truncatedText}`;
       const selectedModeLabel = getModePolicy(selectedMode)?.label || selectedMode;
       const actualCommunicationType = metadata?.communicationType || "unspecified";
       const actualRhetoricalFunction = metadata?.rhetoricalFunction || "unspecified";
+      const generateAnalysisJson = <T,>(args: {
+        instructions?: string;
+        input: string;
+        schemaName: string;
+        schema: Record<string, unknown>;
+      }) =>
+        generateStructuredJson<T>({
+          ...args,
+          traceCollector: analysisTraceCollector,
+        });
 
       // Initialize the SDK
       try {
@@ -567,7 +636,7 @@ Return structured JSON matching the required schema exactly.`;
           ]
         };
 
-        const consumerData = await generateStructuredJson<any>({
+        const consumerData = await generateAnalysisJson<any>({
           instructions: consumerSystemInstruction,
           input: consumerPrompt,
           schemaName: "consumer_mode_analysis",
@@ -581,7 +650,10 @@ Return structured JSON matching the required schema exactly.`;
 
         return res.json({
           _mode: "consumer",
-          analysisTrace: buildAnalysisTrace(),
+          analysisTrace: buildAnalysisTrace({
+            runtimeMs: Date.now() - analysisStartedAt,
+            metrics: analysisTraceCollector.snapshot(),
+          }),
           antisemitismScore: Math.round(Math.max(0, Math.min(100, consumerData.antisemitismScore || 0))),
           antisemitismNarrative: consumerData.antisemitismNarrative || "",
           antiZionistIntensityScore: Math.round(Math.max(0, Math.min(100, consumerData.antiZionistIntensityScore || 0))),
@@ -608,11 +680,14 @@ Return structured JSON matching the required schema exactly.`;
           metadata,
           selectedMode: selectedMode as any,
           allowedTaxonomyItems: getAllowedTaxonomyItems(selectedMode),
-          generateStructuredJson,
+          generateStructuredJson: generateAnalysisJson,
         });
 
         sanitizeReport(reportData, selectedMode, originalText, metadata);
-        reportData.analysisTrace = buildAnalysisTrace();
+        reportData.analysisTrace = buildAnalysisTrace({
+          runtimeMs: Date.now() - analysisStartedAt,
+          metrics: analysisTraceCollector.snapshot(),
+        });
         return res.json(reportData);
       }
 
@@ -932,7 +1007,7 @@ Please perform the assessment and return the analysis strictly as structured JSO
         ]
       };
 
-      const reportData = await generateStructuredJson<any>({
+      const reportData = await generateAnalysisJson<any>({
         instructions: systemInstruction,
         input: prompt,
         schemaName: "textlens_analysis",
@@ -941,7 +1016,10 @@ Please perform the assessment and return the analysis strictly as structured JSO
       
       // Backend validation and safety sanitation
       sanitizeReport(reportData, selectedMode, originalText, metadata);
-      reportData.analysisTrace = buildAnalysisTrace();
+      reportData.analysisTrace = buildAnalysisTrace({
+        runtimeMs: Date.now() - analysisStartedAt,
+        metrics: analysisTraceCollector.snapshot(),
+      });
       
       // Send the raw structured response back
       res.json(reportData);

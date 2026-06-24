@@ -1474,22 +1474,21 @@ export default function AnalyseTab({
             <div className="flex items-center justify-between">
               <span className="text-indigo-700 font-bold uppercase tracking-wider flex items-center space-x-2">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>TextLens Parsing Core Loading...</span>
+                <span>TextLens Analysis In Progress...</span>
               </span>
               <span className="text-emerald-700 font-black">RUNNING ANALYSIS</span>
             </div>
             <div className="space-y-1 text-slate-600">
               <div className="flex items-center space-x-2">
                 <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping"></span>
-                <span>Calibrating core engine match schema for mode: 「{metadata.analysisMode}」...</span>
+                <span>Processing your text in {metadata.analysisMode} mode.</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping"></span>
-                <span>Parsing lexical constructs & linguistic layers...</span>
-              </div>
+              <p className="text-[10px] text-slate-500 leading-relaxed pl-[14px]">
+                This indicator shows that the request is active. Detailed analysis is continuing on the server.
+              </p>
             </div>
             <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 w-3/4 rounded-full transition-all"></div>
+              <div className="h-full bg-indigo-500 w-1/3 rounded-full animate-pulse transition-all"></div>
             </div>
           </div>
         ) : (
