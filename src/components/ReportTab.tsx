@@ -248,10 +248,6 @@ export default function ReportTab({
     ];
     return (
       <div className="space-y-6 font-sans">
-        <div className="bg-violet-50 border border-violet-200 text-violet-800 text-xs py-3 px-4 rounded-lg flex items-start space-x-2">
-          <Info className="w-4.5 h-4.5 text-violet-500 shrink-0 mt-0.5" />
-          <span><strong>Community / General Review Mode:</strong> This analysis applies an extended lens to anti-Zionist content. The Anti-Zionist Intensity score (⊹) measures political positioning — not a formal violation. All scores are analytical indicators, not legal determinations.</span>
-        </div>
         <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs">
           <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-violet-50 border border-violet-200 text-violet-700">Community / General Review Mode</span>
           <h2 className="text-xl font-bold text-gray-950 mt-1.5">{activeReport.metadata.title}</h2>
@@ -270,6 +266,10 @@ export default function ReportTab({
               <span>{isSaving ? 'Saving...' : isSaved ? 'Saved to Workspace' : 'Save Report'}</span>
             </button>
           )}
+        </div>
+        <div className="bg-violet-50 border border-violet-200 text-violet-800 text-xs py-3 px-4 rounded-lg flex items-start space-x-2">
+          <Info className="w-4.5 h-4.5 text-violet-500 shrink-0 mt-0.5" />
+          <span><strong>Community / General Review Mode:</strong> This analysis applies an extended lens to anti-Zionist content. The Anti-Zionist Intensity score (⊹) measures political positioning — not a formal violation. All scores are analytical indicators, not legal determinations.</span>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
           <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 mb-4">TextLens General Score — Four-Dimension Overview</h3>
@@ -397,8 +397,8 @@ export default function ReportTab({
             </ul>
           </div>
         )}
-        {renderAnalysisMetricsSection()}
         {renderSourceContextSection()}
+        {renderAnalysisMetricsSection()}
       </div>
     );
   }
@@ -1011,8 +1011,8 @@ export default function ReportTab({
         )}
       </div>
 
-      {renderAnalysisMetricsSection()}
       {renderSourceContextSection()}
+      {renderAnalysisMetricsSection()}
     </div>
   );
 }

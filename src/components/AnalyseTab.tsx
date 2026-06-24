@@ -1483,9 +1483,6 @@ export default function AnalyseTab({
                 <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-ping"></span>
                 <span>Processing your text in {metadata.analysisMode} mode.</span>
               </div>
-              <p className="text-[10px] text-slate-500 leading-relaxed pl-[14px]">
-                This indicator shows that the request is active. Detailed analysis is continuing on the server.
-              </p>
             </div>
             <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div className="h-full bg-indigo-500 w-1/3 rounded-full animate-pulse transition-all"></div>
