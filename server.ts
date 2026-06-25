@@ -160,6 +160,190 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
   return data;
 }
 
+function sanitizeAccountabilityReport(report: any, originalText: string) {
+  if (!report || typeof report !== "object") return report;
+
+  const ensureArray = (value: any) => Array.isArray(value) ? value : [];
+  report.claimsMadeByArticle = ensureArray(report.claimsMadeByArticle);
+  report.evidenceGivenInArticle = ensureArray(report.evidenceGivenInArticle);
+  report.missingOrQuestionableEvidence = ensureArray(report.missingOrQuestionableEvidence);
+  report.suggestedNextSteps = ensureArray(report.suggestedNextSteps);
+  report.limitsOfThisReport = ensureArray(report.limitsOfThisReport);
+
+  const validSeverity = new Set(["low", "moderate", "high", "severe"]);
+  const severityRank: Record<string, number> = {
+    low: 1,
+    moderate: 2,
+    high: 3,
+    severe: 4,
+  };
+  const normalizeSeverity = (value: any) => {
+    const normalized = String(value || "").toLowerCase();
+    return validSeverity.has(normalized) ? normalized : "moderate";
+  };
+
+  const rawClaims = report.claimsMadeByArticle.map((claim: any, index: number) => {
+    const exactQuote = typeof claim.exactQuote === "string" ? claim.exactQuote.trim() : "";
+    return {
+      originalId: claim.id || `claim-${index + 1}`,
+      exactQuote: exactQuote && originalText.includes(exactQuote) ? exactQuote : "",
+      claimSummary: claim.claimSummary || "",
+      claimType: claim.claimType || "other",
+      seriousness: normalizeSeverity(claim.seriousness),
+      whyItMatters: claim.whyItMatters || "",
+      inputOrder: index,
+    };
+  });
+
+  rawClaims.sort((a: any, b: any) => {
+    const severityDelta = severityRank[b.seriousness] - severityRank[a.seriousness];
+    if (severityDelta !== 0) return severityDelta;
+    return a.inputOrder - b.inputOrder;
+  });
+
+  const topClaims = rawClaims.slice(0, 7);
+  const claimIdMap = new Map<string, string>();
+  report.claimsMadeByArticle = topClaims.map((claim: any, index: number) => {
+    const normalizedId = `claim-${index + 1}`;
+    claimIdMap.set(claim.originalId, normalizedId);
+    return {
+      id: normalizedId,
+      exactQuote: claim.exactQuote,
+      claimSummary: claim.claimSummary,
+      claimType: claim.claimType,
+      seriousness: claim.seriousness,
+      whyItMatters: claim.whyItMatters,
+    };
+  });
+
+  const validClaimIds = new Set(report.claimsMadeByArticle.map((claim: any) => claim.id));
+  const normalizeClaimId = (value: any) => {
+    const mapped = claimIdMap.get(String(value || ""));
+    if (mapped && validClaimIds.has(mapped)) return mapped;
+    return "unlinked";
+  };
+
+  report.evidenceGivenInArticle = report.evidenceGivenInArticle.map((evidence: any) => {
+    const evidenceQuote = typeof evidence.evidenceQuote === "string" ? evidence.evidenceQuote.trim() : "";
+    return {
+      claimId: normalizeClaimId(evidence.claimId),
+      evidenceSummary: evidence.evidenceSummary || "",
+      evidenceQuote: evidenceQuote && originalText.includes(evidenceQuote) ? evidenceQuote : "",
+      sourceNamed: evidence.sourceNamed || "",
+      credibilityConcern: evidence.credibilityConcern || "",
+    };
+  }).filter((evidence: any) => evidence.claimId !== "unlinked");
+
+  report.missingOrQuestionableEvidence = report.missingOrQuestionableEvidence.map((issue: any) => ({
+    claimId: normalizeClaimId(issue.claimId),
+    whatIsMissingOrQuestionable: issue.whatIsMissingOrQuestionable || "",
+    whyItMatters: issue.whyItMatters || "",
+    whatAuthorShouldProvide: issue.whatAuthorShouldProvide || "",
+    whatYouShouldCheck: issue.whatYouShouldCheck || "",
+    seriousness: normalizeSeverity(issue.seriousness),
+  })).filter((issue: any) => issue.claimId !== "unlinked");
+
+  report.suggestedNextSteps = report.suggestedNextSteps.map((step: any) => ({
+    priority: normalizeSeverity(step.priority),
+    task: step.task || "",
+    reason: step.reason || "",
+  }));
+
+  const highestClaimSeverity = report.claimsMadeByArticle.reduce(
+    (highest: string, claim: any) =>
+      severityRank[claim.seriousness] > severityRank[highest] ? claim.seriousness : highest,
+    "low"
+  );
+  report.overallConcernLevel = normalizeSeverity(report.overallConcernLevel || highestClaimSeverity);
+
+  if (!report.antisemitismBackgroundNote) {
+    report.antisemitismBackgroundNote =
+      "Accountability Mode treats antisemitism frameworks as background only. For detailed antisemitism analysis, run the article in Community / General Review Mode.";
+  }
+
+  const normalizedLimits = new Map<string, string>();
+  const addLimit = (bucket: string, text: string) => {
+    if (!normalizedLimits.has(bucket) && text.trim()) {
+      normalizedLimits.set(bucket, text.trim());
+    }
+  };
+
+  const classifyLimit = (text: string) => {
+    const normalized = text.toLowerCase().replace(/\s+/g, " ").trim();
+
+    if (
+      normalized.includes("submitted text and metadata") ||
+      normalized.includes("does not independently verify external facts") ||
+      normalized.includes("does not independently verify outside facts") ||
+      normalized.includes("source credibility") ||
+      normalized.includes("documents, datasets")
+    ) {
+      return "scope-and-verification";
+    }
+
+    if (
+      normalized.includes("does not decide whether any claim is true or false") ||
+      normalized.includes("not final findings that a claim is false") ||
+      normalized.includes("prompts for follow-up")
+    ) {
+      return "not-final-truth-finding";
+    }
+
+    if (
+      normalized.includes("does not make legal findings") ||
+      normalized.includes("war crimes") ||
+      normalized.includes("institutional liability") ||
+      normalized.includes("defamation")
+    ) {
+      return "no-legal-findings";
+    }
+
+    if (
+      normalized.includes("opinion piece") ||
+      normalized.includes("opinion article") ||
+      normalized.includes("evaluative") ||
+      normalized.includes("opinion writing")
+    ) {
+      return "opinion-writing";
+    }
+
+    if (
+      normalized.includes("website navigation") ||
+      normalized.includes("advertisements") ||
+      normalized.includes("cookie notices") ||
+      normalized.includes("formatting artifacts")
+    ) {
+      return "source-noise";
+    }
+
+    return `custom:${normalized}`;
+  };
+
+  const mergedLimits = [
+    ...report.limitsOfThisReport,
+    "This report is based on the submitted text and metadata. It does not independently verify outside facts, documents, datasets, or source credibility.",
+    "Items listed as missing or questionable are prompts for follow-up, not final findings that a claim is false.",
+  ];
+
+  mergedLimits.forEach((limit: string) => {
+    const bucket = classifyLimit(limit || "");
+    addLimit(bucket, limit || "");
+  });
+
+  addLimit(
+    "scope-and-verification",
+    "This report is based only on the submitted text and metadata. It does not independently verify outside facts, documents, datasets, or source credibility."
+  );
+  addLimit(
+    "not-final-truth-finding",
+    "It does not make final findings that any claim is true or false. Items listed as missing or questionable are prompts for follow-up, not final determinations."
+  );
+
+  report.limitsOfThisReport = Array.from(normalizedLimits.values());
+
+  return report;
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
@@ -672,6 +856,173 @@ Return structured JSON matching the required schema exactly.`;
         });
       }
       // ── END CONSUMER MODE ─────────────────────────────────────────────────────
+
+      // ── ACCOUNTABILITY MODE: claims, evidence gaps, action steps ─────────────
+      if (selectedMode === "accountability") {
+        const accountabilitySystemInstruction = `You are TextLens operating in ACCOUNTABILITY MODE.
+
+Your job is to produce a plain-English accountability report about the submitted article or source text.
+
+What this mode does:
+- Identify important claims made by the article or author.
+- Identify what evidence the article itself gives for those claims.
+- Identify evidence that is absent, weak, questionable, potentially unreliable, or not enough to support the claim.
+- Give the TextLens user practical next steps: what you should check, and what the author or publisher should be asked to substantiate.
+- Draft a concise notice asking the author or publisher to provide sources, methods, corrections, clarifications, or supporting records.
+
+Claim selection requirements:
+- Return only the most important and actionable claims, not every arguable point.
+- Aim for 3 to 7 claims unless the text is extremely short.
+- Prioritize central factual, legal, causal, statistical, or institutional claims that matter most if unsupported.
+- Avoid repetitive, minor, or purely rhetorical claims unless they are central to the article's argument.
+- Use simple claim IDs in order: claim-1, claim-2, claim-3, and so on.
+
+Draft notice requirements:
+- Do not just list demands. Give the author or publisher a clear reason to care and respond.
+- Explain that the request is about factual accuracy, editorial transparency, reader trust, fair substantiation of serious claims, and giving the author or publisher a fair opportunity to clarify the record.
+- If appropriate, say that unanswered evidentiary questions may affect the article's credibility and may justify a correction request, editor query, public response, or further complaint.
+- Keep the tone firm but professional. Avoid empty threats, legal overstatement, or implying liability.
+- Structure the notice in this order: short opening, why the issue matters, specific claims needing support, specific documents or methods requested, requested response or correction, polite closing.
+- Use these short labels exactly on separate lines inside the notice:
+  Subject:
+  Why this matters:
+  Claims needing support:
+  Requested sources or clarification:
+  Requested response:
+- The "why the issue matters" part must be written inside the notice itself, not as a separate note to the TextLens user.
+- The notice should make clear that authors and publishers are accountable for serious factual and legal claims they choose to publish, including in opinion writing. When an article makes strong claims about deaths, crimes, discrimination, or institutional conduct, readers are entitled to know what is sourced, what is firsthand, and what is interpretive judgment.
+
+Strict limits:
+- Do not independently verify external facts. You only have the submitted text and metadata.
+- Do not say a claim is false unless the submitted text itself proves the contradiction.
+- Do not make legal findings, liability findings, or final credibility findings.
+- If evidence is quoted or cited in the article but may still be unreliable, say why it may be questionable and what should be requested to test it.
+- Every exactQuote and evidenceQuote must be copied exactly from the submitted text. If unsure, leave the quote field blank and summarize instead.
+- Use low, moderate, high, or severe for seriousness and priority.
+- Use clear, direct language. Address the TextLens user as "you" in next steps.
+- Treat antisemitism taxonomies as background only. If antisemitism or anti-Zionist framing appears important, recommend running Community / General Review Mode for a more detailed analysis of that aspect.`;
+
+        const accountabilityPrompt = `Submitted text:
+"""
+${originalText}
+"""
+
+Metadata:
+${JSON.stringify(metadata, null, 2)}
+
+Return structured JSON matching the schema exactly. Keep the language plain and useful.`;
+
+        const severityEnum = ["low", "moderate", "high", "severe"];
+        const accountabilityResponseSchema = {
+          type: Type.OBJECT,
+          properties: {
+            summary: {
+              type: Type.STRING,
+              description: "A short plain-English summary of the accountability concerns and follow-up value.",
+            },
+            overallConcernLevel: {
+              type: Type.STRING,
+              enum: severityEnum,
+              description: "The overall accountability concern level for this article.",
+            },
+            claimsMadeByArticle: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  id: { type: Type.STRING },
+                  exactQuote: { type: Type.STRING },
+                  claimSummary: { type: Type.STRING },
+                  claimType: {
+                    type: Type.STRING,
+                    enum: ["factual", "legal", "causal", "statistical", "moral accusation", "institutional accusation", "insinuation", "omission/framing", "other"],
+                  },
+                  seriousness: { type: Type.STRING, enum: severityEnum },
+                  whyItMatters: { type: Type.STRING },
+                },
+                required: ["id", "exactQuote", "claimSummary", "claimType", "seriousness", "whyItMatters"],
+              },
+            },
+            evidenceGivenInArticle: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  claimId: { type: Type.STRING },
+                  evidenceSummary: { type: Type.STRING },
+                  evidenceQuote: { type: Type.STRING },
+                  sourceNamed: { type: Type.STRING },
+                  credibilityConcern: { type: Type.STRING },
+                },
+                required: ["claimId", "evidenceSummary", "evidenceQuote", "sourceNamed", "credibilityConcern"],
+              },
+            },
+            missingOrQuestionableEvidence: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  claimId: { type: Type.STRING },
+                  whatIsMissingOrQuestionable: { type: Type.STRING },
+                  whyItMatters: { type: Type.STRING },
+                  whatAuthorShouldProvide: { type: Type.STRING },
+                  whatYouShouldCheck: { type: Type.STRING },
+                  seriousness: { type: Type.STRING, enum: severityEnum },
+                },
+                required: ["claimId", "whatIsMissingOrQuestionable", "whyItMatters", "whatAuthorShouldProvide", "whatYouShouldCheck", "seriousness"],
+              },
+            },
+            suggestedNextSteps: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  priority: { type: Type.STRING, enum: severityEnum },
+                  task: { type: Type.STRING },
+                  reason: { type: Type.STRING },
+                },
+                required: ["priority", "task", "reason"],
+              },
+            },
+            draftNoticeToAuthor: {
+              type: Type.STRING,
+              description: "A concise draft notice to the author or publisher. The notice itself must explain why the request matters, then ask them to substantiate, clarify, correct, or preserve support for contested claims.",
+            },
+            limitsOfThisReport: { type: Type.ARRAY, items: { type: Type.STRING } },
+            antisemitismBackgroundNote: { type: Type.STRING },
+          },
+          required: [
+            "summary",
+            "overallConcernLevel",
+            "claimsMadeByArticle",
+            "evidenceGivenInArticle",
+            "missingOrQuestionableEvidence",
+            "suggestedNextSteps",
+            "draftNoticeToAuthor",
+            "limitsOfThisReport",
+            "antisemitismBackgroundNote",
+          ],
+        };
+
+        const accountabilityData = await generateAnalysisJson<any>({
+          instructions: accountabilitySystemInstruction,
+          input: accountabilityPrompt,
+          schemaName: "accountability_mode_analysis",
+          schema: accountabilityResponseSchema,
+        });
+
+        sanitizeAccountabilityReport(accountabilityData, originalText);
+
+        return res.json({
+          _mode: "accountability",
+          analysisTrace: buildAnalysisTrace({
+            runtimeMs: Date.now() - analysisStartedAt,
+            metrics: analysisTraceCollector.snapshot(),
+          }),
+          accountabilityReport: accountabilityData,
+        });
+      }
+      // ── END ACCOUNTABILITY MODE ──────────────────────────────────────────────
 
       const pipelineVersion = process.env.TEXTLENS_PIPELINE_VERSION || "v2";
       if (pipelineVersion === "v2") {

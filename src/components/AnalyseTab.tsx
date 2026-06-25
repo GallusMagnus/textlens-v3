@@ -563,7 +563,7 @@ export default function AnalyseTab({
             id: 'professional-family',
             title: 'Professional Modes',
             summary: 'For standards-based review in specialist, institutional, media and regulatory contexts.',
-            modes: ['general', 'healthcare', 'academic', 'bccsa', 'press_code'] as const
+            modes: ['general', 'healthcare', 'academic', 'bccsa', 'press_code', 'accountability'] as const
           }
         ] as const).map((family) => (
           <div key={family.id} className="space-y-3">
@@ -594,6 +594,7 @@ export default function AnalyseTab({
               title: '',
               desc: '',
               badgeColor: '',
+              badgeLabel: '',
               activeBorderClass: '',
               activeTextClass: '',
             };
@@ -603,6 +604,7 @@ export default function AnalyseTab({
                 title: 'Community / General Review Mode',
                 desc: 'Community monitoring, scoring and response triage',
                 badgeColor: 'bg-indigo-50 text-indigo-850',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: `${sharedActiveTextClass} font-semibold`
               };
@@ -611,6 +613,7 @@ export default function AnalyseTab({
                 title: 'Consensus Standards Mode',
                 desc: 'Core antisemitism frameworks with stronger guardrails',
                 badgeColor: 'bg-slate-100 text-slate-850',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -619,6 +622,7 @@ export default function AnalyseTab({
                 title: 'Healthcare Publishing Mode',
                 desc: 'Healthcare publication ethics, rhetoric and conflict terminology',
                 badgeColor: 'bg-emerald-50 text-emerald-800',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -627,6 +631,7 @@ export default function AnalyseTab({
                 title: 'Academic/University Mode',
                 desc: 'Academic freedom, institutional standards and evidence handling',
                 badgeColor: 'bg-blue-50 text-blue-800',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -635,6 +640,7 @@ export default function AnalyseTab({
                 title: 'BCCSA Mode',
                 desc: 'South African broadcast standards and complaint support',
                 badgeColor: 'bg-indigo-50 text-indigo-850',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -643,6 +649,16 @@ export default function AnalyseTab({
                 title: 'Press Code Mode',
                 desc: 'South African press standards for news and comment',
                 badgeColor: 'bg-amber-50 text-amber-850',
+                badgeLabel: '',
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
+              };
+            } else if (mode === 'accountability') {
+              modeDetails = {
+                title: 'Accountability Mode',
+                desc: 'Claims, evidence gaps, action steps',
+                badgeColor: 'bg-rose-50 text-rose-700 border border-rose-200',
+                badgeLabel: 'Beta',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -671,11 +687,18 @@ export default function AnalyseTab({
                     <span className={isActive ? modeDetails.activeTextClass : 'text-xs text-slate-900 block font-mono font-semibold'}>
                       {modeDetails.title}
                     </span>
-                    {isActive && (
-                      <span className="text-[8px] uppercase tracking-wider font-mono font-bold bg-slate-950 text-white px-1.5 py-0.5 rounded scale-90">
-                        Active
-                      </span>
-                    )}
+                    <span className="flex items-center gap-1.5">
+                      {modeDetails.badgeLabel && (
+                        <span className={`text-[8px] uppercase tracking-wider font-mono font-bold px-1.5 py-0.5 rounded scale-90 ${modeDetails.badgeColor}`}>
+                          {modeDetails.badgeLabel}
+                        </span>
+                      )}
+                      {isActive && (
+                        <span className="text-[8px] uppercase tracking-wider font-mono font-bold bg-slate-950 text-white px-1.5 py-0.5 rounded scale-90">
+                          Active
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <span className="text-[10px] text-slate-500 block leading-tight mt-1">
                     {modeDetails.desc}

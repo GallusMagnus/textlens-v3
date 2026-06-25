@@ -6,7 +6,7 @@ export interface TextLensMetadata {
   url: string;
   textType: string;
   jurisdiction: string;
-  analysisMode: 'general' | 'healthcare' | 'academic' | 'bccsa' | 'press_code' | 'consumer';
+  analysisMode: 'general' | 'healthcare' | 'academic' | 'bccsa' | 'press_code' | 'consumer' | 'accountability';
   communicationType?: string;
   rhetoricalFunction?: string;
 
@@ -89,6 +89,52 @@ export interface AnalysisTrace {
   };
 }
 
+export type AccountabilitySeverity = 'low' | 'moderate' | 'high' | 'severe';
+
+export interface AccountabilityClaim {
+  id: string;
+  exactQuote: string;
+  claimSummary: string;
+  claimType: string;
+  seriousness: AccountabilitySeverity;
+  whyItMatters: string;
+}
+
+export interface AccountabilityEvidence {
+  claimId: string;
+  evidenceSummary: string;
+  evidenceQuote: string;
+  sourceNamed: string;
+  credibilityConcern: string;
+}
+
+export interface AccountabilityEvidenceIssue {
+  claimId: string;
+  whatIsMissingOrQuestionable: string;
+  whyItMatters: string;
+  whatAuthorShouldProvide: string;
+  whatYouShouldCheck: string;
+  seriousness: AccountabilitySeverity;
+}
+
+export interface AccountabilityNextStep {
+  priority: AccountabilitySeverity;
+  task: string;
+  reason: string;
+}
+
+export interface AccountabilityReport {
+  summary: string;
+  overallConcernLevel: AccountabilitySeverity;
+  claimsMadeByArticle: AccountabilityClaim[];
+  evidenceGivenInArticle: AccountabilityEvidence[];
+  missingOrQuestionableEvidence: AccountabilityEvidenceIssue[];
+  suggestedNextSteps: AccountabilityNextStep[];
+  draftNoticeToAuthor: string;
+  limitsOfThisReport: string[];
+  antisemitismBackgroundNote: string;
+}
+
 export interface AnalysisReport {
   id: string;
   name: string;
@@ -125,6 +171,7 @@ export interface AnalysisReport {
   limitations?: string[];
   suggestedComplaintOrResponse?: string;
   analysisTrace?: AnalysisTrace;
+  accountabilityReport?: AccountabilityReport;
 
   // Consumer Mode scores
   consumerScores?: {

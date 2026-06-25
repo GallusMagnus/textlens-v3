@@ -101,7 +101,107 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     ['AI Call Time', formatDuration(analysisTrace?.modelRuntimeMs)],
   ];
 
+  const formatAccountabilityClaimRef = (claimId?: string) => {
+    const match = String(claimId || '').match(/^claim-(\d+)$/i);
+    if (match) return `Claim ${match[1]}`;
+    return 'General / Unlinked';
+  };
+
   const generatePlainTextReport = () => {
+    if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
+      const accountability = activeReport.accountabilityReport;
+      const accountabilityConcern = accountability.overallConcernLevel || activeReport.overallConcernLevel || 'moderate';
+      let report = "";
+      report += "================================================================================\n";
+      report += "                            TEXTLENS ACCOUNTABILITY MODE\n";
+      report += "                         Claims, Evidence Gaps, Action Steps\n";
+      report += "================================================================================\n";
+      report += `Case Reference ID: #${activeReport.id.toUpperCase()}\n`;
+      report += `Analysis Date:     ${analysisDateText}\n`;
+      report += `Model:             ${analysisModelText}\n\n`;
+
+      report += "DOCUMENT METADATA\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `Title:        ${metadata.title}\n`;
+      report += `Author:       ${metadata.author || "Unknown Author"}\n`;
+      report += `Platform:     ${metadata.platform || "Uploaded Document"}\n`;
+      report += `Date:         ${metadata.date || "Unknown Date"}\n`;
+      report += `Text Type:    ${metadata.textType || "Not specified"}\n`;
+      report += `Concern:      ${accountabilityConcern.toUpperCase()}\n\n`;
+
+      report += "SUMMARY\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${accountability.summary}\n\n`;
+
+      report += "CLAIMS MADE BY THIS ARTICLE\n";
+      report += "--------------------------------------------------------------------------------\n";
+      accountability.claimsMadeByArticle.forEach((claim, index) => {
+        report += `${index + 1}. ${claim.claimSummary}\n`;
+        report += `   Reference: ${formatAccountabilityClaimRef(claim.id)}\n`;
+        report += `   Type: ${claim.claimType}\n`;
+        report += `   Seriousness: ${claim.seriousness}\n`;
+        if (claim.exactQuote) report += `   Quote: "${claim.exactQuote}"\n`;
+        report += `   Why it matters: ${claim.whyItMatters}\n\n`;
+      });
+
+      report += "EVIDENCE GIVEN IN THE ARTICLE\n";
+      report += "--------------------------------------------------------------------------------\n";
+      accountability.evidenceGivenInArticle.forEach((item, index) => {
+        report += `${index + 1}. Linked claim: ${formatAccountabilityClaimRef(item.claimId)}\n`;
+        report += `   Evidence: ${item.evidenceSummary}\n`;
+        if (item.evidenceQuote) report += `   Quote: "${item.evidenceQuote}"\n`;
+        report += `   Source named: ${item.sourceNamed || "Not clearly named"}\n`;
+        report += `   Credibility note: ${item.credibilityConcern || "None stated"}\n\n`;
+      });
+
+      report += "MISSING OR QUESTIONABLE EVIDENCE\n";
+      report += "--------------------------------------------------------------------------------\n";
+      accountability.missingOrQuestionableEvidence.forEach((issue, index) => {
+        report += `${index + 1}. Linked claim: ${formatAccountabilityClaimRef(issue.claimId)}\n`;
+        report += `   Seriousness: ${issue.seriousness}\n`;
+        report += `   Issue: ${issue.whatIsMissingOrQuestionable}\n`;
+        report += `   Why it matters: ${issue.whyItMatters}\n`;
+        report += `   Ask the author to provide: ${issue.whatAuthorShouldProvide}\n`;
+        report += `   You should check: ${issue.whatYouShouldCheck}\n\n`;
+      });
+
+      report += "SUGGESTED NEXT STEPS\n";
+      report += "--------------------------------------------------------------------------------\n";
+      accountability.suggestedNextSteps.forEach((step, index) => {
+        report += `${index + 1}. [${step.priority}] ${step.task}\n`;
+        report += `   Reason: ${step.reason}\n\n`;
+      });
+
+      report += "DRAFT NOTICE TO THE AUTHOR\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${accountability.draftNoticeToAuthor}\n\n`;
+
+      report += "LIMITS OF THIS REPORT\n";
+      report += "--------------------------------------------------------------------------------\n";
+      [...accountability.limitsOfThisReport, accountability.antisemitismBackgroundNote].filter(Boolean).forEach((limit) => {
+        report += `- ${limit}\n`;
+      });
+      report += "\n";
+
+      report += "SOURCE & CONTEXT RECORD\n";
+      report += "--------------------------------------------------------------------------------\n";
+      sourceContextFields.forEach((field) => {
+        report += `${field.label}: ${field.value}\n`;
+      });
+      report += "\n";
+
+      if (hasAnalysisTrace) {
+        report += "ANALYSIS METRICS\n";
+        report += "--------------------------------------------------------------------------------\n";
+        analysisMetricsRows.forEach(([label, value]) => {
+          report += `${label}: ${value}\n`;
+        });
+        report += "\n";
+      }
+
+      return report;
+    }
+
     let report = "";
     report += "================================================================================\n";
     report += "                        TEXTLENS COMPLIANCE AUDIT PLATFORM\n";
@@ -224,6 +324,74 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     const rows = [
       ["Audit Item Type", "Document Clause/Ref", "Text Snippet or Flawed Claim", "Detected Category / Pattern", "Severity / Confident Metric", "Assessment & Reasoning Analysis"]
     ];
+
+    if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
+      const accountability = activeReport.accountabilityReport;
+      const accountabilityConcern = accountability.overallConcernLevel || activeReport.overallConcernLevel || 'moderate';
+      rows.push([
+        "METADATA",
+        "Case ID: " + activeReport.id,
+        activeReport.metadata.title,
+        activeReport.metadata.platform,
+        "Concern: " + accountabilityConcern,
+        "Author: " + (activeReport.metadata.author || 'Unknown')
+      ]);
+
+      accountability.claimsMadeByArticle.forEach((claim) => {
+        rows.push([
+          "Claim Made By Article",
+          formatAccountabilityClaimRef(claim.id),
+          claim.exactQuote || claim.claimSummary,
+          claim.claimType,
+          claim.seriousness,
+          `${claim.claimSummary} | Why it matters: ${claim.whyItMatters}`
+        ]);
+      });
+
+      accountability.evidenceGivenInArticle.forEach((item) => {
+        rows.push([
+          "Evidence Given In Article",
+          formatAccountabilityClaimRef(item.claimId),
+          item.evidenceQuote || item.evidenceSummary,
+          item.sourceNamed || "Not clearly named",
+          "Evidence record",
+          `${item.evidenceSummary} | Credibility note: ${item.credibilityConcern || "None stated"}`
+        ]);
+      });
+
+      accountability.missingOrQuestionableEvidence.forEach((issue) => {
+        rows.push([
+          "Missing Or Questionable Evidence",
+          formatAccountabilityClaimRef(issue.claimId),
+          issue.whatIsMissingOrQuestionable,
+          "Evidence gap / credibility issue",
+          issue.seriousness,
+          `Why it matters: ${issue.whyItMatters} | Ask author: ${issue.whatAuthorShouldProvide} | You check: ${issue.whatYouShouldCheck}`
+        ]);
+      });
+
+      accountability.suggestedNextSteps.forEach((step, index) => {
+        rows.push([
+          "Suggested Next Step",
+          `Step ${index + 1}`,
+          step.task,
+          "Action",
+          step.priority,
+          step.reason
+        ]);
+      });
+
+      rows.push([
+        "Draft Notice To Author",
+        "Notice",
+        accountability.draftNoticeToAuthor,
+        "Draft correspondence",
+        "N/A",
+        "Use as a starting point for a substantiation or correction request."
+      ]);
+
+      return rows.map(r => r.map(escapeCsvCell).join(',')).join('\n');
+    }
 
     // Add metadata row
     rows.push([
@@ -395,6 +563,148 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         // Draw header on original first page
         drawHeader();
+
+        if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
+          const accountability = activeReport.accountabilityReport;
+          const accountabilityConcern = accountability.overallConcernLevel || activeReport.overallConcernLevel || 'moderate';
+
+          const addHeading = (heading: string) => {
+            checkPageOverflow(12);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(heading, marginX, currentY);
+            currentY += 6;
+          };
+
+          const addParagraph = (text: string, options?: { italic?: boolean; indent?: number }) => {
+            const indent = options?.indent || 0;
+            const lines = doc.splitTextToSize(text || "Not recorded.", widthMax - indent);
+            doc.setFont('Helvetica', options?.italic ? 'italic' : 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(51, 65, 85);
+            lines.forEach((line: string) => {
+              checkPageOverflow(5);
+              doc.text(line, marginX + indent, currentY);
+              currentY += 4.8;
+            });
+          };
+
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(18);
+          doc.setTextColor(30, 41, 59);
+          doc.text(doc.splitTextToSize(metadata.title || "Accountability Report", widthMax), marginX, currentY);
+          currentY += 14;
+
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139);
+          doc.text("ACCOUNTABILITY MODE • BETA", marginX, currentY);
+          currentY += 7;
+
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(226, 232, 240);
+          doc.rect(marginX, currentY, widthMax, 34, 'FD');
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(71, 85, 105);
+          doc.text("Author:", marginX + 4, currentY + 7);
+          doc.text("Platform:", marginX + 4, currentY + 13);
+          doc.text("Publication Date:", marginX + 4, currentY + 19);
+          doc.text("Analysis Date:", marginX + 4, currentY + 25);
+          doc.text("Concern:", pageWidth - marginX - 45, currentY + 7);
+          doc.setFont('Helvetica', 'normal');
+          doc.setTextColor(30, 41, 59);
+          doc.text(metadata.author || "Unknown author", marginX + 38, currentY + 7);
+          doc.text(metadata.platform || "Uploaded document", marginX + 38, currentY + 13);
+          doc.text(metadata.date || "Undated", marginX + 38, currentY + 19);
+          doc.text(analysisDateText, marginX + 38, currentY + 25);
+          doc.text(accountabilityConcern.toUpperCase(), pageWidth - marginX - 45, currentY + 13);
+          currentY += 44;
+
+          addHeading("Summary");
+          addParagraph(accountability.summary);
+          currentY += 5;
+
+          addHeading("Claims Made By This Article");
+          accountability.claimsMadeByArticle.forEach((claim, index) => {
+            checkPageOverflow(20);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(15, 23, 42);
+            doc.text(`${index + 1}. ${claim.claimSummary}`, marginX, currentY);
+            currentY += 5;
+            addParagraph(`Reference: ${formatAccountabilityClaimRef(claim.id)} | Type: ${claim.claimType} | Seriousness: ${claim.seriousness}`, { indent: 4 });
+            if (claim.exactQuote) addParagraph(`"${claim.exactQuote}"`, { italic: true, indent: 4 });
+            addParagraph(`Why it matters: ${claim.whyItMatters}`, { indent: 4 });
+            currentY += 3;
+          });
+
+          addHeading("Evidence Given In The Article");
+          accountability.evidenceGivenInArticle.forEach((item, index) => {
+            checkPageOverflow(18);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(15, 23, 42);
+            doc.text(`${index + 1}. Linked claim: ${formatAccountabilityClaimRef(item.claimId)}`, marginX, currentY);
+            currentY += 5;
+            addParagraph(item.evidenceSummary, { indent: 4 });
+            if (item.evidenceQuote) addParagraph(`"${item.evidenceQuote}"`, { italic: true, indent: 4 });
+            addParagraph(`Source named: ${item.sourceNamed || "Not clearly named"}`, { indent: 4 });
+            addParagraph(`Credibility note: ${item.credibilityConcern || "None stated"}`, { indent: 4 });
+            currentY += 3;
+          });
+
+          addHeading("Missing Or Questionable Evidence");
+          accountability.missingOrQuestionableEvidence.forEach((issue, index) => {
+            checkPageOverflow(22);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(15, 23, 42);
+            doc.text(`${index + 1}. Linked claim: ${formatAccountabilityClaimRef(issue.claimId)} | ${issue.seriousness}`, marginX, currentY);
+            currentY += 5;
+            addParagraph(issue.whatIsMissingOrQuestionable, { indent: 4 });
+            addParagraph(`Why it matters: ${issue.whyItMatters}`, { indent: 4 });
+            addParagraph(`Ask the author to provide: ${issue.whatAuthorShouldProvide}`, { indent: 4 });
+            addParagraph(`You should check: ${issue.whatYouShouldCheck}`, { indent: 4 });
+            currentY += 3;
+          });
+
+          addHeading("Suggested Next Steps");
+          accountability.suggestedNextSteps.forEach((step, index) => {
+            addParagraph(`${index + 1}. [${step.priority}] ${step.task}`);
+            addParagraph(`Reason: ${step.reason}`, { indent: 4 });
+            currentY += 2;
+          });
+
+          addHeading("Draft Notice To The Author");
+          addParagraph(accountability.draftNoticeToAuthor);
+          currentY += 5;
+
+          addHeading("Limits Of This Report");
+          [...accountability.limitsOfThisReport, accountability.antisemitismBackgroundNote].filter(Boolean).forEach((limit) => {
+            addParagraph(`- ${limit}`);
+          });
+          currentY += 5;
+
+          addHeading("Source & Context Record");
+          sourceContextFields.forEach((field) => {
+            addParagraph(`${field.label}: ${field.value}`);
+          });
+
+          if (hasAnalysisTrace) {
+            currentY += 5;
+            addHeading("Analysis Metrics");
+            analysisMetricsRows.forEach(([label, value]) => {
+              addParagraph(`${label}: ${value}`);
+            });
+          }
+
+          drawFooter();
+          const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
+          doc.save(`textlens_accountability_report_${normalizedTitle || 'brief'}.pdf`);
+          setExportSuccess(prev => ({ ...prev, pdf: true }));
+          return;
+        }
 
         // 1. Doc Title Banner
         doc.setFont('Helvetica', 'bold');

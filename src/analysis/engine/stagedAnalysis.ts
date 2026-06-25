@@ -1109,7 +1109,9 @@ Rules:
 - When naming the analysis mode in prose, use this exact user-facing label: "${modeLabel}".
 - Make clear that TextLens is an analytical aid rather than a legal or regulatory adjudicator.
 - Human review prompts should be concrete and useful.
-- The draft response should be professionally toned and proportional to the findings.`;
+- The draft response should be professionally toned and proportional to the findings.
+- The draft response must not just list objections or demands. It should briefly explain why the author, editor, publisher, or institution has a reason to care: factual accuracy, editorial standards, public trust, fair treatment of serious claims, and the opportunity to clarify or correct the record.
+- If requesting substantiation, make the request practical and specific. Avoid empty threats, legal overstatement, or implying that TextLens has made a final adjudication.`;
 
   return generateStructuredJson<SynthesisResponse>({
     instructions,

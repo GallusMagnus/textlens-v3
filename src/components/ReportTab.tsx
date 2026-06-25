@@ -97,7 +97,7 @@ export default function ReportTab({
         <Layers2 className="w-12 h-12 text-gray-400 mx-auto" />
         <h3 className="text-lg font-semibold text-gray-950">No Analysis Conducted Yet</h3>
         <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
-          Please select a preset case study or enter a text in the <strong>Analyse Text</strong> tab to run the multi-layer diagnostic engine and compile a compliant report with regulatory response drafts.
+          Run an analysis in the <strong>Analysis</strong> tab to generate a report.
         </p>
         <button
           id="navigate-to-analyse-btn"
@@ -455,6 +455,199 @@ export default function ReportTab({
       default: return 'border-l-gray-300';
     }
   };
+
+  const getAccountabilitySeverityClass = (severity?: string) => {
+    switch ((severity || '').toLowerCase()) {
+      case 'severe':
+        return 'bg-red-50 text-red-700 border-red-200';
+      case 'high':
+        return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'moderate':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      default:
+        return 'bg-slate-50 text-slate-600 border-slate-200';
+    }
+  };
+
+  const formatAccountabilityClaimRef = (claimId?: string) => {
+    const match = String(claimId || "").match(/^claim-(\d+)$/i);
+    if (match) return `Claim ${match[1]}`;
+    return "General / Unlinked";
+  };
+
+  if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
+    const accountability = activeReport.accountabilityReport;
+    const accountabilityConcern = accountability.overallConcernLevel || activeReport.overallConcernLevel || 'moderate';
+    const limits = [
+      ...accountability.limitsOfThisReport,
+      accountability.antisemitismBackgroundNote
+    ].filter(Boolean);
+
+    return (
+      <div className="space-y-6 font-sans">
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-slate-950 text-white">Accountability Mode</span>
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">Beta</span>
+              <span className="text-xs text-gray-400 font-mono">ID: {activeReport.id}</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-950 mt-1.5">{metadata.title || 'Accountability Report'}</h2>
+            <p className="text-xs text-gray-500 mt-1 font-mono">
+              Source: <strong className="text-gray-700">{metadata.author || 'Unknown author'}</strong> on <strong className="text-gray-700">{metadata.platform || 'Uploaded document'}</strong> ({metadata.date || 'Undated'})
+            </p>
+            {activeReport.analysisTrace && (
+              <p className="text-[11px] text-slate-500 mt-1 font-mono">
+                Analysis date: <strong className="text-slate-700">{formatAnalysisTimestamp(activeReport.analysisTrace.analyzedAt)}</strong>
+                {" · "}
+                Model: <strong className="text-slate-700">{activeReport.analysisTrace.model}</strong>
+              </p>
+            )}
+            {onSaveReport && (
+              <button type="button" onClick={onSaveReport} disabled={isSaving || isSaved}
+                className={`mt-3 px-3 py-1.5 text-[11px] font-semibold rounded border font-mono flex items-center space-x-1.5 transition-all shadow-3xs cursor-pointer ${isSaved ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+                <FileText className={`w-3.5 h-3.5 ${isSaved ? 'text-emerald-600' : 'text-slate-500'}`} />
+                <span>{isSaving ? 'Saving...' : isSaved ? 'Saved to Workspace' : 'Save Report'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+          <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 flex items-center space-x-2">
+            <ShieldAlert className="w-4 h-4" />
+            <span>Accountability Summary</span>
+          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Overall Accountability Concern</span>
+            <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getAccountabilitySeverityClass(accountabilityConcern)}`}>
+              {accountabilityConcern}
+            </span>
+          </div>
+          <p className="text-sm text-slate-700 leading-relaxed">{accountability.summary}</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-semibold text-gray-950">Claims Made By This Article</h3>
+          <div className="space-y-3">
+            {accountability.claimsMadeByArticle.length > 0 ? accountability.claimsMadeByArticle.map((claim) => (
+              <div key={claim.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50/30 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">{formatAccountabilityClaimRef(claim.id)}</span>
+                  <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getAccountabilitySeverityClass(claim.seriousness)}`}>{claim.seriousness}</span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-500">{claim.claimType}</span>
+                </div>
+                {claim.exactQuote && <p className="text-sm font-serif italic text-slate-800 border-l-2 border-slate-300 pl-3">"{claim.exactQuote}"</p>}
+                <p className="text-sm text-slate-800 font-medium">{claim.claimSummary}</p>
+                <p className="text-xs text-slate-600 leading-relaxed">{claim.whyItMatters}</p>
+              </div>
+            )) : <p className="text-xs text-slate-500 italic">No major claims were extracted.</p>}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-semibold text-gray-950">Evidence Given In The Article</h3>
+          <div className="space-y-3">
+            {accountability.evidenceGivenInArticle.length > 0 ? accountability.evidenceGivenInArticle.map((item, index) => (
+              <div key={`${item.claimId}-${index}`} className="border border-slate-200 rounded-lg p-4 bg-white space-y-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Linked claim: {formatAccountabilityClaimRef(item.claimId)}</span>
+                <p className="text-sm text-slate-800">{item.evidenceSummary}</p>
+                {item.evidenceQuote && <p className="text-xs font-serif italic text-slate-700 border-l-2 border-emerald-300 pl-3">"{item.evidenceQuote}"</p>}
+                <p className="text-xs text-slate-600"><strong>Source named:</strong> {item.sourceNamed || 'Not clearly named'}</p>
+                {item.credibilityConcern && <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded p-2"><strong>Credibility note:</strong> {item.credibilityConcern}</p>}
+              </div>
+            )) : <p className="text-xs text-slate-500 italic">The article does not give clear supporting evidence for the extracted claims.</p>}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-semibold text-gray-950">Missing Or Questionable Evidence</h3>
+          <div className="space-y-3">
+            {accountability.missingOrQuestionableEvidence.length > 0 ? accountability.missingOrQuestionableEvidence.map((issue, index) => (
+              <div key={`${issue.claimId}-${index}`} className="border border-slate-200 rounded-lg p-4 bg-slate-50/30 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Linked claim: {formatAccountabilityClaimRef(issue.claimId)}</span>
+                  <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getAccountabilitySeverityClass(issue.seriousness)}`}>{issue.seriousness}</span>
+                </div>
+                <p className="text-sm text-slate-800 font-medium">{issue.whatIsMissingOrQuestionable}</p>
+                <p className="text-xs text-slate-600 leading-relaxed">{issue.whyItMatters}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div className="bg-white border border-slate-200 rounded p-3">
+                    <span className="font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">Ask the author to provide</span>
+                    <span className="text-slate-700 leading-relaxed">{issue.whatAuthorShouldProvide}</span>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded p-3">
+                    <span className="font-mono font-bold uppercase tracking-wider text-slate-400 block mb-1">You should check</span>
+                    <span className="text-slate-700 leading-relaxed">{issue.whatYouShouldCheck}</span>
+                  </div>
+                </div>
+              </div>
+            )) : <p className="text-xs text-slate-500 italic">No missing or questionable evidence items were generated.</p>}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-semibold text-gray-950">Suggested Next Steps</h3>
+          <div className="space-y-2">
+            {accountability.suggestedNextSteps.length > 0 ? accountability.suggestedNextSteps.map((step, index) => (
+              <div key={`${step.task}-${index}`} className="flex gap-3 border border-slate-200 rounded p-3 bg-white">
+                <span className="text-[10px] font-mono font-bold text-slate-400 shrink-0 pt-0.5">{index + 1}.</span>
+                <div className="space-y-1">
+                  <span className={`inline-block text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${getAccountabilitySeverityClass(step.priority)}`}>{step.priority}</span>
+                  <p className="text-sm text-slate-800 font-medium">{step.task}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed">{step.reason}</p>
+                </div>
+              </div>
+            )) : <p className="text-xs text-slate-500 italic">No next steps were generated.</p>}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
+          <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-gray-700" />
+              <span>Draft Notice To The Author</span>
+            </h3>
+            {accountability.draftNoticeToAuthor && (
+              <button
+                type="button"
+                onClick={() => handleCopyToClipboard(accountability.draftNoticeToAuthor, "accountability-draft")}
+                className="px-3 py-1 text-xs font-semibold rounded border border-slate-200 text-slate-700 hover:bg-slate-50 font-mono flex items-center space-x-1.5 transition-all shadow-3xs cursor-pointer"
+              >
+                {copyState["accountability-draft"] ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-700">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Clipboard className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Copy Notice</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <div className="bg-slate-50 border border-gray-200 rounded p-4 font-mono text-xs text-slate-800 leading-relaxed whitespace-pre-wrap select-all">
+            {accountability.draftNoticeToAuthor || 'No draft notice was generated.'}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
+          <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+            <Info className="w-5 h-5 text-gray-700" />
+            <span>Limits Of This Report</span>
+          </h3>
+          <ul className="list-disc pl-4 text-xs text-slate-600 space-y-1 leading-relaxed">
+            {limits.map((limit, index) => <li key={index}>{limit}</li>)}
+          </ul>
+        </div>
+
+        {renderSourceContextSection()}
+        {renderAnalysisMetricsSection()}
+      </div>
+    );
+  }
 
   const triggeredStandards = standardsList.filter(s =>
     flaggedPassages.some(f => f.standardsApplied.some(sa => sa.standardId === s.id))

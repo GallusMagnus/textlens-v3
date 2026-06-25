@@ -162,6 +162,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
                   <option value="academic">Academic/University Mode</option>
                   <option value="bccsa">BCCSA Mode</option>
                   <option value="press_code">Press Code Mode</option>
+                  <option value="accountability">Accountability Mode (Beta)</option>
                 </select>
               </div>
 

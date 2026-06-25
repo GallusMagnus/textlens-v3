@@ -283,6 +283,33 @@ export default function App() {
       };
     }
 
+    if (data._mode === "accountability") {
+      const accountabilityReport = data.accountabilityReport || {};
+      const draftNotice = accountabilityReport.draftNoticeToAuthor || "";
+
+      return {
+        id: data.id || `ai-${Date.now()}`,
+        name: meta.title || 'Accountability Report',
+        metadata: { ...meta },
+        originalText: origText,
+        summaryJudgement: accountabilityReport.summary || "No summary provided.",
+        flaggedPassages: [],
+        evidentiaryIssues: [],
+        standardsMentioned: [],
+        humanReviewPrompts: [],
+        suggestedComplaintLanguage: {
+          formalLetter: draftNotice,
+          pressReleaseSummary: "Accountability Mode does not generate a press release summary.",
+          publicCorrectionRequest: draftNotice
+        },
+        suggestedComplaintOrResponse: draftNotice,
+        analysisTrace: data.analysisTrace,
+        overallConcernLevel: accountabilityReport.overallConcernLevel,
+        limitations: accountabilityReport.limitsOfThisReport || [],
+        accountabilityReport
+      };
+    }
+
     const formalText = data.suggestedComplaintOrResponse || "";
 
     return {

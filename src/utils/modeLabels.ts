@@ -12,6 +12,8 @@ export function getAnalysisModeLabel(mode?: string) {
       return 'BCCSA Mode';
     case 'press_code':
       return 'Press Code Mode';
+    case 'accountability':
+      return 'Accountability Mode';
     default:
       return mode || 'Unspecified Mode';
   }
