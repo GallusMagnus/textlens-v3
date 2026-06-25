@@ -71,7 +71,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         <FolderSync className="w-12 h-12 text-gray-400 mx-auto" />
         <h3 className="text-lg font-semibold text-gray-950">No Document Available to Export</h3>
         <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
-          Please select a preset case study or analyze a custom text in the <strong>Analyse Text</strong> tab to unlock export features.
+          Run an analysis in the <strong>Analysis</strong> tab to enable exports.
         </p>
         <button
           id="export-navigate-analyse-btn"
