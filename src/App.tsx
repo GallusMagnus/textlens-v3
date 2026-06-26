@@ -7,7 +7,6 @@ import {
   FolderUp,
   Fingerprint,
   Cpu,
-  Lock,
   ShieldCheck,
   AlertCircle,
   BookOpen,
@@ -30,6 +29,7 @@ import MethodsTab from './components/MethodsTab';
 import ExportTab from './components/ExportTab';
 
 import { saveUserReport, listUserReports } from './lib/reportsService';
+import textLensLogo from './textlens_icon_true_transparent_clean.png';
 
 type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export';
 
@@ -470,22 +470,26 @@ export default function App() {
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-[0_12px_40px_-10px_rgba(79,70,229,0.08),0_1px_3px_rgba(0,0,0,0.01)] p-8 space-y-6 transition-all duration-300">
           <div className="flex flex-col items-center text-center space-y-4">
             
-            {/* Logo Graphic in Lock screen */}
-            <div className="relative p-4 bg-indigo-50/50 rounded-full border border-indigo-100/60 shadow-3xs">
-              <Lock className="w-8 h-8 text-indigo-600 animate-pulse" />
+            {/* TextLens logo in lock screen */}
+            <div className="relative rounded-full border border-indigo-100/60 bg-white p-3 shadow-3xs">
+              <img
+                src={textLensLogo}
+                alt="TextLens logo"
+                className="h-20 w-20 select-none object-contain"
+              />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white animate-ping"></div>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>
             </div>
 
             <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-slate-950 font-display">TextLens Workspace Locked</h1>
+              <h1 className="text-xl font-extrabold tracking-tight text-slate-950 font-display">Unlock TextLens</h1>
             </div>
           </div>
 
           <form onSubmit={handleUnlock} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="workspace-passcode" className="text-[11px] font-bold font-mono text-indigo-850 uppercase tracking-wider block">
-                Workspace Passcode
+                Passcode
               </label>
               <div className="relative rounded-lg shadow-3xs">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -527,12 +531,12 @@ export default function App() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Authenticating Node...</span>
+                  <span>Unlocking...</span>
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Decrypt Workspace</span>
+                  <span>Unlock</span>
                 </>
               )}
             </button>
@@ -541,9 +545,9 @@ export default function App() {
           <div className="border-t border-slate-100 pt-4.5 flex items-center justify-between text-[10px] font-mono text-slate-400">
             <span className="flex items-center space-x-1">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-              <span>Secure Shell API v1</span>
+              <span>Secure local access</span>
             </span>
-            <span>Ref: {new Date().toISOString().split('T')[0]}</span>
+            <span>{new Date().toISOString().split('T')[0]}</span>
           </div>
         </div>
       </div>
