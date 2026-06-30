@@ -17,7 +17,13 @@ import {
 
 import { downloadUserGuide } from './utils/userGuide';
 
-import { TextLensMetadata, AnalysisReport } from './types';
+import {
+  TextLensMetadata,
+  AnalysisReport,
+  AccountabilityResponseBasis,
+  AccountabilityResponseGoal,
+  AccountabilityResponsePosition,
+} from './types';
 import { mockReports } from './mockReportsData';
 import { standardsList } from './standardsData';
 import { textLensTaxonomy } from './taxonomyData';
@@ -98,6 +104,8 @@ export default function App() {
   const [originalText, setOriginalText] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [activeReport, setActiveReport] = useState<AnalysisReport | null>(null);
+  const [isGeneratingAccountabilityDraft, setIsGeneratingAccountabilityDraft] = useState<boolean>(false);
+  const [accountabilityDraftError, setAccountabilityDraftError] = useState<string | null>(null);
 
   // Sync saved reports when user changes - using stable primitive dependency
   useEffect(() => {
@@ -285,7 +293,6 @@ export default function App() {
 
     if (data._mode === "accountability") {
       const accountabilityReport = data.accountabilityReport || {};
-      const draftNotice = accountabilityReport.draftNoticeToAuthor || "";
 
       return {
         id: data.id || `ai-${Date.now()}`,
@@ -298,15 +305,16 @@ export default function App() {
         standardsMentioned: [],
         humanReviewPrompts: [],
         suggestedComplaintLanguage: {
-          formalLetter: draftNotice,
+          formalLetter: "",
           pressReleaseSummary: "Accountability Mode does not generate a press release summary.",
-          publicCorrectionRequest: draftNotice
+          publicCorrectionRequest: ""
         },
-        suggestedComplaintOrResponse: draftNotice,
+        suggestedComplaintOrResponse: data.stageTwoResponse?.generatedDraft || "",
         analysisTrace: data.analysisTrace,
         overallConcernLevel: accountabilityReport.overallConcernLevel,
         limitations: accountabilityReport.limitsOfThisReport || [],
-        accountabilityReport
+        accountabilityReport,
+        stageTwoResponse: data.stageTwoResponse
       };
     }
 
@@ -348,6 +356,7 @@ export default function App() {
   const handleStartAnalysis = async () => {
     setIsAnalyzing(true);
     setAnalysisError(null);
+    setAccountabilityDraftError(null);
     setActiveTab('analyse'); // Stay here to view loading log / status
 
     // If the text perfectly matches one of our local expert pre-coded preset reports,
@@ -411,6 +420,61 @@ export default function App() {
     }
   };
 
+  const handleGenerateAccountabilityDraft = async (settings: {
+    position: AccountabilityResponsePosition;
+    basis: AccountabilityResponseBasis;
+    goals: AccountabilityResponseGoal[];
+    userNotes: string;
+    cautionAcknowledged?: boolean;
+  }) => {
+    if (!activeReport?.accountabilityReport) {
+      throw new Error('No accountability report is available for drafting yet.');
+    }
+
+    setIsGeneratingAccountabilityDraft(true);
+    setAccountabilityDraftError(null);
+
+    try {
+      const response = await fetch('/api/accountability/draft-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: activeReport.metadata,
+          originalText: activeReport.originalText,
+          accountabilityReport: activeReport.accountabilityReport,
+          settings,
+        })
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error || `Server returned error status ${response.status}`);
+      }
+
+      const draftData = await response.json();
+      setActiveReport(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          stageTwoResponse: draftData.stageTwoResponse,
+          suggestedComplaintOrResponse: draftData.stageTwoResponse?.generatedDraft || "",
+          suggestedComplaintLanguage: {
+            ...prev.suggestedComplaintLanguage,
+            formalLetter: draftData.stageTwoResponse?.generatedDraft || "",
+            publicCorrectionRequest: draftData.stageTwoResponse?.generatedDraft || "",
+          },
+        };
+      });
+    } catch (err: any) {
+      setAccountabilityDraftError(err.message || 'An unexpected error occurred during draft generation.');
+      throw err;
+    } finally {
+      setIsGeneratingAccountabilityDraft(false);
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'analyse':
@@ -440,6 +504,9 @@ export default function App() {
             onSaveReport={handleSaveReport}
             isSaving={isSaving}
             isSaved={isSaved}
+            onGenerateAccountabilityDraft={handleGenerateAccountabilityDraft}
+            isGeneratingAccountabilityDraft={isGeneratingAccountabilityDraft}
+            accountabilityDraftError={accountabilityDraftError}
           />
         );
       case 'methods':

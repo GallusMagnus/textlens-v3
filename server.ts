@@ -868,7 +868,6 @@ What this mode does:
 - Identify what evidence the article itself gives for those claims.
 - Identify evidence that is absent, weak, questionable, potentially unreliable, or not enough to support the claim.
 - Give the TextLens user practical next steps: what you should check, and what the author or publisher should be asked to substantiate.
-- Draft a concise notice asking the author or publisher to provide sources, methods, corrections, clarifications, or supporting records.
 
 Claim selection requirements:
 - Return only the most important and actionable claims, not every arguable point.
@@ -876,21 +875,6 @@ Claim selection requirements:
 - Prioritize central factual, legal, causal, statistical, or institutional claims that matter most if unsupported.
 - Avoid repetitive, minor, or purely rhetorical claims unless they are central to the article's argument.
 - Use simple claim IDs in order: claim-1, claim-2, claim-3, and so on.
-
-Draft notice requirements:
-- Do not just list demands. Give the author or publisher a clear reason to care and respond.
-- Explain that the request is about factual accuracy, editorial transparency, reader trust, fair substantiation of serious claims, and giving the author or publisher a fair opportunity to clarify the record.
-- If appropriate, say that unanswered evidentiary questions may affect the article's credibility and may justify a correction request, editor query, public response, or further complaint.
-- Keep the tone firm but professional. Avoid empty threats, legal overstatement, or implying liability.
-- Structure the notice in this order: short opening, why the issue matters, specific claims needing support, specific documents or methods requested, requested response or correction, polite closing.
-- Use these short labels exactly on separate lines inside the notice:
-  Subject:
-  Why this matters:
-  Claims needing support:
-  Requested sources or clarification:
-  Requested response:
-- The "why the issue matters" part must be written inside the notice itself, not as a separate note to the TextLens user.
-- The notice should make clear that authors and publishers are accountable for serious factual and legal claims they choose to publish, including in opinion writing. When an article makes strong claims about deaths, crimes, discrimination, or institutional conduct, readers are entitled to know what is sourced, what is firsthand, and what is interpretive judgment.
 
 Strict limits:
 - Do not independently verify external facts. You only have the submitted text and metadata.
@@ -984,10 +968,6 @@ Return structured JSON matching the schema exactly. Keep the language plain and 
                 required: ["priority", "task", "reason"],
               },
             },
-            draftNoticeToAuthor: {
-              type: Type.STRING,
-              description: "A concise draft notice to the author or publisher. The notice itself must explain why the request matters, then ask them to substantiate, clarify, correct, or preserve support for contested claims.",
-            },
             limitsOfThisReport: { type: Type.ARRAY, items: { type: Type.STRING } },
             antisemitismBackgroundNote: { type: Type.STRING },
           },
@@ -998,7 +978,6 @@ Return structured JSON matching the schema exactly. Keep the language plain and 
             "evidenceGivenInArticle",
             "missingOrQuestionableEvidence",
             "suggestedNextSteps",
-            "draftNoticeToAuthor",
             "limitsOfThisReport",
             "antisemitismBackgroundNote",
           ],
@@ -1380,6 +1359,149 @@ Please perform the assessment and return the analysis strictly as structured JSO
     } finally {
       const elapsedMs = Date.now() - analysisStartedAt;
       console.log(`[TextLens] /api/analyse completed in ${(elapsedMs / 1000).toFixed(2)}s`);
+    }
+  });
+
+  app.post("/api/accountability/draft-response", async (req, res) => {
+    try {
+      const { metadata, originalText, accountabilityReport, settings } = req.body || {};
+
+      if (!accountabilityReport || typeof accountabilityReport !== "object") {
+        return res.status(400).json({ error: "A Stage 1 accountability report is required before generating a draft response." });
+      }
+
+      const validPositions = new Set(["cautious", "firm", "assertive"]);
+      const validBases = new Set([
+        "article_only",
+        "article_plus_notes",
+        "article_plus_supporting_materials",
+        "article_plus_supporting_materials_and_notes",
+      ]);
+      const validGoals = new Set([
+        "request_sources_and_clarification",
+        "request_correction",
+      ]);
+
+      const normalizedPosition = String(settings?.position || "cautious").toLowerCase();
+      const normalizedBasis = String(settings?.basis || "article_only").toLowerCase();
+      const normalizedGoals = Array.isArray(settings?.goals)
+        ? settings.goals.map((goal: unknown) => String(goal).toLowerCase()).filter((goal: string) => validGoals.has(goal))
+        : [];
+      const userNotes = typeof settings?.userNotes === "string" ? settings.userNotes.trim() : "";
+      const cautionAcknowledged = Boolean(settings?.cautionAcknowledged);
+
+      if (!validPositions.has(normalizedPosition)) {
+        return res.status(400).json({ error: "Invalid response position supplied." });
+      }
+      if (!validBases.has(normalizedBasis)) {
+        return res.status(400).json({ error: "Invalid response basis supplied." });
+      }
+      if (normalizedGoals.length === 0) {
+        return res.status(400).json({ error: "Select at least one response goal before generating a draft." });
+      }
+      if (normalizedPosition === "assertive" && normalizedBasis === "article_plus_notes" && !cautionAcknowledged) {
+        return res.status(400).json({ error: "Assertive drafts that rely materially on notes require an explicit caution acknowledgement." });
+      }
+
+      const goalLabels = normalizedGoals.map((goal: string) =>
+        goal === "request_correction" ? "Request correction" : "Request sources and clarification"
+      );
+      const basisLabelMap: Record<string, string> = {
+        article_only: "Article only",
+        article_plus_notes: "Article + your notes",
+        article_plus_supporting_materials: "Article + supporting materials",
+        article_plus_supporting_materials_and_notes: "Article + supporting materials + your notes",
+      };
+
+      const draftSchema = {
+        type: Type.OBJECT,
+        properties: {
+          generatedDraft: {
+            type: Type.STRING,
+            description: "A professional draft response aligned to the selected goals, position, and basis.",
+          },
+        },
+        required: ["generatedDraft"],
+      };
+
+      const draftInstructions = `You are TextLens operating in ACCOUNTABILITY MODE, Stage 2: Draft Response.
+
+Your job is to transform a completed Stage 1 accountability analysis into a professional response draft.
+
+You must obey these rules:
+- Use the supplied Stage 1 report as the analytical base.
+- Do not redo the analysis from scratch.
+- Do not invent new claims, documents, contradictions, or findings beyond what is supplied.
+- The response must not be stronger than the selected basis allows.
+- If the basis is "Article only", do not claim that a statement is false or conclusively contradicted unless the Stage 1 report itself clearly shows a contradiction from the submitted material.
+- If the basis includes user notes, treat them as user-supplied support, not independently verified documents. They may justify stronger wording, but you must still avoid overclaiming.
+- If the position is "assertive" and the basis relies on notes, prefer formulations such as "appears seriously unreliable", "appears difficult to reconcile with the information available", or "appears inconsistent with the notes provided" unless the supplied material clearly warrants stronger wording.
+- Keep the tone professional.
+- Combine the selected goals naturally into one draft. If both goals are selected, request sources and clarification first, then state the correction request proportionately.
+- Give the publisher or author a clear reason to care: factual accuracy, editorial transparency, public trust, fair substantiation of serious claims, and the opportunity to clarify or correct the record.
+- Avoid empty threats, legal overstatement, or implying liability.
+
+Use this exact structure on separate lines:
+Subject:
+Why this matters:
+Claims needing attention:
+Requested sources or clarification:
+Requested response:
+Closing:
+`;
+
+      const draftInput = `Selected response settings:
+${JSON.stringify(
+        {
+          position: normalizedPosition,
+          basis: basisLabelMap[normalizedBasis] || normalizedBasis,
+          goals: goalLabels,
+          tone: "Professional",
+          cautionAcknowledged,
+          supportingMaterialsAttachedInThisMvp: false,
+        },
+        null,
+        2
+      )}
+
+User notes:
+${userNotes || "[None supplied]"}
+
+Metadata:
+${JSON.stringify(metadata || {}, null, 2)}
+
+Original submitted text:
+"""
+${typeof originalText === "string" ? originalText : ""}
+"""
+
+Stage 1 accountability report:
+${JSON.stringify(accountabilityReport, null, 2)}
+
+Return structured JSON matching the schema exactly.`;
+
+      const generated = await generateStructuredJson<{ generatedDraft: string }>({
+        instructions: draftInstructions,
+        input: draftInput,
+        schemaName: "accountability_stage_two_draft_response",
+        schema: draftSchema,
+      });
+
+      return res.json({
+        stageTwoResponse: {
+          position: normalizedPosition,
+          basis: normalizedBasis,
+          goals: normalizedGoals,
+          tone: "professional",
+          userNotes,
+          generatedDraft: generated.generatedDraft || "",
+          generatedAt: new Date().toISOString(),
+          cautionAcknowledged,
+        },
+      });
+    } catch (err: any) {
+      console.error("Accountability Stage 2 Draft Error:", err);
+      res.status(500).json({ error: err.message || "An error occurred while generating the Stage 2 draft response." });
     }
   });
 

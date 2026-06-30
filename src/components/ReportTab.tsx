@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FileText,
   AlertTriangle,
@@ -11,9 +11,16 @@ import {
   ChevronDown,
   ChevronRight,
   Info,
-  Layers2
+  Layers2,
+  Loader2
 } from 'lucide-react';
-import { AnalysisReport, FlaggedPassage } from '../types';
+import {
+  AnalysisReport,
+  FlaggedPassage,
+  AccountabilityResponseBasis,
+  AccountabilityResponseGoal,
+  AccountabilityResponsePosition,
+} from '../types';
 import { standardsList } from '../standardsData';
 import { getAnalysisModeLabel } from '../utils/modeLabels';
 import { getSourceContextFields } from '../utils/sourceContextFields';
@@ -77,6 +84,15 @@ interface ReportTabProps {
   onSaveReport?: () => void;
   isSaving?: boolean;
   isSaved?: boolean;
+  onGenerateAccountabilityDraft?: (settings: {
+    position: AccountabilityResponsePosition;
+    basis: AccountabilityResponseBasis;
+    goals: AccountabilityResponseGoal[];
+    userNotes: string;
+    cautionAcknowledged?: boolean;
+  }) => Promise<void>;
+  isGeneratingAccountabilityDraft?: boolean;
+  accountabilityDraftError?: string | null;
 }
 
 export default function ReportTab({ 
@@ -84,12 +100,20 @@ export default function ReportTab({
   onNavigateToAnalyse,
   onSaveReport,
   isSaving,
-  isSaved
+  isSaved,
+  onGenerateAccountabilityDraft,
+  isGeneratingAccountabilityDraft,
+  accountabilityDraftError
 }: ReportTabProps) {
   const [copyState, setCopyState] = useState<Record<string, boolean>>({});
   const [activeComplaintTab, setActiveComplaintTab] = useState<'formal' | 'press' | 'public'>('formal');
   const [expandedPassageId, setExpandedPassageId] = useState<string>('');
   const [reviewedPassages, setReviewedPassages] = useState<Record<string, boolean>>({});
+  const [responsePosition, setResponsePosition] = useState<AccountabilityResponsePosition>('cautious');
+  const [responseBasis, setResponseBasis] = useState<AccountabilityResponseBasis>('article_only');
+  const [responseGoals, setResponseGoals] = useState<AccountabilityResponseGoal[]>(['request_sources_and_clarification']);
+  const [responseNotes, setResponseNotes] = useState<string>('');
+  const [cautionAcknowledged, setCautionAcknowledged] = useState<boolean>(false);
 
   if (!activeReport) {
     return (
@@ -143,6 +167,21 @@ export default function ReportTab({
   const analysisTrace = activeReport.analysisTrace;
   const hasAnalysisTrace = Boolean(analysisTrace);
   const isPresetAnalysis = analysisTrace?.model === 'preset-case-study';
+  const existingStageTwo = activeReport.stageTwoResponse;
+
+  useEffect(() => {
+    if (activeReport.metadata.analysisMode !== 'accountability') return;
+    setResponsePosition(existingStageTwo?.position || 'cautious');
+    setResponseBasis(
+      existingStageTwo?.basis === 'article_plus_supporting_materials' ||
+      existingStageTwo?.basis === 'article_plus_supporting_materials_and_notes'
+        ? 'article_plus_notes'
+        : existingStageTwo?.basis || 'article_only'
+    );
+    setResponseGoals(existingStageTwo?.goals?.length ? existingStageTwo.goals : ['request_sources_and_clarification']);
+    setResponseNotes(existingStageTwo?.userNotes || '');
+    setCautionAcknowledged(Boolean(existingStageTwo?.cautionAcknowledged));
+  }, [activeReport.id, activeReport.metadata.analysisMode, existingStageTwo?.basis, existingStageTwo?.cautionAcknowledged, existingStageTwo?.generatedAt, existingStageTwo?.goals, existingStageTwo?.position, existingStageTwo?.userNotes]);
 
   const renderAnalysisMetricsSection = () => {
     if (!hasAnalysisTrace || !analysisTrace) return null;
@@ -230,6 +269,41 @@ export default function ReportTab({
       </div>
     </div>
   );
+
+  const toggleResponseGoal = (goal: AccountabilityResponseGoal) => {
+    setResponseGoals((prev) =>
+      prev.includes(goal) ? prev.filter((item) => item !== goal) : [...prev, goal]
+    );
+  };
+
+  const formatStageTwoGoal = (goal: AccountabilityResponseGoal) => {
+    if (goal === 'request_correction') return 'Request correction';
+    return 'Request sources and clarification';
+  };
+
+  const formatStageTwoBasis = (basis: AccountabilityResponseBasis) => {
+    switch (basis) {
+      case 'article_plus_notes':
+        return 'Article + your notes';
+      case 'article_plus_supporting_materials':
+        return 'Article + supporting materials';
+      case 'article_plus_supporting_materials_and_notes':
+        return 'Article + supporting materials + your notes';
+      default:
+        return 'Article only';
+    }
+  };
+
+  const handleGenerateStageTwoDraft = async () => {
+    if (!onGenerateAccountabilityDraft || responseGoals.length === 0) return;
+    await onGenerateAccountabilityDraft({
+      position: responsePosition,
+      basis: responseBasis,
+      goals: responseGoals,
+      userNotes: responseNotes,
+      cautionAcknowledged,
+    });
+  };
 
   // ── Consumer Mode View ───────────────────────────────────────────────────────
   if (activeReport.metadata.analysisMode === 'consumer' && activeReport.consumerScores) {
@@ -482,6 +556,11 @@ export default function ReportTab({
       ...accountability.limitsOfThisReport,
       accountability.antisemitismBackgroundNote
     ].filter(Boolean);
+    const requiresNotesCaution = responsePosition === 'assertive' && responseBasis === 'article_plus_notes';
+    const canGenerateStageTwoDraft =
+      responseGoals.length > 0 &&
+      (!requiresNotesCaution || cautionAcknowledged) &&
+      Boolean(onGenerateAccountabilityDraft);
 
     return (
       <div className="space-y-6 font-sans">
@@ -602,34 +681,199 @@ export default function ReportTab({
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
-          <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-gray-700" />
-              <span>Draft Notice To The Author</span>
-            </h3>
-            {accountability.draftNoticeToAuthor && (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-5">
+          <div className="flex items-start justify-between gap-4 pb-2 border-b border-gray-100">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-gray-700" />
+                <span>Stage 2: Draft Response</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Build a response after reviewing the Stage 1 analysis. This MVP currently supports the article itself plus optional user notes. Supporting-material basis can be added later without changing the overall flow.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Response position</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {([
+                    ['cautious', 'Cautious', 'Ask for substantiation and clarification first.'],
+                    ['firm', 'Firm', 'Say the claims appear unsupported or overstated.'],
+                    ['assertive', 'Assertive', 'Use stronger challenge wording where the basis can support it.'],
+                  ] as const).map(([value, label, description]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setResponsePosition(value)}
+                      className={`rounded-lg border px-3 py-3 text-left transition-all cursor-pointer ${
+                        responsePosition === value
+                          ? 'border-indigo-300 bg-indigo-50/60 shadow-3xs'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="block text-xs font-semibold text-slate-900">{label}</span>
+                      <span className="block text-[11px] text-slate-500 mt-1 leading-relaxed">{description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Basis</label>
+                <select
+                  value={responseBasis}
+                  onChange={(e) => {
+                    setResponseBasis(e.target.value as AccountabilityResponseBasis);
+                    setCautionAcknowledged(false);
+                  }}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-white text-slate-800 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="article_only">Article only</option>
+                  <option value="article_plus_notes">Article + your notes</option>
+                </select>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Notes can support a stronger response, but they should reflect information you would be comfortable standing behind if challenged.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Response goals</span>
+                <div className="space-y-2">
+                  {([
+                    ['request_sources_and_clarification', 'Request sources and clarification', 'Ask the author or publisher to show the basis for the claims and clarify what is being asserted.'],
+                    ['request_correction', 'Request correction', 'Add or escalate a correction request where the analysis and selected basis justify it.'],
+                  ] as const).map(([goal, label, description]) => (
+                    <label key={goal} className="flex items-start gap-3 border border-slate-200 rounded-lg px-3 py-3 bg-slate-50/30 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={responseGoals.includes(goal)}
+                        onChange={() => toggleResponseGoal(goal)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>
+                        <span className="block text-sm font-medium text-slate-900">{label}</span>
+                        <span className="block text-[11px] text-slate-500 mt-1 leading-relaxed">{description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Your notes</label>
+                <textarea
+                  value={responseNotes}
+                  onChange={(e) => {
+                    setResponseNotes(e.target.value);
+                    if (cautionAcknowledged) setCautionAcknowledged(false);
+                  }}
+                  placeholder="Add any contextual notes, prior correspondence, record-checking observations, or points you want the draft to factor in."
+                  className="w-full min-h-48 border border-slate-200 rounded-lg p-3 text-sm text-slate-800 bg-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 leading-relaxed"
+                />
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  The draft will only rely on these notes if you choose a basis that includes them.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1.5 text-xs text-slate-600">
+                <div><strong className="text-slate-800">Tone:</strong> Professional</div>
+                <div><strong className="text-slate-800">Current basis:</strong> {formatStageTwoBasis(responseBasis)}</div>
+                <div><strong className="text-slate-800">Current goals:</strong> {responseGoals.length > 0 ? responseGoals.map(formatStageTwoGoal).join(' + ') : 'Select at least one goal'}</div>
+              </div>
+
+              {requiresNotesCaution && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-900 leading-relaxed">
+                      Assertive wording can rely on your notes, but it should usually be reserved for cases where you have reasonably high confidence in those notes and would be comfortable standing behind them if challenged.
+                    </p>
+                  </div>
+                  <label className="flex items-start gap-2 text-xs text-amber-900 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={cautionAcknowledged}
+                      onChange={(e) => setCautionAcknowledged(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    />
+                    <span>I understand that this assertive draft is relying materially on my notes and should remain defensible if challenged.</span>
+                  </label>
+                </div>
+              )}
+
+              {accountabilityDraftError && (
+                <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800 leading-relaxed">
+                  {accountabilityDraftError}
+                </div>
+              )}
+
               <button
                 type="button"
-                onClick={() => handleCopyToClipboard(accountability.draftNoticeToAuthor, "accountability-draft")}
-                className="px-3 py-1 text-xs font-semibold rounded border border-slate-200 text-slate-700 hover:bg-slate-50 font-mono flex items-center space-x-1.5 transition-all shadow-3xs cursor-pointer"
+                onClick={handleGenerateStageTwoDraft}
+                disabled={!canGenerateStageTwoDraft || Boolean(isGeneratingAccountabilityDraft)}
+                className={`w-full rounded-lg px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                  !canGenerateStageTwoDraft || isGeneratingAccountabilityDraft
+                    ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs cursor-pointer'
+                }`}
               >
-                {copyState["accountability-draft"] ? (
+                {isGeneratingAccountabilityDraft ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700">Copied!</span>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Generating Stage 2 Draft...</span>
                   </>
                 ) : (
-                  <>
-                    <Clipboard className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Copy Notice</span>
-                  </>
+                  <span>{activeReport.stageTwoResponse ? 'Regenerate Draft Response' : 'Generate Draft Response'}</span>
                 )}
               </button>
-            )}
+            </div>
           </div>
-          <div className="bg-slate-50 border border-gray-200 rounded p-4 font-mono text-xs text-slate-800 leading-relaxed whitespace-pre-wrap select-all">
-            {accountability.draftNoticeToAuthor || 'No draft notice was generated.'}
+
+          <div className="bg-slate-50 border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-center gap-3">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-950">Generated Draft Response</h4>
+                {activeReport.stageTwoResponse && (
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Generated {formatAnalysisTimestamp(activeReport.stageTwoResponse.generatedAt)} · {formatStageTwoBasis(activeReport.stageTwoResponse.basis)} · {activeReport.stageTwoResponse.goals.map(formatStageTwoGoal).join(' + ')}
+                  </p>
+                )}
+              </div>
+              {activeReport.stageTwoResponse?.generatedDraft && (
+                <button
+                  type="button"
+                  onClick={() => handleCopyToClipboard(activeReport.stageTwoResponse?.generatedDraft || "", "accountability-stage-two-draft")}
+                  className="px-3 py-1 text-xs font-semibold rounded border border-slate-200 text-slate-700 hover:bg-slate-50 font-mono flex items-center space-x-1.5 transition-all shadow-3xs cursor-pointer"
+                >
+                  {copyState["accountability-stage-two-draft"] ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clipboard className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Copy Draft</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {activeReport.stageTwoResponse?.generatedDraft ? (
+              <div className="bg-white border border-gray-200 rounded p-4 font-mono text-xs text-slate-800 leading-relaxed whitespace-pre-wrap select-all">
+                {activeReport.stageTwoResponse.generatedDraft}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 italic">
+                No Stage 2 draft has been generated yet. Review the analysis, choose your response settings, and generate the draft when ready.
+              </p>
+            )}
           </div>
         </div>
 

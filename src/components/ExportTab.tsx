@@ -172,9 +172,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         report += `   Reason: ${step.reason}\n\n`;
       });
 
-      report += "DRAFT NOTICE TO THE AUTHOR\n";
+      report += "STAGE 2 DRAFT RESPONSE\n";
       report += "--------------------------------------------------------------------------------\n";
-      report += `${accountability.draftNoticeToAuthor}\n\n`;
+      report += `${activeReport.stageTwoResponse?.generatedDraft || "No Stage 2 draft has been generated yet."}\n\n`;
 
       report += "LIMITS OF THIS REPORT\n";
       report += "--------------------------------------------------------------------------------\n";
@@ -382,12 +382,12 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       });
 
       rows.push([
-        "Draft Notice To Author",
-        "Notice",
-        accountability.draftNoticeToAuthor,
+        "Stage 2 Draft Response",
+        "Draft",
+        activeReport.stageTwoResponse?.generatedDraft || "No Stage 2 draft generated yet.",
         "Draft correspondence",
         "N/A",
-        "Use as a starting point for a substantiation or correction request."
+        "Use as a starting point for a substantiation, clarification, or correction request."
       ]);
 
       return rows.map(r => r.map(escapeCsvCell).join(',')).join('\n');
@@ -676,8 +676,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             currentY += 2;
           });
 
-          addHeading("Draft Notice To The Author");
-          addParagraph(accountability.draftNoticeToAuthor);
+          addHeading("Stage 2 Draft Response");
+          addParagraph(activeReport.stageTwoResponse?.generatedDraft || "No Stage 2 draft has been generated yet.");
           currentY += 5;
 
           addHeading("Limits Of This Report");

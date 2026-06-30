@@ -90,6 +90,15 @@ export interface AnalysisTrace {
 }
 
 export type AccountabilitySeverity = 'low' | 'moderate' | 'high' | 'severe';
+export type AccountabilityResponsePosition = 'cautious' | 'firm' | 'assertive';
+export type AccountabilityResponseBasis =
+  | 'article_only'
+  | 'article_plus_notes'
+  | 'article_plus_supporting_materials'
+  | 'article_plus_supporting_materials_and_notes';
+export type AccountabilityResponseGoal =
+  | 'request_sources_and_clarification'
+  | 'request_correction';
 
 export interface AccountabilityClaim {
   id: string;
@@ -130,9 +139,19 @@ export interface AccountabilityReport {
   evidenceGivenInArticle: AccountabilityEvidence[];
   missingOrQuestionableEvidence: AccountabilityEvidenceIssue[];
   suggestedNextSteps: AccountabilityNextStep[];
-  draftNoticeToAuthor: string;
   limitsOfThisReport: string[];
   antisemitismBackgroundNote: string;
+}
+
+export interface AccountabilityStageTwoResponse {
+  position: AccountabilityResponsePosition;
+  basis: AccountabilityResponseBasis;
+  goals: AccountabilityResponseGoal[];
+  tone: 'professional';
+  userNotes: string;
+  generatedDraft: string;
+  generatedAt: string;
+  cautionAcknowledged?: boolean;
 }
 
 export interface AnalysisReport {
@@ -172,6 +191,7 @@ export interface AnalysisReport {
   suggestedComplaintOrResponse?: string;
   analysisTrace?: AnalysisTrace;
   accountabilityReport?: AccountabilityReport;
+  stageTwoResponse?: AccountabilityStageTwoResponse;
 
   // Consumer Mode scores
   consumerScores?: {
