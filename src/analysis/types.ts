@@ -38,7 +38,7 @@ export type SupportType =
   | "terminology"
   | "framework";
 
-export type ModeUsageRole = "primary" | "supporting" | "guardrail" | "excluded";
+export type ModeUsageRole = "primary" | "supporting" | "advisory" | "guardrail" | "excluded";
 
 export interface CompiledSourceRule {
   sourceKey: SourceCatalogItem["sourceKey"];

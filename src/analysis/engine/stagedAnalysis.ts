@@ -686,6 +686,8 @@ Rules:
 - Keep rationale precise and restrained.
 - Do not invent surrounding context or motive.
 - A passage should be "blocked" only when it is straightforwardly protected political criticism, BDS advocacy, or constitutional/state-model advocacy and does not plausibly contain any escalation cue or trigger signal.
+- BDS advocacy is not automatically antisemitic in this system. Do not move a passage out of guardrail protection solely because it supports boycott, divestment, or sanctions.
+- Reconsider BDS-framed passages only if the passage itself plausibly adds collective Jewish guilt, compelled denunciation, dual-loyalty logic, exclusion of Jews as Jews, or denial of equal Jewish self-determination.
 - If a passage plausibly contains delegitimising threshold-testing language, collective accusation, essentialising or group-based blame, dehumanising/pathologising language, eliminationist framing, Nazi/Holocaust inversion, or any comparable escalation cue, do NOT mark it "blocked". Use "ambiguous" or "proceed".
 - In Consensus Standards Mode specifically, harsh Israel/Zionism criticism is not automatically exempt. If genocide, apartheid, colonialism, illegitimacy, or similar claims plausibly test the boundary between protected criticism and antisemitic delegitimisation, keep the passage available for later classification.`;
 
@@ -803,6 +805,8 @@ Rules:
 - Classify only if the candidate passage itself supports the finding.
 - If the evidence is weak, ambiguous, excerpted or not clearly within the taxonomy, return "abstain".
 - Treat guardrail context as important but not dispositive. A prior "blocked" guardrail status does NOT bar a flagged finding if the passage itself plausibly crosses a supplied taxonomy threshold.
+- BDS support, boycott language, or opposition to Zionism is not by itself enough to justify a flagged finding under this stage.
+- If a BDS-framed or boycott-framed passage is flagged, the explanation must identify the added aggravating language or framing that moved it beyond protected political advocacy.
 - If a passage combines harsh Israel/Zionism criticism with genocide/apartheid/colonial/illegitimacy/eliminationist or comparable escalation language, test it against the supplied taxonomy rather than automatically abstaining.
 - Do not invent intent, chronology, omitted context or unseen material.
 - Keep explanations narrow.
@@ -852,6 +856,7 @@ function impactPoints(value: TaxonomyItem["primaryScoreImpact"]) {
 function roleMultiplier(value: ModeUsageRole) {
   if (value === "primary") return 1.2;
   if (value === "supporting") return 0.8;
+  if (value === "advisory") return 0.45;
   return 0;
 }
 

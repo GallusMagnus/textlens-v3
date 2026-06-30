@@ -369,8 +369,19 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
             <td>South African print and online press material.</td>
             <td>Truth, accuracy, fairness, context, distinction between fact and comment, discrimination and possible complaint drafting.</td>
           </tr>
+          <tr>
+            <td><strong>Accountability Mode</strong></td>
+            <td><code>accountability</code></td>
+            <td>Plain-English review of what an article claims, what evidence it gives, what is missing, and what a responsible follow-up response should ask for.</td>
+            <td>Stage 1 accountability report plus optional Stage 2 draft response built from that report.</td>
+          </tr>
         </tbody>
       </table>
+      <div class="callout warning">
+        <strong>Accountability Mode is different</strong>
+        Accountability Mode is not the main antisemitism-classification workflow. It treats antisemitism frameworks as background context only and focuses on accountability questions: what claims the article makes, what evidence it provides, what remains unsupported, and what an editor, author or institution should be asked to clarify.
+      </div>
+      <p>In practical terms, Accountability Mode is a two-step workflow. <strong>Stage 1</strong> produces the accountability analysis. <strong>Stage 2</strong> uses that completed analysis to draft a professional response. If you need a fuller antisemitism analysis, run the same text separately in Community / General Review Mode or another standards-based mode.</p>
       <p><strong>Communication type</strong> and <strong>rhetorical function</strong> are interpretive context. They do not decide whether a text is antisemitic or unethical; they help the system ask whether claims are appropriate for a news report, editorial, open letter, academic article, broadcast segment, formal complaint, petition or other text type.</p>
     </section>
 
@@ -378,14 +389,18 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
       <h2>4. Taxonomy and guardrails</h2>
       <p>The taxonomy organises recurring textual patterns. It is a working analytical framework, not a legally authoritative diagnostic instrument. TextLens should tie each flagged concern to an exact quote and should also record protected-speech guardrails where relevant.</p>
       <ul class="layer-list">
-        <li class="guardrail"><strong>Layer 0: Protected speech and non-trigger guardrails.</strong><br />Ordinary political criticism, human-rights advocacy, policy disagreement, peaceful boycott arguments, alternative political arrangements and other protected expressions should not be treated as antisemitic without additional textual evidence.</li>
+        <li class="guardrail"><strong>Layer 0: Protected speech and non-trigger guardrails.</strong><br />Ordinary political criticism, human-rights advocacy, policy disagreement, BDS and other boycott advocacy, alternative political arrangements, and other protected expressions should not be treated as antisemitic without additional textual evidence. TextLens does not treat BDS as inherently antisemitic in this build, though some institutions and users would take a broader view.</li>
         <li class="traditional"><strong>Layer 1: Traditional antisemitism.</strong><br />Classic anti-Jewish slurs, conspiracy tropes, dehumanising language, collective guilt, blood-libel patterns, Holocaust denial or distortion, and similar content directed at Jews as Jews.</li>
         <li class="israel"><strong>Layer 2: Israel- and Zionism-related antisemitism.</strong><br />Patterns in which Israel or Zionism is used as a vehicle for antisemitic claims, such as denial of Jewish self-determination, Nazi inversion, demonisation, collective guilt, or use of classic tropes in Israel-related language.</li>
-        <li class="rhetoric"><strong>Layer 3: Rhetorical, evidentiary and framing concerns.</strong><br />Selective context, loaded terminology, unsupported claims, source asymmetry, omission of relevant actors or events, decontextualised statistics, and other features that may distort understanding even when direct antisemitism is not present.</li>
+        <li class="rhetoric"><strong>Layer 3: Rhetorical and evidentiary taxonomy.</strong><br />This layer reviews seven families of concern: evidence handling, language and emphasis, agency and responsibility, conflation and substitution, frame-shifting and preconditions, immunity and counter-attack, and authority and amplification. These findings may distort understanding even when direct antisemitism is not present.</li>
       </ul>
       <div class="callout ok">
         <strong>Guardrails are not decorative</strong>
         A reliable TextLens report should actively ask whether protected criticism or benign interpretations apply. This is especially important for open letters, petitions, editorials and moral appeals.
+      </div>
+      <div class="callout warning">
+        <strong>Current build scope</strong>
+        The June 2026 Layer 3 taxonomy includes a cumulative-framing idea aimed at repeated distortions across multiple publications over time. That element is intentionally deferred in this build because the live engine analyses single submitted texts rather than publication histories or corpora.
       </div>
     </section>
 
@@ -505,6 +520,10 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
             <td>Press Code</td>
             <td>IHRA, JDA, Nexus, TextLens, South African Press Code. Health-journalism sources may be supplementary for health reporting but are not binding South African press-code sources.</td>
           </tr>
+          <tr>
+            <td>Accountability</td>
+            <td>Focused mainly on the submitted article, metadata, and accountability-oriented reporting logic. Antisemitism frameworks remain background context only and are not used here as the primary classification engine.</td>
+          </tr>
         </tbody>
       </table>
       <div class="callout warning">
@@ -520,6 +539,9 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
       <p>This mode is the scoring mode. It may report antisemitism content, anti-Zionist intensity, rhetorical distortion and response-worthiness, often displayed through a radar-style visual. These scores are analytical indicators, not formal findings.</p>
       <h3>Professional Mode output</h3>
       <p>These modes produce a more traditional structured report: flagged passages, standards or source references, guardrail findings, limitations and response or complaint drafting support where relevant.</p>
+      <h3>Accountability Mode output</h3>
+      <p>Accountability Mode produces a different report shape. Stage 1 identifies the article's main claims, the evidence the article gives, missing or questionable evidence, suggested next steps, and the limits of the present review. It is meant to help a user decide whether the article deserves clarification, correction, substantiation, or some other follow-up.</p>
+      <p>Where Stage 2 is used, TextLens then drafts a professional response based on the completed Stage 1 analysis. That draft should still be checked and edited by a human reviewer before it is sent.</p>
       <h3>Draft responses and complaints</h3>
       <p>Draft language should be treated as a starting point. It should be checked by a human reviewer before submission, publication or circulation. Regulatory modes may assist with complaint framing, but they do not decide the complaint.</p>
       <h3>Export workspace</h3>

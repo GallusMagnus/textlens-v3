@@ -4,7 +4,7 @@
 
 This document describes the method currently implemented in code.
 
-Date aligned to code review: 2026-06-21
+Date aligned to code review: 2026-06-30
 Default pipeline: `v2 staged engine`
 Feature flag: `TEXTLENS_PIPELINE_VERSION=v1|v2`
 
@@ -87,6 +87,14 @@ What happens:
 
 - only candidates that survive Stage 2 are classified
 - only taxonomy items valid for the selected mode are supplied
+- Layer 3 now follows the June 30, 2026 rhetorical and evidentiary taxonomy families:
+  - evidence handling
+  - language and emphasis
+  - agency and responsibility
+  - conflation and substitution
+  - frame-shifting and preconditions
+  - immunity and counter-attack
+  - authority and amplification
 - the classifier must either:
   - return a narrow flagged finding, or
   - abstain
@@ -196,7 +204,8 @@ Current limits include:
 - candidate extraction still begins with keyword-based salience scoring
 - guardrail and classification stages are still model-assisted
 - weighting thresholds are currently heuristic and should be benchmarked
-- the Methods UI page may still lag behind this document until separately revised
+- cumulative framing across multiple publications is intentionally deferred because the live engine analyses single submitted texts rather than corpora or publication histories
+- user-facing summaries still need ongoing review whenever the taxonomy or guardrail wording changes
 
 ## Source Of Truth
 

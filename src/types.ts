@@ -51,6 +51,9 @@ export interface FlaggedPassage {
   id: string;
   textSnippet: string;
   layer: 1 | 2 | 3; // Layer 1, 2, or 3
+  taxonomyItemId?: string;
+  taxonomyCategoryTitle?: string;
+  taxonomySection?: string;
   standardsApplied: {
     standardId: string;
     clauseId: string;

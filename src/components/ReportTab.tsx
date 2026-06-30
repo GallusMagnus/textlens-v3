@@ -401,10 +401,22 @@ export default function ReportTab({
         )}
         {activeReport.flaggedPassages.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500">Clear Standards Violations ({activeReport.flaggedPassages.length})</h3>
+            <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500">Flagged Findings For Review ({activeReport.flaggedPassages.length})</h3>
             {activeReport.flaggedPassages.map(p => (
               <div key={p.id} className={`bg-white border-l-4 rounded-lg p-4 border border-gray-200 space-y-2 ${p.layer === 1 ? 'border-l-red-500' : p.layer === 2 ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
                 <p className="text-sm font-serif italic text-slate-800">"{p.textSnippet}"</p>
+                {p.taxonomyCategoryTitle && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-block text-[10px] font-mono font-bold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">
+                      {p.taxonomyCategoryTitle}
+                    </span>
+                    {p.taxonomyItemId && (
+                      <span className="inline-block text-[10px] font-mono font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                        {p.taxonomyItemId}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <p className="text-xs text-slate-600 leading-relaxed">{p.explanation}</p>
                 {p.standardsApplied[0]?.clauseId && p.standardsApplied[0].clauseId !== 'CONSUMER' && (
                   <span className="inline-block text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">{p.standardsApplied[0].clauseId}</span>
@@ -1173,9 +1185,16 @@ export default function ReportTab({
                         <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
                           Issue
                         </span>
-                        <span className={`inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded border leading-tight ${getSeverityBadgeClass(passage.severity)}`}>
-                          {passage.severity}
-                        </span>
+                        <div className="space-y-1">
+                          {passage.taxonomyCategoryTitle && (
+                            <span className="inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded border leading-tight text-slate-700 bg-slate-50 border-slate-200">
+                              {passage.taxonomyCategoryTitle}
+                            </span>
+                          )}
+                          <span className={`inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded border leading-tight ${getSeverityBadgeClass(passage.severity)}`}>
+                            {passage.severity}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="rounded border border-gray-150 bg-white p-2">
@@ -1191,17 +1210,24 @@ export default function ReportTab({
                         <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-1">
                           TextLens Layer
                         </span>
-                        <span className={`inline-flex items-center space-x-1 text-[10px] px-1.5 py-0.5 rounded ${
-                          passage.layer === 1 ? 'text-red-700 bg-red-50 border border-red-100' :
-                          passage.layer === 2 ? 'text-amber-700 bg-amber-50 border border-amber-100' :
-                          'text-indigo-700 bg-indigo-50 border border-indigo-105'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            passage.layer === 1 ? 'bg-red-500' :
-                            passage.layer === 2 ? 'bg-amber-500' : 'bg-indigo-500'
-                          }`}></span>
-                          <span>Layer {passage.layer}</span>
-                        </span>
+                        <div className="space-y-1">
+                          <span className={`inline-flex items-center space-x-1 text-[10px] px-1.5 py-0.5 rounded ${
+                            passage.layer === 1 ? 'text-red-700 bg-red-50 border border-red-100' :
+                            passage.layer === 2 ? 'text-amber-700 bg-amber-50 border border-amber-100' :
+                            'text-indigo-700 bg-indigo-50 border border-indigo-105'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              passage.layer === 1 ? 'bg-red-500' :
+                              passage.layer === 2 ? 'bg-amber-500' : 'bg-indigo-500'
+                            }`}></span>
+                            <span>Layer {passage.layer}</span>
+                          </span>
+                          {passage.taxonomyItemId && (
+                            <span className="inline-block text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border text-slate-500 bg-white border-slate-200">
+                              {passage.taxonomyItemId}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="rounded border border-gray-150 bg-white p-2">

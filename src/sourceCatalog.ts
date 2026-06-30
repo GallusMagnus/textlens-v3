@@ -166,14 +166,15 @@ export const sourceCatalogList: SourceCatalogItem[] = [
     sourceName: "TextLens Rhetorical Analysis Framework",
     sourceType: "Cognitive Rhetorical Guidelines",
     shortLabel: "TextLens Framework",
-    whyIncluded: "Linguistic and rhetorical ruleset designed by specialists to identify context omissions, pathologizing metaphors, and unverified data laundering techniques.",
+    whyIncluded: "Linguistic and rhetorical ruleset designed to identify evidence handling problems, asymmetrical framing, category conflation, precondition-setting, immunity moves, and authority laundering.",
     url: "https://ai.studio/build",
-    notes: "Bypasses superficial keyword checks to locate advanced argumentative structures that introduce bias or dehumanization under scientific facades.",
-    role: "Linguistic audit taxonomy focusing on logical fallacies, semantic shifts, and pathologizing frames.",
-    summary: "A structured layered analysis identifying rhetorical patterns that hide structural bias on contested global conflicts.",
+    notes: "Useful for locating argumentative structures that distort interpretation even when the text stops short of direct antisemitic content.",
+    role: "Layer 3 rhetorical and evidentiary taxonomy for evidence handling, framing, agency, conflation, counter-attack, and authority effects.",
+    summary: "A structured Layer 3 taxonomy identifying rhetorical and evidentiary patterns that can distort interpretation on contested political and humanitarian questions.",
     keyCriteria: [
-      "Is history systematically erased or selectively cited to attribute unprovoked systemic malice?",
-      "Are epidemiological metaphors used to pathologize an entire state or ethnic group?"
+      "Are key claims verified, attributed, and contextualised rather than stated as moral certainty or settled fact?",
+      "Do language, agency, and framing choices steer the reader toward a verdict without showing the evidentiary bridge?",
+      "Are Jews, Israelis, Zionists, institutions, governments, and populations kept distinct rather than conflated?"
     ],
     limitations: "Represents an analytical research framework, not a legally binding statute."
   },

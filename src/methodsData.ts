@@ -49,9 +49,9 @@ export const methodsLayers: MethodLayer[] = [
   },
   {
     level: 3,
-    name: 'Rhetorical and Evidentiary Distortion',
-    focus: 'Logical Fallacies, Pathological Metaphors, and Omission of Vital Context',
-    description: 'This layer focuses on the linguistic, structural, and evidentiary techniques used to build a biased narrative under a veneer of academic, legal, or medical objectivity. This avoids black-box classifications by identifying specific bad-faith analytical structures.',
+    name: 'Rhetorical and Evidentiary Taxonomy',
+    focus: 'Evidence Handling, Framing, Agency, Conflation, Preconditions, and Authority Effects',
+    description: 'This layer focuses on the linguistic, structural, and evidentiary techniques that can distort interpretation under a veneer of academic, legal, journalistic, or medical objectivity. It identifies specific analytical structures without treating them as self-sufficient proof of antisemitism.',
     indicators: [
       'Using biological, medical, or clinical terminology (e.g., "cancer", "fungus", "parasite") to define a national population (Pathological Metaphors).',
       'Systematic erasure of preceding hostilities, historic peace initiatives, or internationally recognized defense treaties to present one party as acting with unprovoked, absolute malice (Selective Citation).',

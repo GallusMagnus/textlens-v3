@@ -37,7 +37,7 @@ export const communicationTypes: CommunicationType[] = [
     description: "Public letters signed by groups of academics, healthcare professionals, or public figures, aimed at pressuring administrations or shifting public consensus.",
     typicalRhetoricalFunctions: ["moral appeal", "public mobilisation", "accusation", "advocacy"],
     interpretiveRisks: "Scholarly review indicates these letters often function as urgent moral mobilization documents rather than neutral, verified reports. They tend to compress complex event chains into simple urgent moral binaries, omitting historical timeline context, victims, or standard investigative uncertainties.",
-    analysisGuidance: "Evaluate how signatories, collective professional identity, and institutional branding are utilized as credibility signals. Check for structural omissions of context, and analyze the moral binary framing under Layer 3 (moral appeal replacing proof). Note: These features are not automatically antisemitic, but are highly relevant to rhetorical and evidentiary analysis."
+    analysisGuidance: "Evaluate how signatories, collective professional identity, and institutional branding are utilized as credibility signals. Check for evidence-handling problems, scope expansion, preconditions, and authority laundering under Layer 3. Note: These features are not automatically antisemitic, but are highly relevant to rhetorical and evidentiary analysis."
   },
   {
     id: "public_petition",
@@ -158,7 +158,7 @@ export const rhetoricalFunctions: RhetoricalFunction[] = [
     id: "moral_appeal",
     label: "moral appeal",
     description: "Invoking deep ethical principles, values of justice, or humanitarian concerns to elicit an emotional response, solidarity, or action.",
-    analysisGuidance: "Audit under Layer 3 (moral appeal replacing proof) to determine if moral sentiment is used to actively bypass historical facts or silences investigative review."
+    analysisGuidance: "Audit under Layer 3 to determine whether moral sentiment is being used to bypass verification, displace the subject, or convert contested claims into settled conclusions."
   },
   {
     id: "public_mobilisation",

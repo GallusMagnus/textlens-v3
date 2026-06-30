@@ -20,7 +20,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
     hallucinationPolicy:
       "Default to restraint. If the text does not clearly support a claim, narrow it or abstain.",
     abstentionPolicy:
-      "If a passage is harsh but still plausibly ordinary political criticism, protect it with guardrails unless additional triggering evidence is present.",
+      "If a passage is harsh but still plausibly ordinary political criticism, BDS advocacy, or constitutional advocacy, protect it with guardrails unless additional triggering evidence is present.",
     protectedGuardrailIds: [...PROTECTED_GUARDRAILS],
   },
   healthcare: {

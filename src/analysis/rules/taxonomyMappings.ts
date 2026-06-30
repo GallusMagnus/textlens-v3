@@ -63,7 +63,12 @@ function getOrigin(referenceKeys: string[]): TaxonomyOrigin {
 }
 
 function toModeUsageRole(weight: string | undefined): ModeUsageRole {
-  if (weight === "primary" || weight === "supporting" || weight === "guardrail") {
+  if (
+    weight === "primary" ||
+    weight === "supporting" ||
+    weight === "advisory" ||
+    weight === "guardrail"
+  ) {
     return weight;
   }
   return "excluded";

@@ -356,37 +356,42 @@ export const standardsList: StandardDoc[] = [
     name: 'TextLens Rhetorical Analysis Framework',
     shortName: 'TextLens Framework',
     category: 'Rhetorical Frameworks',
-    description: 'Internal TextLens framework for rhetorical and evidentiary patterns.',
+    description: 'Internal TextLens Layer 3 taxonomy for rhetorical and evidentiary patterns.',
     clauses: [
       {
-        id: 'TL-ERASURE',
-        title: 'Layer 3: Historical Erasure and Selective Citation',
-        text: 'Systematically deleting essential historical details, context of host hostilities, or preceding agreements in order to present one party as acting with unprovoked, systemic malice.'
+        id: 'TEXTLENS-1',
+        title: 'Layer 3 Family 1: Evidence handling',
+        text: 'Use this family to assess verification bypass, selective evidence, background omission, trigger omission, contested claims stated as fact, and source inflation.'
       },
       {
-        id: 'TL-EXCEPTIONAL',
-        title: 'Layer 2: Sovereign Exceptionalism & Double Standards',
-        text: 'Assessing sovereign defenses, military actions, or security strategies through a highly hyper-scrutinized lens that is never applied to any other state or armed conflict globally.'
+        id: 'TEXTLENS-2',
+        title: 'Layer 3 Family 2: Language and emphasis',
+        text: 'Use this family to assess emotional loading, unequal humanisation, asymmetric certainty, loaded labels, and scale distortion.'
       },
       {
-        id: 'TL-MEDICAL',
-        title: 'Layer 3: Pathologizing Bias & Pseudo-Clinical Trope',
-        text: 'Utilizing professional medical jargon, epidemiological concepts, or public health metaphors (e.g. \"cancer\", \"virus\", \"toxic contagion\") to define a state or people as a biological pathogen that must be excised or quarantined.'
+        id: 'TEXTLENS-3',
+        title: 'Layer 3 Family 3: Agency and responsibility',
+        text: 'Use this family to assess passive responsibility, agency imbalance, intention inflation, and responsibility transfer.'
       },
       {
-        id: 'TL-INVERSION',
-        title: 'Layer 2: Linguistic Inversion',
-        text: 'The deliberate application of terms denoting extreme persecution or genocide (highly associated with historic Jewish suffering like the Holocaust) to describe contemporary defensive actions, aiming to inflict maximum psychological distress and historical distortion.'
+        id: 'TEXTLENS-4',
+        title: 'Layer 3 Family 4: Conflation and substitution',
+        text: 'Use this family to assess group conflation, government-state-people conflation, policy-to-existence shifts, and analogy treated as proof.'
       },
       {
-        id: 'TL-COLLECTIVE',
-        title: 'Layer 1: Institutional Exclusion and Identity Demands',
-        text: 'Imposing exclusionary tests (e.g. requiring Jewish academics, employees, or students to affirm or renounce political/national beliefs) before permitting participation in professional, civic, or institutional life.'
+        id: 'TEXTLENS-5',
+        title: 'Layer 3 Family 5: Frame-shifting and preconditions',
+        text: 'Use this family to assess scope expansion, subject change, silence disqualification, preconditions on discussing antisemitism, and context substitution.'
       },
       {
-        id: 'TL-FALSE_EVIDENCE',
-        title: 'Layer 3: Distorted Evidentiary Sourcing',
-        text: 'Relying exclusively on unverified partisan reports, social media claims, or opaque political actors while presenting them as objective, clinical, or peer-reviewed facts.'
+        id: 'TEXTLENS-6',
+        title: 'Layer 3 Family 6: Immunity and counter-attack',
+        text: 'Use this family to assess credentialed immunity, definition immunity, smear dismissal, motive attack, victim reversal, and counter-accusation.'
+      },
+      {
+        id: 'TEXTLENS-7',
+        title: 'Layer 3 Family 7: Authority and amplification',
+        text: 'Use this family to assess expertise laundering, institutional amplification, and moral inheritance. Cumulative framing across multiple publications is reserved for a later multi-document build.'
       }
     ]
   },

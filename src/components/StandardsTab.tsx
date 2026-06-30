@@ -26,14 +26,14 @@ const taxonomyLayerConfigs: Record<TaxonomySummaryLayerId, {
     badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
   },
   3: {
-    title: 'Layer 3: Rhetorical and Evidentiary Distortion',
-    summary: 'Methodological bias, framing asymmetry, selective sourcing, and manipulative rhetorical structures.',
+    title: 'Layer 3: Rhetorical and Evidentiary Taxonomy',
+    summary: 'Evidence handling, language and emphasis, agency, conflation, frame-shifting, immunity moves, and authority effects.',
     accentClass: 'border-indigo-200 bg-indigo-50/60',
     badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   },
   0: {
     title: 'Layer 0: Guardrails and Exemptions',
-    summary: 'Protected non-trigger categories that prevent ordinary political speech from being misclassified.',
+    summary: 'Protected non-trigger categories that prevent ordinary political speech, including BDS advocacy without aggravating features, from being misclassified.',
     accentClass: 'border-emerald-200 bg-emerald-50/60',
     badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   },

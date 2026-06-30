@@ -748,13 +748,14 @@ FOUR SCORING DIMENSIONS (each 0–100):
 
 2. antiZionistIntensityScore: The overall rhetorical weight and intensity of Israel-critical positioning — INCLUDING protected political speech. NOT an accusation. Factors: volume and intensity of Israel-critical claims; whether critique targets specific policies vs. state legitimacy; internal double-standard patterns; whether diaspora Jewish communities are implicated; delegitimising rhetorical structures even below violation threshold; whether BDS/one-state advocacy is incidental or the organising logic of the document.
 
-3. rhetoricalDistortionScore: Layer 3 rhetorical and evidentiary distortion — cherry-picking, asymmetrical empathy, emotional amplification, accusatory certainty without proof, passive/active voice shifting, laundering attacks through jargon.
+3. rhetoricalDistortionScore: Layer 3 rhetorical and evidentiary taxonomy score — evidence handling problems, loaded framing, agency and responsibility distortions, conflation, frame-shifting, immunity/counter-attack moves, and authority laundering.
 
 4. baseWorthinessScore: Pure content assessment of whether this merits a response. Do NOT factor in publication prominence — applied separately.
 
 RULES:
 - Cite specific standards ONLY when Confident and severity is at least Moderate. Otherwise use plain language.
 - The antiZionistNarrative MUST clearly distinguish protected political speech from content approaching the antisemitism threshold.
+- Do not treat BDS advocacy, boycott language, or alternative state-model advocacy as antisemitic in themselves. Require additional aggravating language or framing before treating them as flagged passages.
 - Write all narratives in plain accessible language for a non-specialist reader.
 - doubleStandardAssessment must directly address whether the text applies different standards to Israel vs. comparable states.
 - Generate a high-quality suggested Response Draft or Complaint Letter tailored to the findings, saved in the "suggestedComplaintOrResponse" field. This should provide structured rebuttals or letters suitable for advocates, community readers, or editors. Use a clean, professional, and firm tone.
@@ -784,7 +785,7 @@ Return structured JSON matching the required schema exactly.`;
             antisemitismNarrative: { type: Type.STRING, description: "Plain-language explanation of antisemitism findings." },
             antiZionistIntensityScore: { type: Type.NUMBER, description: "0-100 score for Israel-critical rhetorical positioning including protected speech." },
             antiZionistNarrative: { type: Type.STRING, description: "Plain-language explanation distinguishing protected speech from content approaching the antisemitism threshold." },
-            rhetoricalDistortionScore: { type: Type.NUMBER, description: "0-100 score for Layer 3 rhetorical distortion." },
+            rhetoricalDistortionScore: { type: Type.NUMBER, description: "0-100 score for Layer 3 rhetorical and evidentiary taxonomy concerns." },
             rhetoricalNarrative: { type: Type.STRING, description: "Plain-language explanation of rhetorical distortion findings." },
             baseWorthinessScore: { type: Type.NUMBER, description: "0-100 content-based worthiness score before prominence multiplier." },
             worthinessNarrative: { type: Type.STRING, description: "Plain-language explanation of response worthiness." },
@@ -1094,7 +1095,7 @@ CORE MANDATORY DIRECTIVES YOU MUST ABSOLUTELY FOLLOW:
 6. DISTINGUISH CLEARLY BETWEEN:
    - direct antisemitic content (Layer 1)
    - contemporary Israel/Zionism-linked patterns (Layer 2)
-   - rhetorical or evidentiary distortion (Layer 3)
+   - rhetorical or evidentiary taxonomy concerns (Layer 3)
    - ordinary political criticism (always marked as Layer 0 / benign political speech under guardrail findings, never as violation)
    - uncertain or insufficient evidence
 7. USE THE SELECTED COMMUNICATION TYPE AND RHETORICAL FUNCTION AS INTERPRETIVE CONTEXT ONLY.

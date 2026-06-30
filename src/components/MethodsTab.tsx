@@ -50,8 +50,8 @@ export default function MethodsTab() {
       description: "Evaluates contexts where geopolitical conflicts, opposition to Zionism, or criticisms of Israeli state policies cross the boundary into systemic hostility targeting Jewish people, institutions, or identity markers."
     },
     3: {
-      name: "Layer 3: Rhetorical and Evidentiary Distortion",
-      description: "Evaluates the structural, linguistic, and methodological fallacies that undermine objective reporting or academic ethics, introducing systemic bias under a facade of professional competence."
+      name: "Layer 3: Rhetorical and Evidentiary Taxonomy",
+      description: "Evaluates evidence handling, language and emphasis, agency, conflation, frame-shifting, immunity moves, and authority effects that can distort interpretation without by themselves proving antisemitism."
     },
     0: {
       name: "Layer 0: Protected Guardrails & Exemptions",
@@ -154,7 +154,7 @@ export default function MethodsTab() {
             {
               step: '3',
               title: 'Apply guardrails first',
-              text: 'Protected political speech, boycott advocacy and alternative constitutional views are checked before a concern is accepted.'
+              text: 'Protected political speech, BDS and boycott advocacy, and alternative constitutional views are checked before a concern is accepted.'
             },
             {
               step: '4',
@@ -275,7 +275,7 @@ export default function MethodsTab() {
               <div>
                 <span className="font-mono font-bold text-blue-900 block uppercase tracking-wider text-[10px] mb-1">Methodological Safeguard Notice</span>
                 <p className="text-slate-750 font-sans">
-                  <strong className="font-semibold text-slate-900">Rhetorical and evidentiary distortion (Layer 3)</strong> alone triggers analytical review regarding objectivity and consistency, but <span className="font-bold text-indigo-700 underline">does not by itself prove antisemitism</span>. To establish systemic bias, evaluations must be cross-referenced with corroborating testimonies, historical contexts, or explicit breaches in Layer 1 or Layer 2.
+                  <strong className="font-semibold text-slate-900">Layer 3 rhetorical and evidentiary findings</strong> trigger analytical review regarding objectivity and consistency, but <span className="font-bold text-indigo-700 underline">do not by themselves prove antisemitism</span>. They identify problems in evidence handling, framing, agency, conflation, preconditions, counter-attack moves, or authority laundering that may require cross-reference with Layer 1 or Layer 2 before a stronger conclusion is justified.
                 </p>
               </div>
             </div>
@@ -427,6 +427,8 @@ export default function MethodsTab() {
                                       ? 'bg-red-50 text-red-700 border-red-100' 
                                       : weight === 'supporting'
                                         ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                        : weight === 'advisory'
+                                          ? 'bg-amber-50 text-amber-700 border-amber-100'
                                         : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                                   }`}>
                                     {weight}

@@ -154,11 +154,11 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
     clausePrefixes: ["TL-", "TEXTLENS"],
     allowedModes: ["general", "healthcare", "academic", "bccsa", "press_code"],
     analyticalUse:
-      "Use for the TextLens-specific rhetorical taxonomy: omission patterns, asymmetrical framing, pathologizing metaphors, laundering of claims and cumulative distortion.",
+      "Use for the TextLens-specific Layer 3 taxonomy: evidence handling, language and emphasis, agency and responsibility, conflation, frame-shifting, immunity/counter-attack, and authority/amplification patterns.",
     triggerSignals: [
-      "Selective context or evidentiary laundering",
-      "Pathologizing or dehumanising rhetorical structures",
-      "Asymmetrical agency, empathy or blame assignment",
+      "Verification bypass, selective evidence, trigger omission, or contested claims stated as fact",
+      "Loaded labels, unequal humanisation, asymmetric certainty, or agency imbalance",
+      "Group conflation, preconditions on discussing antisemitism, expertise laundering, or responsibility transfer",
     ],
     guardrailSignals: [
       "Treat these as analytical prompts that still require textual support and restraint.",
