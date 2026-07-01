@@ -63,6 +63,7 @@ const STANDARD_DISPLAY_ORDER = [
   'icrc_customary_ihl_rule_28',
   'icrc_health_care_in_danger_making_case',
   'icrc_healthcare_personnel_responsibilities_conflict',
+  'translate_hate_glossary',
   'textlens_framework',
 ] as const;
 
@@ -125,8 +126,8 @@ const STANDARD_SECTIONS: Array<{
   {
     id: 'textlens-framework',
     title: 'TextLens Working Framework',
-    summary: 'The app’s internal taxonomy and guardrail framework, shown here as a summary rather than the full registry.',
-    docIds: ['textlens_framework'],
+    summary: 'TextLens framework and adjacent educational reference sources used to orient users, explain terms, and summarize the app’s working taxonomy.',
+    docIds: ['translate_hate_glossary', 'textlens_framework'],
   },
 ];
 

@@ -3,6 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import { textLensTaxonomy } from "./src/taxonomyData";
+import { findGlossaryContext } from "./src/glossaryData";
 import {
   compiledRuleLayer,
   getAllowedSourceKeysForMode,
@@ -854,6 +855,7 @@ Return structured JSON matching the required schema exactly.`;
           humanReviewPrompts: consumerData.humanReviewPrompts || [],
           limitations: consumerData.limitations || [],
           suggestedComplaintOrResponse: consumerData.suggestedComplaintOrResponse || "",
+          glossaryContext: findGlossaryContext(originalText, 8),
         });
       }
       // ── END CONSUMER MODE ─────────────────────────────────────────────────────

@@ -73,6 +73,24 @@ export const sourceCatalogList: SourceCatalogItem[] = [
     limitations: "Nexus is guidance, not a binding legal definition. It explicitly warns that harsh criticism of Israel, opposition to Zionism, and disproportionate attention to Israel are not in themselves proof of antisemitism."
   },
   {
+    sourceKey: "translate_hate_glossary",
+    sourceName: "AJC Translate Hate Glossary",
+    sourceType: "Educational Glossary",
+    shortLabel: "Translate Hate",
+    whyIncluded: "Provides plain-language explanations of antisemitic terms, phrases, symbols, memes, conspiracies and themes, with emphasis on recognition and media literacy.",
+    url: "https://www.ajc.org/translatehate",
+    notes: "Best used as an educational and trope-recognition source. It can enrich reports by explaining why a phrase or image may carry antisemitic meaning, but it should not replace context-sensitive standards analysis.",
+    role: "Educational glossary and antisemitic trope reference for recognition, explanation and user learning.",
+    summary: "Use to explain relevant glossary entries, coded language, trope histories, common variants and context questions. In formal modes, treat it as glossary context rather than as a binding adjudicative standard.",
+    keyCriteria: [
+      "Does the text resemble a named antisemitic trope, symbol, meme, conspiracy or coded phrase?",
+      "What context would make the term more or less concerning?",
+      "Which TextLens taxonomy items or external standards should a user consult for formal analysis?",
+      "Is the term being used descriptively, critically, in quotation, in reclamation, or as part of hostile rhetoric?"
+    ],
+    limitations: "Educational glossary only. A glossary match is not by itself a formal finding, legal conclusion, or regulatory breach."
+  },
+  {
     sourceKey: "bccsa_fta",
     sourceName: "BCCSA Free-to-Air Code of Conduct for Broadcasting Service Licensees",
     sourceType: "Regulatory Broadcast Code",

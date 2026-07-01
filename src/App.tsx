@@ -276,6 +276,7 @@ export default function App() {
         suggestedComplaintOrResponse: data.suggestedComplaintOrResponse || "",
         analysisTrace: data.analysisTrace,
         limitations: data.limitations || [],
+        glossaryContext: data.glossaryContext || [],
         consumerScores: {
           antisemitismScore: data.antisemitismScore || 0,
           antisemitismNarrative: data.antisemitismNarrative || "",

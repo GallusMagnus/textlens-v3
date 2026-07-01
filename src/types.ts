@@ -157,6 +157,21 @@ export interface AccountabilityStageTwoResponse {
   cautionAcknowledged?: boolean;
 }
 
+export interface GlossaryContextItem {
+  entryId: string;
+  term: string;
+  entryType: string;
+  category: string;
+  matchedAliases: string[];
+  summary: string;
+  whyItMatters: string;
+  whenItMayBeAntisemitic: string;
+  clarificationNote: string;
+  relatedTaxonomyIds: string[];
+  relatedSourceKeys: string[];
+  sourceName: string;
+}
+
 export interface AnalysisReport {
   id: string;
   name: string;
@@ -195,6 +210,7 @@ export interface AnalysisReport {
   analysisTrace?: AnalysisTrace;
   accountabilityReport?: AccountabilityReport;
   stageTwoResponse?: AccountabilityStageTwoResponse;
+  glossaryContext?: GlossaryContextItem[];
 
   // Consumer Mode scores
   consumerScores?: {

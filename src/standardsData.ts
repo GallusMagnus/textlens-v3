@@ -352,6 +352,36 @@ export const standardsList: StandardDoc[] = [
     ]
   },
   {
+    id: 'translate_hate_glossary',
+    name: 'AJC Translate Hate Glossary',
+    shortName: 'Translate Hate',
+    category: 'Rhetorical Frameworks',
+    description: 'Educational glossary for antisemitic terms, phrases, symbols, memes, conspiracies, and themes.',
+    fullTextUrl: 'https://www.ajc.org/translatehate',
+    clauses: [
+      {
+        id: 'AJC-GLOSSARY-1',
+        title: 'Trope Recognition and Plain-Language Explanation',
+        text: 'Use this glossary to identify named antisemitic tropes, coded phrases, symbols, conspiracies, and slogan variants, and to explain them in clear language for user learning.'
+      },
+      {
+        id: 'AJC-GLOSSARY-2',
+        title: 'Context Questions and Indicators',
+        text: 'Use this source to surface the context questions that matter: whether a term is being used descriptively, critically, in quotation, in reclamation, or as part of hostile rhetoric, and which surrounding signals make the usage more concerning.'
+      },
+      {
+        id: 'AJC-GLOSSARY-3',
+        title: 'Consumer-Mode Educational Enrichment',
+        text: 'Use this glossary in Consumer Mode to enrich the report with named glossary entries, definitions, and carefully bounded explanations when the analysed text contains matching terms or phrases.'
+      },
+      {
+        id: 'AJC-GLOSSARY-4',
+        title: 'Boundary: Not a Standalone Adjudicative Standard',
+        text: 'A glossary match is not by itself a formal finding, legal conclusion, or regulatory breach. Formal classification should still be grounded in the applicable external standards and the TextLens taxonomy.'
+      }
+    ]
+  },
+  {
     id: 'textlens_framework',
     name: 'TextLens Rhetorical Analysis Framework',
     shortName: 'TextLens Framework',

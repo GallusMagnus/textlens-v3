@@ -167,6 +167,27 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
       "This is a TextLens working framework, not an external binding source.",
     ],
   },
+  translate_hate_glossary: {
+    section: "TextLens Working Framework",
+    usageKind: "terminology",
+    clausePrefixes: ["TH", "TRANSLATE-HATE"],
+    allowedModes: ["general", "healthcare", "academic", "bccsa", "press_code"],
+    analyticalUse:
+      "Use as an educational glossary and trope-recognition reference for antisemitic terms, coded phrases, symbols, memes, conspiracies and themes.",
+    triggerSignals: [
+      "Language resembles a named antisemitic trope or coded phrase",
+      "A glossary entry helps explain why a term may carry antisemitic meaning",
+      "A report would benefit from plain-language historical or contextual explanation",
+    ],
+    guardrailSignals: [
+      "A glossary match is explanatory context, not a binding finding or automatic violation.",
+      "Quotation, critique, reclamation and neutral description require contextual treatment.",
+    ],
+    extraLimits: [
+      "Do not use Translate Hate as the primary adjudicative authority in regulatory or professional modes.",
+      "Use IHRA, JDA, Nexus, TextLens taxonomy or the applicable regulatory code for formal classification.",
+    ],
+  },
   icmje_recommendations_2026: {
     section: "Academic & Publication Standards",
     usageKind: "integrity",

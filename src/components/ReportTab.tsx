@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Info,
   Layers2,
-  Loader2
+  Loader2,
+  BookOpen
 } from 'lucide-react';
 import {
   AnalysisReport,
@@ -24,6 +25,7 @@ import {
 import { standardsList } from '../standardsData';
 import { getAnalysisModeLabel } from '../utils/modeLabels';
 import { getSourceContextFields } from '../utils/sourceContextFields';
+import { hydrateGlossaryContext } from '../glossaryData';
 
 // ---- Consumer Mode Spider Chart ----
 interface SpiderScores { antisemitism: number; antiZionist: number; rhetorical: number; worthy: number; }
@@ -61,9 +63,8 @@ function ConsumerSpiderChart({ scores }: { scores: SpiderScores }) {
       <circle cx={left.x}   cy={left.y}   r="4.5" fill="#7c3aed" />
       <circle cx={cx} cy={cy} r="3" fill="#cbd5e1" />
       <text x={cx} y={cy - r - 12} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#ef4444" fontFamily="Arial">Antisemitism</text>
-      <text x={cx + r + 12} y={cy - 3} textAnchor="start" fontSize="8.5" fontWeight="bold" fill="#d97706" fontFamily="Arial">Anti-Zionist</text>
-      <text x={cx + r + 12} y={cy + 10} textAnchor="start" fontSize="8.5" fontWeight="bold" fill="#d97706" fontFamily="Arial">Intensity ⊹</text>
-      <text x={cx} y={cy + r + 18} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#3b82f6" fontFamily="Arial">Rhetorical</text>
+      <text x={cx + r + 12} y={cy + 4} textAnchor="start" fontSize="8.5" fontWeight="bold" fill="#d97706" fontFamily="Arial">Anti-Zionism</text>
+      <text x={cx} y={cy + r + 18} textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="#3b82f6" fontFamily="Arial">Distortions</text>
       <text x={cx - r - 12} y={cy - 3} textAnchor="end" fontSize="8.5" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Response</text>
       <text x={cx - r - 12} y={cy + 10} textAnchor="end" fontSize="8.5" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Value</text>
     </svg>
@@ -270,6 +271,63 @@ export default function ReportTab({
     </div>
   );
 
+  const renderGlossaryContextSection = () => {
+    const entries = hydrateGlossaryContext(activeReport.glossaryContext);
+    if (activeReport.metadata.analysisMode !== 'consumer' || entries.length === 0) return null;
+
+    return (
+      <div className="bg-white border border-cyan-200 rounded-lg p-5 shadow-xs space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+            <BookOpen className="w-5 h-5 text-cyan-700" />
+            <span>AJC Glossary</span>
+          </h3>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            Detected examples from the AJC Translate Hate glossary. These entries name and define glossary-linked terms or tropes found in the analysed text.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {entries.map((entry) => (
+            <div key={entry.entryId} className="border border-cyan-100 rounded-lg bg-cyan-50/20 p-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-950">{entry.term}</span>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white border border-cyan-200 text-cyan-800">
+                  {entry.entryType}
+                </span>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-50 border border-slate-200 text-slate-500">
+                  {entry.category}
+                </span>
+              </div>
+              {entry.matchedAliases.length > 0 && (
+                <div className="text-[10px] font-mono text-slate-500">
+                  <strong>Matched:</strong> {entry.matchedAliases.join(', ')}
+                </div>
+              )}
+              <p className="text-xs text-slate-700 leading-relaxed">
+                <strong>Definition:</strong> {entry.summary}
+              </p>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                <strong>When it's antisemitic:</strong> {entry.whenItMayBeAntisemitic}
+              </p>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                <strong>Clarification:</strong> {entry.clarificationNote}
+              </p>
+              {entry.relatedTaxonomyIds.length > 0 && (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {entry.relatedTaxonomyIds.map((id) => (
+                    <span key={id} className="text-[9px] font-mono font-semibold text-cyan-800 bg-white border border-cyan-100 px-2 py-0.5 rounded">
+                      {id}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const toggleResponseGoal = (goal: AccountabilityResponseGoal) => {
     setResponseGoals((prev) =>
       prev.includes(goal) ? prev.filter((item) => item !== goal) : [...prev, goal]
@@ -316,7 +374,7 @@ export default function ReportTab({
     };
     const dimensions = [
       { key: 'antisemitism', label: 'Antisemitism Content',     score: cs.antisemitismScore,        narrative: cs.antisemitismNarrative,    dot: 'bg-red-500',    text: 'text-red-700',    border: 'border-red-200',    bg: 'bg-red-50'    },
-      { key: 'antizionist',  label: 'Anti-Zionist Intensity ⊹', score: cs.antiZionistIntensityScore, narrative: cs.antiZionistNarrative,     dot: 'bg-amber-500',  text: 'text-amber-700',  border: 'border-amber-200',  bg: 'bg-amber-50'  },
+      { key: 'antizionist',  label: 'Anti-Zionism',             score: cs.antiZionistIntensityScore, narrative: cs.antiZionistNarrative,     dot: 'bg-amber-500',  text: 'text-amber-700',  border: 'border-amber-200',  bg: 'bg-amber-50'  },
       { key: 'rhetorical',   label: 'Rhetorical Distortion',    score: cs.rhetoricalDistortionScore, narrative: cs.rhetoricalNarrative,      dot: 'bg-blue-500',   text: 'text-blue-700',   border: 'border-blue-200',   bg: 'bg-blue-50'   },
       { key: 'worthy',       label: 'Worthy of Response',       score: cs.worthyOfResponseScore,     narrative: cs.worthinessNarrative,      dot: 'bg-violet-500', text: 'text-violet-700', border: 'border-violet-200', bg: 'bg-violet-50' },
     ];
@@ -343,14 +401,13 @@ export default function ReportTab({
         </div>
         <div className="bg-violet-50 border border-violet-200 text-violet-800 text-xs py-3 px-4 rounded-lg flex items-start space-x-2">
           <Info className="w-4.5 h-4.5 text-violet-500 shrink-0 mt-0.5" />
-          <span><strong>Community / General Review Mode:</strong> This analysis applies an extended lens to anti-Zionist content. The Anti-Zionist Intensity score (⊹) measures political positioning — not a formal violation. All scores are analytical indicators, not legal determinations.</span>
+          <span><strong>Community / General Review Mode:</strong> This analysis applies an extended lens to anti-Zionism. All scores are analytical indicators, not legal determinations.</span>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
           <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 mb-4">TextLens General Score — Four-Dimension Overview</h3>
           <div className="flex flex-col lg:flex-row gap-6 items-center">
             <div className="w-full lg:w-auto lg:flex-shrink-0">
               <ConsumerSpiderChart scores={spiderScores} />
-              <p className="text-[9px] text-slate-400 text-center mt-1 font-mono">⊹ Anti-Zionist Intensity measures political positioning, not violation</p>
             </div>
             <div className="grid grid-cols-2 gap-3 flex-1 w-full">
               {dimensions.map(d => {
@@ -399,6 +456,7 @@ export default function ReportTab({
             <p className="text-xs text-slate-700 leading-relaxed">{cs.doubleStandardAssessment}</p>
           </div>
         )}
+        {renderGlossaryContextSection()}
         {activeReport.flaggedPassages.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500">Flagged Findings For Review ({activeReport.flaggedPassages.length})</h3>
@@ -900,6 +958,7 @@ export default function ReportTab({
         </div>
 
         {renderSourceContextSection()}
+        {renderGlossaryContextSection()}
         {renderAnalysisMetricsSection()}
       </div>
     );
@@ -1119,6 +1178,8 @@ export default function ReportTab({
           </div>
         </div>
       )}
+
+      {renderGlossaryContextSection()}
 
       {/* 3. CENTER OF THE REPORT: Overhauled Master Evidence Table */}
       <div id="report-master-evidence" className="space-y-3">

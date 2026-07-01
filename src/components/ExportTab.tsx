@@ -16,6 +16,7 @@ import {
 import { AnalysisReport } from '../types';
 import { jsPDF } from 'jspdf';
 import { getSourceContextFields } from '../utils/sourceContextFields';
+import { hydrateGlossaryContext } from '../glossaryData';
 
 interface ExportTabProps {
   activeReport: AnalysisReport | null;
@@ -100,6 +101,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     ['Total Tokens', formatTokenCount(analysisTrace?.tokenUsage?.totalTokens)],
     ['AI Call Time', formatDuration(analysisTrace?.modelRuntimeMs)],
   ];
+  const consumerGlossaryEntries = metadata.analysisMode === 'consumer'
+    ? hydrateGlossaryContext(activeReport.glossaryContext)
+    : [];
 
   const formatAccountabilityClaimRef = (claimId?: string) => {
     const match = String(claimId || '').match(/^claim-(\d+)$/i);
@@ -204,14 +208,14 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
     let report = "";
     report += "================================================================================\n";
-    report += "                        TEXTLENS COMPLIANCE AUDIT PLATFORM\n";
-    report += "                     Official Case Docket & Compliance Brief\n";
+    report += "                            TEXTLENS ANALYSIS REPORT\n";
+    report += "                         Structured Review Summary\n";
     report += "================================================================================\n";
     report += `Case Reference ID: #${activeReport.id.toUpperCase()}\n`;
     report += `Analysis Date:     ${analysisDateText}\n`;
     report += `Model:             ${analysisModelText}\n\n`;
     
-    report += "I. DOCUMENT METADATA\n";
+    report += "I. SOURCE DETAILS\n";
     report += "--------------------------------------------------------------------------------\n";
     report += `Title:                 ${metadata.title}\n`;
     report += `Author/Creator:        ${metadata.author || "Unknown Author"}\n`;
@@ -222,26 +226,41 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     report += `Overall Concern Level: ${(activeReport.overallConcernLevel || 'High').toUpperCase()}\n`;
     report += `Confidence Level:      ${(activeReport.confidence || 'High').toUpperCase()}\n\n`;
 
-    report += "II. EXECUTIVE SUMMATION & ANALYSIS JUDGEMENT\n";
+    report += "II. SUMMARY\n";
     report += "--------------------------------------------------------------------------------\n";
     report += `${activeReport.summaryJudgement}\n\n`;
 
     if (metadata.analysisMode === 'consumer' && activeReport.consumerScores) {
       const cs = activeReport.consumerScores;
-      report += "II.B. COMMUNITY / GENERAL REVIEW RADAR SCORING METRICS\n";
+      report += "II.B. COMMUNITY / GENERAL REVIEW SCORES\n";
       report += "--------------------------------------------------------------------------------\n";
       report += `- Antisemitism Content Score:    [Score: ${cs.antisemitismScore}/100 - ${getConsumerTextLabel(cs.antisemitismScore)}]\n`;
       report += `  Assessment: ${cs.antisemitismNarrative}\n\n`;
-      report += `- Anti-Zionist Intensity Score:  [Score: ${cs.antiZionistIntensityScore}/100 - ${getConsumerTextLabel(cs.antiZionistIntensityScore)}]\n`;
+      report += `- Anti-Zionism Score:            [Score: ${cs.antiZionistIntensityScore}/100 - ${getConsumerTextLabel(cs.antiZionistIntensityScore)}]\n`;
       report += `  Assessment: ${cs.antiZionistNarrative}\n\n`;
       report += `- Rhetorical Distortion Score:   [Score: ${cs.rhetoricalDistortionScore}/100 - ${getConsumerTextLabel(cs.rhetoricalDistortionScore)}]\n`;
       report += `  Assessment: ${cs.rhetoricalNarrative}\n\n`;
       report += `- Worthy of Response Value:       [Score: ${cs.worthyOfResponseScore}/100 - ${getConsumerTextLabel(cs.worthyOfResponseScore)}]\n`;
       report += `  Assessment: ${cs.worthinessNarrative}\n\n`;
+
+      if (consumerGlossaryEntries.length > 0) {
+        report += "II.C. AJC GLOSSARY\n";
+        report += "--------------------------------------------------------------------------------\n";
+        report += "Detected examples from the AJC Translate Hate glossary. These entries name and define glossary-linked terms or tropes found in the analysed text.\n\n";
+        consumerGlossaryEntries.forEach((entry, index) => {
+          report += `${index + 1}. ${entry.term} [${entry.category}]\n`;
+          if (entry.matchedAliases.length > 0) report += `   Matched terms: ${entry.matchedAliases.join(", ")}\n`;
+          report += `   Definition: ${entry.summary}\n`;
+          report += `   When it's antisemitic: ${entry.whenItMayBeAntisemitic}\n`;
+          report += `   Clarification: ${entry.clarificationNote}\n`;
+          if (entry.relatedTaxonomyIds.length > 0) report += `   Related TextLens items: ${entry.relatedTaxonomyIds.join(", ")}\n`;
+          report += "\n";
+        });
+      }
     }
 
     if (includeEvidenceTable) {
-      report += "III. SYSTEMATIC LEXICAL & RHETORICAL EXAMINED PASSAGES\n";
+      report += "III. FLAGGED PASSAGES\n";
       report += "--------------------------------------------------------------------------------\n";
       if (!flaggedPassages || flaggedPassages.length === 0) {
         report += "No severe rhetorical bias or lexical triggers identified by the standard engine.\n\n";
@@ -253,11 +272,11 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           report += `  - Uncertainty:  ${p.uncertaintyLabel}\n`;
           const appliedStr = p.standardsApplied?.map(s => `${s.standardName} (${s.clauseTitle})`).join(', ') || "General Rule";
           report += `  - Applied Codes: ${appliedStr}\n`;
-          report += `  - Audit Explanation: ${p.explanation}\n\n`;
+          report += `  - Explanation:  ${p.explanation}\n\n`;
         });
       }
 
-      report += "IV. EVIDENTIARY OMISSIONS & LOGICAL ASSESSMENT\n";
+      report += "IV. EVIDENTIARY ISSUES\n";
       report += "--------------------------------------------------------------------------------\n";
       if (!evidentiaryIssues || evidentiaryIssues.length === 0) {
         report += "No major evidentiary omissions or missing contextual background items noted.\n\n";
@@ -266,30 +285,30 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           report += `[OMISSION 0${idx + 1}]\n`;
           report += `  - Core Claim:    "${issue.claimSnippet}"\n`;
           report += `  - Unreliable Pattern: ${issue.unreliablePattern}\n`;
-          report += `  - Reasoning Assessment: ${issue.reasoning}\n`;
-          report += `  - Remedy Action: ${issue.suggestedAction}\n\n`;
+          report += `  - Assessment:   ${issue.reasoning}\n`;
+          report += `  - Suggested Action: ${issue.suggestedAction}\n\n`;
         });
       }
     }
 
     if (includeOriginalText && activeReport.originalText) {
-      report += "V. APPENDIX: AUDITED BROADCAST / PRESS ORIGINAL TEXT\n";
+      report += "V. ORIGINAL TEXT\n";
       report += "--------------------------------------------------------------------------------\n";
       report += `${activeReport.originalText}\n\n`;
     }
 
     if (includeDraftComplaints && activeReport.suggestedComplaintLanguage) {
-      report += "VI. SUGGESTED COMPLAINT CORRESPONDENCE & LETTERS\n";
+      report += "VI. DRAFT RESPONSES\n";
       report += "--------------------------------------------------------------------------------\n";
-      report += "A. FORMAL COMPLAINT RESPONSE LETTER:\n";
+      report += "A. FORMAL RESPONSE LETTER:\n";
       report += "................................................................................\n";
       report += `${activeReport.suggestedComplaintLanguage.formalLetter}\n\n`;
-      report += "B. PUBLIC RESPONSE & CORRECTION REQUEST:\n";
+      report += "B. PUBLIC RESPONSE / CORRECTION REQUEST:\n";
       report += "................................................................................\n";
       report += `${activeReport.suggestedComplaintLanguage.publicCorrectionRequest}\n\n`;
     }
 
-    report += "SOURCE & CONTEXT RECORD\n";
+    report += "SOURCE & CONTEXT\n";
     report += "--------------------------------------------------------------------------------\n";
     sourceContextFields.forEach((field) => {
       report += `${field.label}: ${field.value}\n`;
@@ -309,7 +328,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     }
 
     report += "--------------------------------------------------------------------------------\n";
-    report += "End of official compliance brief.\n";
+    report += "End of TextLens analysis report.\n";
     report += "================================================================================\n";
     return report;
   };
@@ -406,9 +425,19 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     if (metadata.analysisMode === 'consumer' && activeReport.consumerScores) {
       const cs = activeReport.consumerScores;
       rows.push(["RADAR SCORE", "Antisemitism Content Score", "Score: " + cs.antisemitismScore, getConsumerTextLabel(cs.antisemitismScore), "Scale 0-100", cs.antisemitismNarrative]);
-      rows.push(["RADAR SCORE", "Anti-Zionist Intensity Score ⊹", "Score: " + cs.antiZionistIntensityScore, getConsumerTextLabel(cs.antiZionistIntensityScore), "Scale 0-100", cs.antiZionistNarrative]);
+      rows.push(["RADAR SCORE", "Anti-Zionism Score", "Score: " + cs.antiZionistIntensityScore, getConsumerTextLabel(cs.antiZionistIntensityScore), "Scale 0-100", cs.antiZionistNarrative]);
       rows.push(["RADAR SCORE", "Rhetorical Distortion Score", "Score: " + cs.rhetoricalDistortionScore, getConsumerTextLabel(cs.rhetoricalDistortionScore), "Scale 0-100", cs.rhetoricalNarrative]);
       rows.push(["RADAR SCORE", "Response Value / Worthiness Score", "Score: " + cs.worthyOfResponseScore, getConsumerTextLabel(cs.worthyOfResponseScore), "Scale 0-100", cs.worthinessNarrative]);
+      consumerGlossaryEntries.forEach((entry) => {
+        rows.push([
+          "AJC Glossary",
+          entry.entryId,
+          entry.matchedAliases.join(", "),
+          entry.term,
+          entry.category,
+          `Definition: ${entry.summary} | When it's antisemitic: ${entry.whenItMayBeAntisemitic} | Clarification: ${entry.clarificationNote}`
+        ]);
+      });
     }
 
     // Flagged passages
@@ -451,7 +480,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         const link = document.createElement('a');
         link.href = url;
         const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
-        link.download = `textlens_legal_dossier_${normalizedTitle || 'brief'}.txt`;
+        link.download = `textlens_analysis_report_${normalizedTitle || 'report'}.txt`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -477,7 +506,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         const link = document.createElement('a');
         link.href = url;
         const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
-        link.download = `textlens_audit_grid_${normalizedTitle || 'grid'}.csv`;
+        link.download = `textlens_review_data_${normalizedTitle || 'data'}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -710,7 +739,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(18);
         doc.setTextColor(30, 41, 59); // slate-800
-        const titleLines = doc.splitTextToSize(metadata.title || "Compliance Brief", widthMax);
+        const titleLines = doc.splitTextToSize(metadata.title || "Analysis Report", widthMax);
         doc.text(titleLines, marginX, currentY);
         currentY += (titleLines.length * 8) + 5;
 
@@ -813,7 +842,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           doc.setLineWidth(0.3);
           doc.setDrawColor(148, 163, 184); // slate-400
           doc.line(cX, cY, cX, cY - rSize); // Top (Antisemitism)
-          doc.line(cX, cY, cX + rSize, cY); // Right (Anti-Zionist Intensity)
+          doc.line(cX, cY, cX + rSize, cY); // Right (Anti-Zionism)
           doc.line(cX, cY, cX, cY + rSize); // Bottom (Rhetorical Distortion)
           doc.line(cX, cY, cX - rSize, cY); // Left (Worthy of Response)
 
@@ -854,15 +883,12 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           doc.text("Antisemitism", cX, cY - rSize - 2, { align: 'center' });
 
           doc.setTextColor(217, 119, 6);
-          doc.text("Anti-Zionist", cX + rSize + 2, cY - 1);
-          doc.setFontSize(6);
-          doc.setTextColor(146, 64, 14);
-          doc.text("Intensity", cX + rSize + 2, cY + 2);
+          doc.text("Anti-Zionism", cX + rSize + 2, cY + 1);
 
           doc.setFont('Helvetica', 'bold');
           doc.setFontSize(7.5);
           doc.setTextColor(59, 130, 246);
-          doc.text("Rhetorical", cX, cY + rSize + 3, { align: 'center' });
+          doc.text("Distortions", cX, cY + rSize + 3, { align: 'center' });
 
           doc.setTextColor(124, 58, 237);
           doc.text("Response Worthy", cX - rSize - 2, cY + 1.5, { align: 'right' });
@@ -873,7 +899,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
           const dims = [
             { label: 'Antisemitism Content', score: cs.antisemitismScore, narrative: cs.antisemitismNarrative, colorRGB: [239, 68, 68] },
-            { label: 'Anti-Zionist Intensity ⊹', score: cs.antiZionistIntensityScore, narrative: cs.antiZionistNarrative, colorRGB: [217, 119, 6] },
+            { label: 'Anti-Zionism', score: cs.antiZionistIntensityScore, narrative: cs.antiZionistNarrative, colorRGB: [217, 119, 6] },
             { label: 'Rhetorical Distortion', score: cs.rhetoricalDistortionScore, narrative: cs.rhetoricalNarrative, colorRGB: [59, 130, 246] },
             { label: 'Response Worthiness', score: cs.worthyOfResponseScore, narrative: cs.worthinessNarrative, colorRGB: [124, 58, 237] }
           ];
@@ -897,6 +923,60 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           });
 
           currentY = Math.max(cY + rSize + 12, textY + 4);
+        }
+
+        if (consumerGlossaryEntries.length > 0) {
+          checkPageOverflow(30);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.setTextColor(15, 23, 42);
+          doc.text("I.C. AJC Glossary", marginX, currentY);
+          currentY += 6;
+
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(71, 85, 105);
+          const introLines = doc.splitTextToSize(
+            "Detected examples from the AJC Translate Hate glossary. These entries name and define glossary-linked terms or tropes found in the analysed text.",
+            widthMax
+          );
+          introLines.forEach((line: string) => {
+            checkPageOverflow(4);
+            doc.text(line, marginX, currentY);
+            currentY += 3.8;
+          });
+          currentY += 3;
+
+          consumerGlossaryEntries.forEach((entry, index) => {
+            const detailLines = doc.splitTextToSize(
+              `Definition: ${entry.summary} When it's antisemitic: ${entry.whenItMayBeAntisemitic} Clarification: ${entry.clarificationNote}`,
+              widthMax - 8
+            );
+            checkPageOverflow(14 + detailLines.length * 4);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(8, 145, 178);
+            doc.text(`${index + 1}. ${entry.term} (${entry.category})`, marginX, currentY);
+            currentY += 4.5;
+
+            if (entry.matchedAliases.length > 0) {
+              doc.setFont('Helvetica', 'normal');
+              doc.setFontSize(7.5);
+              doc.setTextColor(100, 116, 139);
+              doc.text(`Matched: ${entry.matchedAliases.join(", ")}`, marginX + 4, currentY);
+              currentY += 4;
+            }
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(51, 65, 85);
+            detailLines.forEach((line: string) => {
+              checkPageOverflow(4);
+              doc.text(line, marginX + 4, currentY);
+              currentY += 3.8;
+            });
+            currentY += 4;
+          });
         }
 
         // 3. Flagged passages (Evidence Table)
@@ -1218,7 +1298,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         // Build and save the actual binary blobs to local systems
         const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
-        doc.save(`textlens_compliance_dossier_${normalizedTitle || 'brief'}.pdf`);
+          doc.save(`textlens_analysis_report_${normalizedTitle || 'report'}.pdf`);
 
         setExportSuccess(prev => ({ ...prev, pdf: true }));
       } catch (err) {
@@ -1271,8 +1351,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       <div id="textlens-printable-report" className="p-8 max-w-4xl mx-auto bg-white text-slate-900 leading-relaxed">
         {/* COVER SHEET */}
         <div className="text-center py-12 border-b-4 border-double border-slate-350">
-          <div className="text-xs font-mono tracking-widest text-slate-400 uppercase font-bold">TextLens Compliance Audit Platform</div>
-          <h1 className="text-3xl font-serif font-semibold text-slate-900 mt-3 uppercase tracking-tight">Official Media Bias & Compliance Brief</h1>
+          <div className="text-xs font-mono tracking-widest text-slate-400 uppercase font-bold">TextLens Structured Review</div>
+          <h1 className="text-3xl font-serif font-semibold text-slate-900 mt-3 uppercase tracking-tight">Analysis Report</h1>
           <div className="text-sm font-mono text-indigo-600 mt-2 font-bold">[Case Reference: #{activeReport.id.substring(0, 8).toUpperCase()}]</div>
           
           <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto text-left mt-8 p-4 bg-slate-50 border border-slate-205 text-xs font-mono">
@@ -1289,7 +1369,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         {/* SECTION 1: EXEC SUMMARY */}
         <div className="mt-8">
-          <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1. Executive Summary & Audit Judgement</h2>
+          <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1. Summary</h2>
           <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap font-serif">
             {activeReport.summaryJudgement}
           </p>
@@ -1298,7 +1378,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         {/* SECTION 1.B: COMMUNITY / GENERAL REVIEW MODE RADAR SCORING METRICS */}
         {metadata.analysisMode === 'consumer' && activeReport.consumerScores && (
           <div className="mt-8 break-inside-avoid">
-            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1.B. Community &amp; General Review 4D Scoring Metrics</h2>
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1.B. Community &amp; General Review Scores</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center p-4 bg-slate-50 border border-slate-200 rounded">
               
@@ -1357,9 +1437,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                     );
                   })()}
                   <text x={140} y={32} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#ef4444" fontFamily="Arial">Antisemitism</text>
-                  <text x={240} y={138} textAnchor="start" fontSize="9" fontWeight="bold" fill="#d97706" fontFamily="Arial">Anti-Zionist</text>
-                  <text x={240} y={148} textAnchor="start" fontSize="7" fill="#92400e" fontFamily="Arial">Intensity ⊹</text>
-                  <text x={140} y={252} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#3b82f6" fontFamily="Arial">Rhetorical</text>
+                  <text x={240} y={143} textAnchor="start" fontSize="9" fontWeight="bold" fill="#d97706" fontFamily="Arial">Anti-Zionism</text>
+                  <text x={140} y={252} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#3b82f6" fontFamily="Arial">Distortions</text>
                   <text x={40} y={138} textAnchor="end" fontSize="9" fontWeight="bold" fill="#7c3aed" fontFamily="Arial">Response</text>
                   <text x={40} y={148} textAnchor="end" fontSize="8" fill="#7c3aed" fontFamily="Arial">Value</text>
                 </svg>
@@ -1369,7 +1448,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
               <div className="space-y-3">
                 {[
                   { label: "Antisemitism Content", score: activeReport.consumerScores.antisemitismScore, narrative: activeReport.consumerScores.antisemitismNarrative, color: "text-red-700" },
-                  { label: "Anti-Zionist Intensity ⊹", score: activeReport.consumerScores.antiZionistIntensityScore, narrative: activeReport.consumerScores.antiZionistNarrative, color: "text-amber-700" },
+                  { label: "Anti-Zionism", score: activeReport.consumerScores.antiZionistIntensityScore, narrative: activeReport.consumerScores.antiZionistNarrative, color: "text-amber-700" },
                   { label: "Rhetorical Distortion", score: activeReport.consumerScores.rhetoricalDistortionScore, narrative: activeReport.consumerScores.rhetoricalNarrative, color: "text-blue-700" },
                   { label: "Response Value", score: activeReport.consumerScores.worthyOfResponseScore, narrative: activeReport.consumerScores.worthinessNarrative, color: "text-violet-700" }
                 ].map(dim => (
@@ -1389,10 +1468,45 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           </div>
         )}
 
+        {consumerGlossaryEntries.length > 0 && (
+          <div className="mt-8 page-break">
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1.C. AJC Glossary</h2>
+            <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+              Detected examples from the AJC Translate Hate glossary. These entries name and define glossary-linked terms or tropes found in the analysed text.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {consumerGlossaryEntries.map((entry) => (
+                <div key={entry.entryId} className="border border-cyan-100 bg-cyan-50/20 rounded p-3 break-inside-avoid">
+                  <div className="flex flex-wrap gap-2 items-center mb-2">
+                    <span className="text-xs font-bold text-slate-950">{entry.term}</span>
+                    <span className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-white border border-cyan-200 text-cyan-800">
+                      {entry.entryType}
+                    </span>
+                  </div>
+                  {entry.matchedAliases.length > 0 && (
+                    <p className="text-[10px] font-mono text-slate-500 mb-2">
+                      <strong>Matched:</strong> {entry.matchedAliases.join(', ')}
+                    </p>
+                  )}
+                  <p className="text-xs text-slate-700 leading-relaxed mb-2">
+                    <strong>Definition:</strong> {entry.summary}
+                  </p>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-2">
+                    <strong>When it's antisemitic:</strong> {entry.whenItMayBeAntisemitic}
+                  </p>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    <strong>Clarification:</strong> {entry.clarificationNote}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* SECTION 2: SYSTEMATIC EXAMINED TEXT EVIDENCE */}
         {includeEvidenceTable && flaggedPassages && flaggedPassages.length > 0 && (
           <div className="mt-8 page-break">
-            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">2. Systemic Flagged Lexical & Rhetorical Bias</h2>
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">2. Flagged Passages</h2>
             <div className="space-y-6">
               {flaggedPassages.map((p, idx) => (
                 <div key={p.id} className="border border-slate-200 p-4 rounded bg-slate-50/50 break-inside-avoid">
@@ -1414,7 +1528,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                       <span className="font-medium text-slate-700">{p.uncertaintyLabel}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Applied Compliance Clause:</span>
+                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Applied Standard:</span>
                       <span className="font-mono text-[9px] text-indigo-700">
                         {p.standardsApplied?.map(s => `${s.standardName} (${s.clauseTitle})`).join(', ') || 'General Bias Definition'}
                       </span>
@@ -1422,7 +1536,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   </div>
 
                   <div>
-                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Compliance Audit & Reasoning:</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Explanation:</span>
                     <p className="text-xs text-slate-700 leading-normal font-sans">{p.explanation}</p>
                   </div>
                 </div>
@@ -1434,7 +1548,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         {/* SECTION 3: EVIDENTIARY OMISSIONS */}
         {includeEvidenceTable && evidentiaryIssues && evidentiaryIssues.length > 0 && (
           <div className="mt-8 page-break">
-            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">3. Actionable Evidentiary Blunders & Contextual Omissions</h2>
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">3. Evidentiary Issues</h2>
             <div className="space-y-4">
               {evidentiaryIssues.map((issue, idx) => (
                 <div key={issue.id} className="border border-slate-200 p-4 rounded bg-slate-50/20 break-inside-avoid">
@@ -1454,12 +1568,12 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   </div>
 
                   <div className="mb-2">
-                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Analytical Assessment:</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Assessment:</span>
                     <p className="text-xs text-slate-600 leading-normal">{issue.reasoning}</p>
                   </div>
 
                   <div>
-                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Remedial Compliance Action Advice:</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Suggested Action:</span>
                     <p className="text-xs text-emerald-800 bg-emerald-50/40 p-2 rounded border border-emerald-100 font-sans leading-normal">{issue.suggestedAction}</p>
                   </div>
                 </div>
@@ -1471,7 +1585,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         {/* SECTION 4: INCLUDED ORIGINAL TEXT */}
         {includeOriginalText && activeReport.originalText && (
           <div className="mt-8 page-break">
-            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">4. Appended Audited Source Plaintext</h2>
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">4. Original Text</h2>
             <div className="bg-slate-50 border border-slate-200 p-4 rounded text-xs text-slate-700 leading-relaxed font-mono whitespace-pre-wrap max-h-[500px]">
               {activeReport.originalText}
             </div>
@@ -1481,18 +1595,18 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         {/* SECTION 5: SUGGESTED CORRESPONDENCE */}
         {includeDraftComplaints && activeReport.suggestedComplaintLanguage && (
           <div className="mt-8 page-break">
-            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">5. Appended Legal Responses & Draft Correspondence</h2>
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">5. Draft Responses</h2>
             
             <div className="space-y-6">
               <div>
-                <h3 className="text-xs font-mono font-bold text-indigo-700 uppercase mb-2">A. Formal Complaint Cover Letter</h3>
+                <h3 className="text-xs font-mono font-bold text-indigo-700 uppercase mb-2">A. Formal Response Letter</h3>
                 <div className="border border-slate-200 bg-white p-4 rounded text-xs font-serif leading-relaxed whitespace-pre-wrap">
                   {activeReport.suggestedComplaintLanguage.formalLetter}
                 </div>
               </div>
               
               <div className="page-break">
-                <h3 className="text-xs font-mono font-bold text-indigo-700 uppercase mb-2 animate-none">B. Public Response & Correction Request</h3>
+                <h3 className="text-xs font-mono font-bold text-indigo-700 uppercase mb-2 animate-none">B. Public Response / Correction Request</h3>
                 <div className="border border-slate-200 bg-white p-4 rounded text-xs font-serif leading-relaxed whitespace-pre-wrap">
                   {activeReport.suggestedComplaintLanguage.publicCorrectionRequest}
                 </div>
@@ -1538,16 +1652,16 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         {/* PRINT FOOTER */}
         <div className="mt-12 pt-6 border-t border-slate-300 text-center text-[10px] font-mono text-slate-400">
-          <div>This compliance report dossier conforms to institutional media audit practices.</div>
+          <div>This is a structured review summary generated by TextLens.</div>
           <div>Report generated via TextLens workspace platform on {new Date().toISOString().split('T')[0]}. Case reference: #{activeReport.id}</div>
         </div>
       </div>
       
       {/* Overview Card */}
       <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs">
-        <h2 className="text-lg font-semibold text-gray-950">Compilation & Share Registry</h2>
+        <h2 className="text-lg font-semibold text-gray-950">Export & Share</h2>
         <p className="text-gray-600 text-sm mt-1">
-          Select target file formats to compile and download active document case files, compliance audit tables, and suggested complaint response letters instantly.
+          Select a file format to download or copy the current TextLens report and supporting tables.
         </p>
       </div>
 
@@ -1557,17 +1671,17 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         <div className="lg:col-span-2 space-y-6">
           
           <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-4">
-            <h3 className="text-xs font-bold font-mono text-gray-400 uppercase tracking-wider">Available Compilation Formats</h3>
+            <h3 className="text-xs font-bold font-mono text-gray-400 uppercase tracking-wider">Available Export Formats</h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               
               {/* Export Word */}
               <div className="border border-gray-200 hover:border-gray-300 rounded p-4 flex flex-col justify-between space-y-3 transition-all">
                 <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-gray-400 uppercase font-bold">Standard Text Filename</span>
-                  <h4 className="text-sm font-semibold text-gray-900">Compile Legal Brief File</h4>
+                  <span className="font-mono text-[10px] text-gray-400 uppercase font-bold">Plain Text Report</span>
+                  <h4 className="text-sm font-semibold text-gray-900">Download Text Report</h4>
                   <p className="text-xs text-gray-500 font-sans leading-normal">
-                    Generates a formal text-dossier document containing active metadata, comprehensive flagged bias excerpts, and administrative complaint letter models.
+                    Generates a simple text version of the current analysis, including metadata, flagged passages, and any draft response language.
                   </p>
                 </div>
                 <button
@@ -1580,17 +1694,17 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   {exportingType === 'docx' ? (
                     <>
                       <Loader className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
-                      <span>Compiling Word Brief...</span>
+                      <span>Preparing text report...</span>
                     </>
                   ) : exportSuccess['docx'] ? (
                     <>
                       <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                      <span className="text-green-700 font-semibold font-mono">Dossier File Saved</span>
+                      <span className="text-green-700 font-semibold font-mono">Text Report Saved</span>
                     </>
                   ) : (
                     <>
                       <Download className="w-3.5 h-3.5 text-gray-500" />
-                      <span>Download .TXT Brief</span>
+                      <span>Download .TXT Report</span>
                     </>
                   )}
                 </button>
@@ -1600,9 +1714,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
               <div className="border border-gray-200 hover:border-gray-300 rounded p-4 flex flex-col justify-between space-y-3 transition-all">
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] text-gray-400 uppercase font-bold">Adobe PDF Vectors</span>
-                  <h4 className="text-sm font-semibold text-gray-900">Render PDF Compliance Report</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Render PDF Report</h4>
                   <p className="text-xs text-gray-500 font-sans leading-normal">
-                    Generates an unmodifiable, professionally styled PDF with system metadata cover sheet, evidentiary audit matrix, and responsive correction requests.
+                    Generates a styled PDF version of the current analysis with metadata, findings, and response material where available.
                   </p>
                 </div>
                 <button
@@ -1635,9 +1749,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
               <div className="border border-gray-200 hover:border-gray-300 rounded p-4 flex flex-col justify-between space-y-3 transition-all">
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] text-gray-400 uppercase font-semibold">Structured Table</span>
-                  <h4 className="text-sm font-semibold text-gray-900">Export CSV Evidence Data</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Export CSV Review Data</h4>
                   <p className="text-xs text-gray-500 font-sans leading-normal">
-                    Maps each structural passage flag, category, severity rating, and system assessment explanation into standard CSV spreadsheet indexes.
+                    Exports flagged passages, categories, severity ratings, and related review fields into a spreadsheet-friendly CSV.
                   </p>
                 </div>
                 <button
@@ -1669,10 +1783,10 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
               {/* Full clipboard dump */}
               <div className="border border-gray-200 hover:border-gray-300 rounded p-4 flex flex-col justify-between space-y-3 transition-all">
                 <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-gray-400 uppercase font-semibold">System Dump</span>
-                  <h4 className="text-sm font-semibold text-gray-900">Copy Entire Analytical File</h4>
+                  <span className="font-mono text-[10px] text-gray-400 uppercase font-semibold">Clipboard Copy</span>
+                  <h4 className="text-sm font-semibold text-gray-900">Copy Full Report Text</h4>
                   <p className="text-xs text-gray-500 font-sans leading-normal">
-                    Copies complete case diagnostics, executive evaluations, examined triggers list, and proposed administrative letters to your layout deck.
+                    Copies the full current report as plain text so it can be pasted into notes, email drafts, or other documents.
                   </p>
                 </div>
                 <button
@@ -1690,12 +1804,12 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   ) : exportSuccess['copy'] ? (
                     <>
                       <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                      <span className="text-green-700 font-semibold font-mono font-medium">Copied File to Clipboard</span>
+                      <span className="text-green-700 font-semibold font-mono font-medium">Copied Report to Clipboard</span>
                     </>
                   ) : (
                     <>
                       <Clipboard className="w-3.5 h-3.5 text-gray-500" />
-                      <span>Copy Full Brief Text</span>
+                      <span>Copy Full Report Text</span>
                     </>
                   )}
                 </button>
@@ -1707,11 +1821,11 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           {/* Export simulation feedback block */}
           {exportingType && (
             <div className="bg-indigo-950 text-indigo-200 border border-indigo-900 p-4 rounded-lg font-mono text-[11px] animate-pulse space-y-2">
-              <span className="text-indigo-400 font-semibold uppercase tracking-wider block">Local Compiler Logging</span>
+              <span className="text-indigo-400 font-semibold uppercase tracking-wider block">Export Progress</span>
               <code>
                 System generating file assets...
                 <br />
-                Reading metadata registry title:「{metadata.title}」
+                Reading report title:「{metadata.title}」
                 <br />
                 Iterating {flaggedPassages?.length || 0} flagged lexical layers
                 <br />
@@ -1719,7 +1833,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                 <br />
                 Output file format set: [.{exportingType.toUpperCase()}]
                 <br />
-                Compiles fully conforming to standard regulatory compliance structures.
+                Formatting a structured TextLens export.
               </code>
             </div>
           )}
@@ -1731,7 +1845,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-4">
             <h3 className="text-xs font-bold font-mono text-gray-400 uppercase tracking-wider flex items-center space-x-2">
               <Settings className="w-4 h-4 text-gray-400" />
-              <span>Compilation Settings</span>
+              <span>Export Settings</span>
             </h3>
 
             <div className="space-y-3 pt-1">
@@ -1744,7 +1858,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                 />
                 <div className="ml-3 font-sans text-xs">
                   <span className="font-semibold text-gray-950 block">Include Original Plaintext</span>
-                  <span className="text-gray-500 block text-[11px]">Includes the complete submitted original text inside the legal dossier.</span>
+                  <span className="text-gray-500 block text-[11px]">Includes the complete submitted original text in the exported report.</span>
                 </div>
               </label>
 
@@ -1756,8 +1870,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   className="rounded text-indigo-600 border-gray-300 focus:ring-indigo-500 h-3.5 w-3.5 mt-0.5 shrink-0"
                 />
                 <div className="ml-3 font-sans text-xs">
-                  <span className="font-semibold text-gray-950 block">Include Evidentiary Audit Grid</span>
-                  <span className="text-gray-500 block text-[11px]">Includes systematic Layer evaluations, logical errors and action advice.</span>
+                  <span className="font-semibold text-gray-950 block">Include Findings Table</span>
+                  <span className="text-gray-500 block text-[11px]">Includes structured Layer findings, evidentiary issues, and suggested actions.</span>
                 </div>
               </label>
 
