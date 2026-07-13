@@ -37,6 +37,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     return 'Extreme';
   };
 
+  const hasRtlText = (value?: string) => /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/.test(value || '');
+
   const formatAnalysisTimestamp = (value?: string) => {
     if (!value) return 'Not recorded';
     const parsed = new Date(value);
@@ -511,6 +513,15 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   const handleExportPdf = () => {
     setExportingType('pdf');
     setExportSuccess(prev => ({ ...prev, pdf: false }));
+    try {
+      window.print();
+      setExportSuccess(prev => ({ ...prev, pdf: true }));
+    } catch (err) {
+      console.error("PDF Print Dialog Error:", err);
+    } finally {
+      setExportingType(null);
+    }
+    return;
     setTimeout(() => {
       try {
         const doc = new jsPDF({
@@ -1235,14 +1246,17 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       {/* Dynamic PRINT layout styling rules for high quality physical vector and PDF prints */}
       <style>{`
         @media print {
-          /* Hide all outer components like Sidebar, Tab bar, headers on print */
           body {
             background: white !important;
             color: black !important;
-            font-family: Georgia, Cambria, "Times New Roman", Times, serif !important;
+            font-family: Georgia, Cambria, "Times New Roman", "Geeza Pro", "Arial Unicode MS", serif !important;
           }
-          #root, header, nav, footer, sidebar, .no-print, button, select, input, label, hr {
-            display: none !important;
+          body * {
+            visibility: hidden !important;
+          }
+          #textlens-printable-report,
+          #textlens-printable-report * {
+            visibility: visible !important;
           }
           #textlens-printable-report {
             display: block !important;
@@ -1252,6 +1266,27 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             width: 100%;
             background: white;
             color: black;
+          }
+          #textlens-printable-report .print-source-text {
+            display: block;
+            box-sizing: border-box;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            overflow-wrap: anywhere !important;
+            word-break: break-word !important;
+            white-space: pre-wrap !important;
+            unicode-bidi: plaintext !important;
+            line-break: anywhere;
+            hyphens: none;
+          }
+          #textlens-printable-report .print-rtl-source {
+            direction: rtl;
+            text-align: right;
+            font-family: "Geeza Pro", "Arial Unicode MS", "Noto Naskh Arabic", "Noto Sans Arabic", serif !important;
+            font-style: normal !important;
+            letter-spacing: 0 !important;
           }
           .page-break {
             page-break-before: always;
@@ -1403,7 +1438,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   
                   <div className="mb-2.5">
                     <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Contested Snippet:</span>
-                    <p className="text-xs font-serif italic text-slate-900 border-l-2 border-indigo-400 pl-3">
+                    <p dir="auto" className={`print-source-text text-xs font-serif italic text-slate-900 border-l-2 border-indigo-400 pl-3 ${hasRtlText(p.textSnippet) ? 'print-rtl-source' : ''}`}>
                       "{p.textSnippet}"
                     </p>
                   </div>
@@ -1445,7 +1480,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   
                   <div className="mb-2">
                     <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Challenged Claim Snippet:</span>
-                    <p className="text-xs font-semibold text-slate-800">"{issue.claimSnippet}"</p>
+                    <p dir="auto" className={`print-source-text text-xs font-semibold text-slate-800 ${hasRtlText(issue.claimSnippet) ? 'print-rtl-source' : ''}`}>{issue.claimSnippet}</p>
                   </div>
 
                   <div className="mb-2">
@@ -1472,7 +1507,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         {includeOriginalText && activeReport.originalText && (
           <div className="mt-8 page-break">
             <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">4. Appended Audited Source Plaintext</h2>
-            <div className="bg-slate-50 border border-slate-200 p-4 rounded text-xs text-slate-700 leading-relaxed font-mono whitespace-pre-wrap max-h-[500px]">
+            <div dir="auto" className={`print-source-text bg-slate-50 border border-slate-200 p-4 rounded text-xs text-slate-700 leading-relaxed font-mono whitespace-pre-wrap ${hasRtlText(activeReport.originalText) ? 'print-rtl-source' : ''}`}>
               {activeReport.originalText}
             </div>
           </div>
