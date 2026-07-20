@@ -12,7 +12,8 @@ import {
   BookOpen,
   Download,
   ChevronDown,
-  Eye
+  Eye,
+  FlaskConical
 } from 'lucide-react';
 
 import { downloadUserGuide } from './utils/userGuide';
@@ -33,11 +34,12 @@ import StandardsTab from './components/StandardsTab';
 import ReportTab from './components/ReportTab';
 import MethodsTab from './components/MethodsTab';
 import ExportTab from './components/ExportTab';
+import ResearchLabTab from './components/ResearchLabTab';
 
 import { saveUserReport, listUserReports } from './lib/reportsService';
 import textLensLogo from './textlens_icon_true_transparent_clean.png';
 
-type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export';
+type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export' | 'research';
 
 // Stabilize mock user representation outside the component to prevent referential-trigger re-renders
 const DEFAULT_USER = { uid: 'workspace-auditor-local' };
@@ -511,6 +513,8 @@ export default function App() {
         );
       case 'methods':
         return <MethodsTab />;
+      case 'research':
+        return <ResearchLabTab />;
       case 'export':
         return (
           <ExportTab
@@ -808,6 +812,16 @@ export default function App() {
               >
                 <Scale className="w-3.5 h-3.5" />
                 <span>Standards</span>
+              </button>
+
+              <button
+                id="tab-btn-research"
+                type="button"
+                className={getTabClass('research')}
+                onClick={() => setActiveTab('research')}
+              >
+                <FlaskConical className="w-3.5 h-3.5" />
+                <span>Research</span>
               </button>
             </nav>
           </div>
