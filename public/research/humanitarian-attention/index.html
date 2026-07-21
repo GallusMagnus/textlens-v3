@@ -1928,6 +1928,26 @@ html&gt;body{padding:0}&lt;/style&gt;
         container.appendChild(block);
       }
 
+      function addMethodologySourceBlock(container, title, body, label, href) {
+        const block = document.createElement(&#x27;div&#x27;);
+        block.className = &#x27;had-methodology-block&#x27;;
+        const heading = document.createElement(&#x27;h4&#x27;);
+        heading.textContent = title;
+        const paragraph = document.createElement(&#x27;p&#x27;);
+        paragraph.className = &#x27;had-small&#x27;;
+        paragraph.textContent = body;
+        const sourceLine = document.createElement(&#x27;p&#x27;);
+        sourceLine.className = &#x27;had-small&#x27;;
+        const link = document.createElement(&#x27;a&#x27;);
+        link.href = href;
+        link.target = &#x27;_blank&#x27;;
+        link.rel = &#x27;noopener noreferrer&#x27;;
+        link.textContent = label;
+        sourceLine.append(&#x27;Source: &#x27;, link);
+        block.append(heading, paragraph, sourceLine);
+        container.appendChild(block);
+      }
+
       function renderMethodology(active) {
         const container = root.querySelector(&#x27;[data-methodology]&#x27;);
         const source = dataset.dataSource || &#x27;OpenAlex&#x27;;
@@ -1988,6 +2008,13 @@ html&gt;body{padding:0}&lt;/style&gt;
             &#x27;It does not yet use a monthly INFORM severity time series or monthly people-in-need history over the measurement period.&#x27;,
             &#x27;The editable fields allow sensitivity testing, but edits are local to the browser session unless exported or rebuilt into the dataset.&#x27;,
           ]
+        );
+        addMethodologySourceBlock(
+          container,
+          &#x27;INFORM source&#x27;,
+          &#x27;INFORM severity refers to the INFORM Severity Index within the INFORM project, a shared quantitative humanitarian analysis initiative. The European Commission Joint Research Centre is the scientific lead for INFORM methodologies.&#x27;,
+          &#x27;INFORM Index, European Commission Joint Research Centre&#x27;,
+          &#x27;https://drmkc.jrc.ec.europa.eu/inform-index&#x27;
         );
         addMethodologyBlock(
           container,
