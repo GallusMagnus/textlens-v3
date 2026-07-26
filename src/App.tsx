@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import {
   FileText,
   Scale,
@@ -25,6 +26,7 @@ import {
   AccountabilityResponseGoal,
   AccountabilityResponsePosition,
 } from './types';
+import type { LiteratureCorpusItem } from './research/literatureCorpus';
 import { mockReports } from './mockReportsData';
 import { standardsList } from './standardsData';
 import { textLensTaxonomy } from './taxonomyData';
@@ -40,9 +42,24 @@ import { saveUserReport, listUserReports } from './lib/reportsService';
 import textLensLogo from './textlens_icon_true_transparent_clean.png';
 
 type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export' | 'research';
+const LITERATURE_HANDOFF_STORAGE_KEY = 'textlens_literature_analysis_handoff';
 
 // Stabilize mock user representation outside the component to prevent referential-trigger re-renders
 const DEFAULT_USER = { uid: 'workspace-auditor-local' };
+
+interface LiteratureAnalysisHandoff {
+  id: string;
+  originalText: string;
+  metadataPatch: Partial<TextLensMetadata>;
+  sourceKind: 'abstract' | 'full_text';
+}
+
+interface LiteratureAnalysisPreparation {
+  item: LiteratureCorpusItem;
+  fullText?: string;
+  fullTextFileName?: string;
+  useAbstractOnly?: boolean;
+}
 
 export default function App() {
   const user = DEFAULT_USER;
@@ -106,6 +123,8 @@ export default function App() {
   const [originalText, setOriginalText] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [activeReport, setActiveReport] = useState<AnalysisReport | null>(null);
+  const [pendingLiteratureHandoff, setPendingLiteratureHandoff] = useState<LiteratureAnalysisHandoff | null>(null);
+  const [analysisSourceNotice, setAnalysisSourceNotice] = useState<string | null>(null);
   const [isGeneratingAccountabilityDraft, setIsGeneratingAccountabilityDraft] = useState<boolean>(false);
   const [accountabilityDraftError, setAccountabilityDraftError] = useState<string | null>(null);
 
@@ -122,6 +141,22 @@ export default function App() {
   useEffect(() => {
     setIsSaved(false);
   }, [activeReport]);
+
+  useEffect(() => {
+    if (activeTab !== 'analyse' || !pendingLiteratureHandoff) return;
+
+    setOriginalText(pendingLiteratureHandoff.originalText);
+    setMetadata(prev => ({
+      ...prev,
+      ...pendingLiteratureHandoff.metadataPatch,
+    }));
+    setActiveReport(null);
+    setAnalysisError(null);
+    setAnalysisSourceNotice(
+      `Loaded from Literature Explorer (${pendingLiteratureHandoff.sourceKind === 'full_text' ? 'full text' : 'abstract only'}): ${pendingLiteratureHandoff.metadataPatch.title || 'Untitled article'}`
+    );
+    setPendingLiteratureHandoff(null);
+  }, [activeTab, pendingLiteratureHandoff]);
 
   const loadSavedReports = async () => {
     if (!user) return;
@@ -477,6 +512,79 @@ export default function App() {
     }
   };
 
+  const handleLoadCorpusItemForAnalysis = (preparation: LiteratureAnalysisPreparation) => {
+    const { item, fullText, fullTextFileName } = preparation;
+    const hasFullText = Boolean(fullText?.trim());
+    const abstractText = item.abstract?.trim() || '[No abstract was available from the literature source.]';
+    const authors = item.authors || [];
+    const articleTypes = item.articleTypes || [];
+    const matchedLenses = item.matchedLenses || [];
+    const matchEvidence = item.matchEvidence || [];
+    const sourceLines = [
+      hasFullText
+        ? 'Literature Explorer handoff: full-text article supplied by user.'
+        : 'Literature Explorer handoff: abstract-only screening.',
+      hasFullText
+        ? 'Use the supplied full text as the primary analysis source.'
+        : 'Full-text article is required for complete Healthcare Mode analysis.',
+      '',
+      `Title: ${item.title || 'Untitled article'}`,
+      authors.length ? `Authors: ${authors.join(', ')}` : null,
+      item.journal ? `Journal: ${item.journal}` : null,
+      item.publicationDate ? `Publication date: ${item.publicationDate}` : null,
+      item.doi ? `DOI: ${item.doi}` : null,
+      item.pmid ? `PMID: ${item.pmid}` : null,
+      item.url ? `Source URL: ${item.url}` : null,
+      hasFullText && fullTextFileName ? `Uploaded full text: ${fullTextFileName}` : null,
+      matchedLenses.length ? `Matched TextLens lenses: ${matchedLenses.join(', ')}` : null,
+      matchEvidence.length
+        ? `Matched search terms: ${Array.from(new Set(matchEvidence.flatMap(evidence => evidence.matchedTerms))).join(', ')}`
+        : null,
+    ].filter(Boolean);
+    const bodyLabel = hasFullText ? 'Full text' : 'Abstract';
+    const bodyText = hasFullText ? fullText?.trim() : abstractText;
+
+    const handoff: LiteratureAnalysisHandoff = {
+      id: `${item.id}-${Date.now()}`,
+      originalText: `${sourceLines.join('\n')}\n\n${bodyLabel}:\n${bodyText}`,
+      sourceKind: hasFullText ? 'full_text' : 'abstract',
+      metadataPatch: {
+        title: item.title || 'Literature corpus item',
+        author: authors.join(', ') || 'Unknown Authors',
+        platform: item.journal || 'Health sciences literature',
+        date: item.publicationDate || metadata.date,
+        url: item.url || item.canonicalUrl || '',
+        textType: articleTypes.join(', ') || 'Academic Article',
+        jurisdiction: 'Global / Multi-Jurisdiction',
+        analysisMode: 'healthcare',
+        communicationType: 'academic_publication',
+        rhetoricalFunction: 'research_or_commentary',
+        journalOrPublication: item.journal || '',
+        articleType: articleTypes.join(', ') || 'Academic Article',
+        doiOrPmid: item.doi || item.pmid || '',
+      },
+    };
+
+    try {
+      sessionStorage.setItem(LITERATURE_HANDOFF_STORAGE_KEY, JSON.stringify(handoff));
+    } catch (err) {
+      console.warn('Literature analysis handoff could not be saved to sessionStorage', err);
+    }
+
+    flushSync(() => {
+      setOriginalText(handoff.originalText);
+      setMetadata(prev => ({
+        ...prev,
+        ...handoff.metadataPatch,
+      }));
+      setActiveReport(null);
+      setAnalysisError(null);
+      setAnalysisSourceNotice(`Loaded from Literature Explorer (${hasFullText ? 'full text' : 'abstract only'}): ${item.title || 'Untitled article'}`);
+      setPendingLiteratureHandoff(handoff);
+      setActiveTab('analyse');
+    });
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'analyse':
@@ -494,6 +602,8 @@ export default function App() {
             analysisError={analysisError}
             clearAnalysisError={() => setAnalysisError(null)}
             savedReports={savedReports}
+            analysisSourceNotice={analysisSourceNotice}
+            clearAnalysisSourceNotice={() => setAnalysisSourceNotice(null)}
           />
         );
       case 'standards':
@@ -514,7 +624,7 @@ export default function App() {
       case 'methods':
         return <MethodsTab />;
       case 'research':
-        return <ResearchLabTab />;
+        return <ResearchLabTab onLoadCorpusItemForAnalysis={handleLoadCorpusItemForAnalysis} />;
       case 'export':
         return (
           <ExportTab

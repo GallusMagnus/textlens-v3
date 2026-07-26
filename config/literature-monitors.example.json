@@ -1,0 +1,131 @@
+{
+  "version": "2026-07-26-humanitarian-dashboard-corpus",
+  "updatedAt": "2026-07-26T00:00:00.000Z",
+  "lenses": [
+    {
+      "id": "humanitarian-attention",
+      "label": "Humanitarian Attention",
+      "description": "Tracks health-sciences literature captured by the same PubMed title/abstract search used for the TextLens Humanitarian Attention Dashboard.",
+      "candidateTiers": [
+        {
+          "tier": "contextual",
+          "label": "Dashboard humanitarian terms",
+          "terms": [
+            "humanitarian crisis",
+            "humanitarian emergency",
+            "humanitarian crises",
+            "humanitarian emergencies",
+            "famine",
+            "starvation",
+            "food insecurity",
+            "forced displacement",
+            "internal displacement",
+            "population displacement",
+            "humanitarian aid"
+          ]
+        },
+        {
+          "tier": "comparison",
+          "label": "Dashboard crisis geography terms",
+          "terms": [
+            "Gaza",
+            "Palestine",
+            "Palestinian",
+            "Israel",
+            "Israeli",
+            "Sudan",
+            "Darfur",
+            "Democratic Republic of Congo",
+            "Democratic Republic of the Congo",
+            "DRC",
+            "Congo",
+            "Kivu",
+            "Yemen",
+            "Yemeni",
+            "Ukraine",
+            "Ukrainian",
+            "Syria",
+            "Syrian",
+            "Myanmar",
+            "Burma",
+            "Rohingya",
+            "Haiti",
+            "Haitian",
+            "Afghanistan",
+            "Afghan",
+            "Sahel",
+            "Mali",
+            "Niger",
+            "Burkina Faso",
+            "Chad",
+            "Venezuela",
+            "Venezuelan"
+          ]
+        }
+      ]
+    }
+  ],
+  "monitors": [
+    {
+      "id": "humanitarian-dashboard-corpus",
+      "label": "Humanitarian Dashboard Corpus",
+      "description": "Exact PubMed monitor used by the Humanitarian Attention Dashboard: humanitarian title/abstract terms, constrained to the same journal set.",
+      "enabled": true,
+      "provider": "pubmed",
+      "lensIds": ["humanitarian-attention"],
+      "dateFrom": "2023-01-01",
+      "lookbackDays": 30,
+      "defaultAnalysisMode": "healthcare",
+      "batchSize": 10,
+      "searchTerms": [
+        "humanitarian crisis",
+        "humanitarian emergency",
+        "humanitarian crises",
+        "humanitarian emergencies",
+        "famine",
+        "starvation",
+        "food insecurity",
+        "forced displacement",
+        "internal displacement",
+        "population displacement",
+        "humanitarian aid"
+      ],
+      "journals": [
+        { "key": "Lancet", "tier": "flagship-general", "isCore": true, "queryNames": ["Lancet", "The Lancet"], "name": "The Lancet" },
+        { "key": "BMJ", "tier": "flagship-general", "isCore": true, "queryNames": ["BMJ"], "name": "BMJ" },
+        { "key": "JAMA", "tier": "flagship-general", "isCore": true, "queryNames": ["JAMA"], "name": "JAMA" },
+        { "key": "NEJM", "tier": "flagship-general", "isCore": true, "queryNames": ["N Engl J Med", "New England Journal of Medicine"], "name": "New England Journal of Medicine" },
+        { "key": "Nature Medicine", "tier": "high-impact-general", "isCore": false, "queryNames": ["Nature Medicine"], "name": "Nature Medicine" },
+        { "key": "Ann Intern Med", "tier": "high-impact-general", "isCore": false, "queryNames": ["Annals of Internal Medicine", "Ann Intern Med"], "name": "Annals of Internal Medicine" },
+        { "key": "PLOS Med", "tier": "high-impact-general", "isCore": false, "queryNames": ["PLoS Medicine", "PLOS Medicine"], "name": "PLOS Medicine" },
+        { "key": "BMC Med", "tier": "high-impact-general", "isCore": false, "queryNames": ["BMC Medicine"], "name": "BMC Medicine" },
+        { "key": "JAMA Netw Open", "tier": "high-impact-general", "isCore": false, "queryNames": ["JAMA Network Open"], "name": "JAMA Network Open" },
+        { "key": "eClinicalMedicine", "tier": "high-impact-general", "isCore": false, "queryNames": ["EClinicalMedicine", "eClinicalMedicine"], "name": "eClinicalMedicine" },
+        { "key": "Lancet Glob Health", "tier": "global-health", "isCore": false, "queryNames": ["Lancet Global Health", "The Lancet Global Health"], "name": "The Lancet Global Health" },
+        { "key": "BMJ Glob Health", "tier": "global-health", "isCore": false, "queryNames": ["BMJ Global Health"], "name": "BMJ Global Health" },
+        { "key": "J Glob Health", "tier": "global-health", "isCore": false, "queryNames": ["Journal of Global Health"], "name": "Journal of Global Health" },
+        { "key": "Global Health Action", "tier": "global-health", "isCore": false, "queryNames": ["Global Health Action"], "name": "Global Health Action" },
+        { "key": "Global Health", "tier": "global-health", "isCore": false, "queryNames": ["Globalization and Health"], "name": "Globalization and Health" },
+        { "key": "PLOS Glob Public Health", "tier": "global-health", "isCore": false, "queryNames": ["PLOS Global Public Health"], "name": "PLOS Global Public Health" },
+        { "key": "Bull WHO", "tier": "public-health", "isCore": false, "queryNames": ["Bulletin of the World Health Organization", "Bull World Health Organ"], "name": "Bulletin of the World Health Organization" },
+        { "key": "AJPH", "tier": "public-health", "isCore": false, "queryNames": ["American Journal of Public Health", "Am J Public Health"], "name": "American Journal of Public Health" },
+        { "key": "Int J Public Health", "tier": "public-health", "isCore": false, "queryNames": ["International Journal of Public Health", "Int J Public Health"], "name": "International Journal of Public Health" },
+        { "key": "BMC Public Health", "tier": "public-health", "isCore": false, "queryNames": ["BMC Public Health"], "name": "BMC Public Health" },
+        { "key": "Health Policy Plan", "tier": "public-health", "isCore": false, "queryNames": ["Health Policy and Planning", "Health Policy Plan"], "name": "Health Policy and Planning" },
+        { "key": "Soc Sci Med", "tier": "public-health", "isCore": false, "queryNames": ["Social Science & Medicine", "Soc Sci Med"], "name": "Social Science & Medicine" },
+        { "key": "Conflict Health", "tier": "humanitarian-conflict", "isCore": false, "queryNames": ["Conflict and Health"], "name": "Conflict and Health" },
+        { "key": "Disasters", "tier": "humanitarian-conflict", "isCore": false, "queryNames": ["Disasters"], "name": "Disasters" },
+        { "key": "Int Rev Red Cross", "tier": "humanitarian-conflict", "isCore": false, "queryNames": ["International Review of the Red Cross"], "name": "International Review of the Red Cross" },
+        { "key": "J Refugee Stud", "tier": "humanitarian-conflict", "isCore": false, "queryNames": ["Journal of Refugee Studies"], "name": "Journal of Refugee Studies" },
+        { "key": "J Migr Health", "tier": "humanitarian-conflict", "isCore": false, "queryNames": ["Journal of Migration and Health", "Migration and Health"], "name": "Journal of Migration and Health" },
+        { "key": "Lancet Infect Dis", "tier": "infectious-disease", "isCore": false, "queryNames": ["Lancet Infectious Diseases", "The Lancet Infectious Diseases"], "name": "The Lancet Infectious Diseases" },
+        { "key": "Clin Infect Dis", "tier": "infectious-disease", "isCore": false, "queryNames": ["Clinical Infectious Diseases", "Clin Infect Dis"], "name": "Clinical Infectious Diseases" },
+        { "key": "Emerg Infect Dis", "tier": "infectious-disease", "isCore": false, "queryNames": ["Emerging Infectious Diseases", "Emerg Infect Dis"], "name": "Emerging Infectious Diseases" },
+        { "key": "Eurosurveillance", "tier": "infectious-disease", "isCore": false, "queryNames": ["Eurosurveillance"], "name": "Eurosurveillance" },
+        { "key": "Afr J Prim Health Care Fam Med", "tier": "regional-health", "isCore": false, "queryNames": ["African Journal of Primary Health Care & Family Medicine", "Afr J Prim Health Care Fam Med"], "name": "African Journal of Primary Health Care & Family Medicine" },
+        { "key": "Pan Afr Med J", "tier": "regional-health", "isCore": false, "queryNames": ["Pan African Medical Journal", "Pan Afr Med J"], "name": "Pan African Medical Journal" },
+        { "key": "East Mediterr Health J", "tier": "regional-health", "isCore": false, "queryNames": ["Eastern Mediterranean Health Journal", "East Mediterr Health J"], "name": "Eastern Mediterranean Health Journal" }
+      ]
+    }
+  ]
+}

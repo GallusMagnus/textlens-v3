@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Play, FileText, CheckCircle2, RotateCcw, AlertCircle, Info, FileUp, Trash2, Paperclip, Loader2, Check, Film, Heart, Sliders, Sparkles } from 'lucide-react';
 import { TextLensMetadata, AnalysisReport } from '../types';
 import { mockReports } from '../mockReportsData';
 import { communicationTypes, rhetoricalFunctions } from '../communicationContext';
+
+const LITERATURE_HANDOFF_STORAGE_KEY = 'textlens_literature_analysis_handoff';
 
 interface AnalyseTabProps {
   originalText: string;
@@ -17,6 +19,8 @@ interface AnalyseTabProps {
   analysisError?: string | null;
   clearAnalysisError?: () => void;
   savedReports?: AnalysisReport[];
+  analysisSourceNotice?: string | null;
+  clearAnalysisSourceNotice?: () => void;
 }
 
 export default function AnalyseTab({
@@ -31,7 +35,9 @@ export default function AnalyseTab({
   onNavigateToReport,
   analysisError,
   clearAnalysisError,
-  savedReports
+  savedReports,
+  analysisSourceNotice,
+  clearAnalysisSourceNotice
 }: AnalyseTabProps) {
   interface UploadedFile {
     id: string;
@@ -56,6 +62,33 @@ export default function AnalyseTab({
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [showValidation, setShowValidation] = useState<boolean>(false);
 
+  useEffect(() => {
+    const rawHandoff = sessionStorage.getItem(LITERATURE_HANDOFF_STORAGE_KEY);
+    if (!rawHandoff) return;
+
+    try {
+      const handoff = JSON.parse(rawHandoff) as {
+        originalText?: string;
+        metadataPatch?: Partial<TextLensMetadata>;
+      };
+
+      if (handoff.originalText?.trim()) {
+        setOriginalText(handoff.originalText);
+        setMetadata(prev => ({
+          ...prev,
+          ...(handoff.metadataPatch || {}),
+        }));
+        setActiveReport(null);
+        setSelectedSampleId('');
+        setShowValidation(false);
+      }
+    } catch (err) {
+      console.warn('Failed to load literature analysis handoff', err);
+    } finally {
+      sessionStorage.removeItem(LITERATURE_HANDOFF_STORAGE_KEY);
+    }
+  }, [setActiveReport, setMetadata, setOriginalText]);
+
   const getMissingFields = () => {
     const missing: string[] = [];
     
@@ -67,7 +100,7 @@ export default function AnalyseTab({
       missing.push('Author / Speaker / Source');
     }
     if (!metadata.platform || !metadata.platform.trim() || metadata.platform === 'Self-Submitted Text') {
-      missing.push('Publishing Platform / Network');
+      missing.push('Journal / Platform / Network');
     }
 
     if (metadata.analysisMode === 'bccsa') {
@@ -84,8 +117,8 @@ export default function AnalyseTab({
         missing.push('Alleged Harm or Breach');
       }
     } else if (metadata.analysisMode === 'healthcare') {
-      if (!metadata.journalOrPublication || !metadata.journalOrPublication.trim()) {
-        missing.push('Journal or Publication');
+      if (!metadata.platform || !metadata.platform.trim() || metadata.platform === 'Self-Submitted Text') {
+        missing.push('Journal / Platform / Network');
       }
       if (!metadata.articleType || !metadata.articleType.trim()) {
         missing.push('Article Type');
@@ -100,7 +133,8 @@ export default function AnalyseTab({
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setMetadata(prev => ({
       ...prev,
-      [name]: val
+      [name]: val,
+      ...(name === 'platform' && prev.analysisMode === 'healthcare' ? { journalOrPublication: String(val) } : {})
     }));
   };
 
@@ -452,6 +486,7 @@ export default function AnalyseTab({
     }
 
     if (sample) {
+      clearAnalysisSourceNotice?.();
       setOriginalText(sample.originalText);
       setMetadata({ ...sample.metadata });
       // Clear current report to let them "Analyze" it, or load it immediately
@@ -461,6 +496,7 @@ export default function AnalyseTab({
 
   const handleClear = () => {
     setOriginalText('');
+    clearAnalysisSourceNotice?.();
     setSelectedSampleId('');
     setActiveReport(null);
     setShowValidation(false);
@@ -482,6 +518,7 @@ export default function AnalyseTab({
     setSelectedSampleId(sampleId);
     const sample = mockReports.find(r => r.id === sampleId);
     if (sample) {
+      clearAnalysisSourceNotice?.();
       setOriginalText(sample.originalText);
       setMetadata({ ...sample.metadata });
       setActiveReport(sample);
@@ -505,7 +542,6 @@ export default function AnalyseTab({
   const isProgrammeNameMissing = showValidation && metadata.analysisMode === 'bccsa' && (!metadata.programmeName || !metadata.programmeName.trim());
   const isAllegedHarmMissing = showValidation && metadata.analysisMode === 'bccsa' && (!metadata.allegedHarm || !metadata.allegedHarm.trim());
 
-  const isJournalOrPublicationMissing = showValidation && metadata.analysisMode === 'healthcare' && (!metadata.journalOrPublication || !metadata.journalOrPublication.trim());
   const isArticleTypeMissing = showValidation && metadata.analysisMode === 'healthcare' && (!metadata.articleType || !metadata.articleType.trim());
 
   const handleRunAnalysis = (e: React.MouseEvent) => {
@@ -755,11 +791,25 @@ export default function AnalyseTab({
           Paste text below, or upload a PDF or Word file to extract it automatically.
         </p>
 
+        {analysisSourceNotice && (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-medium text-emerald-850 flex items-center justify-between gap-3">
+            <span>{analysisSourceNotice}</span>
+            <button
+              type="button"
+              onClick={clearAnalysisSourceNotice}
+              className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 hover:text-emerald-950"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <div className="relative border border-sky-150 rounded-lg bg-white/70 focus-within:ring-2 focus-within:ring-sky-150 transition-all">
           <textarea
             id="raw-text-textarea"
             value={originalText}
             onChange={(e) => {
+              clearAnalysisSourceNotice?.();
               setOriginalText(e.target.value);
               if (selectedSampleId) setSelectedSampleId('');
             }}
@@ -1110,7 +1160,7 @@ export default function AnalyseTab({
 
           <div>
             <label className="block text-slate-500 uppercase tracking-wider font-bold mb-1" htmlFor="inp-meta-platform">
-              Publishing Platform / Network <span className="text-red-500 ml-0.5 font-sans">*</span>
+              Journal / Platform / Network <span className="text-red-500 ml-0.5 font-sans">*</span>
             </label>
             <input
               id="inp-meta-platform"
@@ -1356,31 +1406,14 @@ export default function AnalyseTab({
           </div>
         )}
 
-        {/* B. Healthcare/Bio-clinical diagnostics block */}
+        {/* B. Health science publication diagnostics block */}
         {metadata.analysisMode === 'healthcare' && (
           <div className="space-y-3 p-4 bg-slate-50 border border-slate-200/60 rounded-lg animate-in slide-in-from-top-1 duration-250">
             <div className="flex items-center space-x-2 pb-2 border-b border-slate-150">
               <Heart className="w-4 h-4 text-emerald-600" />
-              <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">Healthcare / Bio-Clinical Publication Parameters</h3>
+              <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">Health Science Publication Parameters</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-[11px]">
-              <div>
-                <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
-                  Journal or Publication <span className="text-red-500 ml-0.5">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="journalOrPublication"
-                  value={metadata.journalOrPublication || ''}
-                  onChange={handleMetaChange}
-                  placeholder="e.g. Lancet, NEJM"
-                  className={`w-full border rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-indigo-500 transition-all font-sans ${
-                    isJournalOrPublicationMissing ? 'border-red-500 bg-red-50/20 ring-1 ring-red-400' : 'border-slate-200'
-                  }`}
-                  disabled={isAnalyzing}
-                />
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-[11px]">
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
                   Article Type <span className="text-red-500 ml-0.5">*</span>
@@ -1415,7 +1448,7 @@ export default function AnalyseTab({
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
-                  Author Affiliation Overview
+                  Author Affiliation
                 </label>
                 <input
                   type="text"

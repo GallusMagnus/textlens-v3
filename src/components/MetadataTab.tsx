@@ -15,7 +15,8 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setMetadata(prev => ({
       ...prev,
-      [name]: val
+      [name]: val,
+      ...(name === 'platform' && prev.analysisMode === 'healthcare' ? { journalOrPublication: String(val) } : {})
     }));
   };
 
@@ -69,7 +70,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
               <div>
                 <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1" htmlFor="meta-platform">
-                  Publishing Platform / Network *
+                  Journal / Platform / Network *
                 </label>
                 <input
                   id="meta-platform"
@@ -337,23 +338,9 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
             <div className="space-y-3 p-4 bg-slate-50 border border-slate-200/60 rounded-lg animate-[fadeIn_0.2s_ease-out]">
               <div className="flex items-center space-x-2 pb-2 border-b border-slate-200/60">
                 <Heart className="w-4 h-4 text-slate-700" />
-                <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest">2. Healthcare / Bio-Clinical Publication Parameters</h3>
+                <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest">2. Health Science Publication Parameters</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
-                    Journal or Publication *
-                  </label>
-                  <input
-                    type="text"
-                    name="journalOrPublication"
-                    value={metadata.journalOrPublication || ''}
-                    onChange={handleChange}
-                    placeholder="e.g. The New England Journal of Medicine, Lancet"
-                    className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-slate-950 transition-all font-sans"
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
                     Article Type *
@@ -384,7 +371,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
 
                 <div>
                   <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
-                    Author Affiliation Overview
+                    Author Affiliation
                   </label>
                   <input
                     type="text"

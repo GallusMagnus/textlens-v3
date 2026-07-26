@@ -1,5 +1,9 @@
 import express from "express";
 import path from "path";
+import os from "os";
+import { execFile } from "child_process";
+import { promisify } from "util";
+import { mkdtemp, readFile, rm, writeFile } from "fs/promises";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import { textLensTaxonomy } from "./src/taxonomyData";
@@ -15,6 +19,11 @@ import {
   runStagedAnalysis,
   taxonomyMappingById,
 } from "./src/analysis";
+import {
+  EMPTY_LITERATURE_CORPUS,
+  summarizeLiteratureCorpus,
+  type LiteratureCorpusStatus,
+} from "./src/research/literatureCorpus";
 // @ts-ignore
 import mammoth from "mammoth";
 // @ts-ignore
@@ -31,6 +40,108 @@ const Type = {
   NUMBER: "number",
   BOOLEAN: "boolean",
 } as const;
+
+const literatureConfigPath = path.resolve(process.cwd(), "config/literature-monitors.example.json");
+const literatureCorpusPath = path.resolve(process.cwd(), "data/literature-corpus/corpus.json");
+const updateLiteratureCorpusScriptPath = path.resolve(process.cwd(), "scripts/update_literature_corpus.mjs");
+const execFileAsync = promisify(execFile);
+
+async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    return JSON.parse(await readFile(filePath, "utf8")) as T;
+  } catch (error: any) {
+    if (error?.code === "ENOENT") return fallback;
+    throw error;
+  }
+}
+
+function cleanTextList(value: unknown, maxItems = 80): string[] {
+  const rawItems = Array.isArray(value)
+    ? value
+    : String(value || "")
+        .split(/\r?\n|,/)
+        .map((item) => item.trim());
+
+  return Array.from(
+    new Set(
+      rawItems
+        .map((item) => String(item || "").trim())
+        .filter((item) => item.length > 0)
+        .slice(0, maxItems)
+    )
+  );
+}
+
+function normalizeDateInput(value: unknown): string {
+  const text = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return "";
+  const parsed = new Date(`${text}T00:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) ? "" : text;
+}
+
+function buildCustomLiteratureConfig(baseConfig: any, requestBody: any) {
+  const searchTerms = cleanTextList(requestBody.searchTerms);
+  const journals = cleanTextList(requestBody.journals, 40).map((journalName, index) => ({
+    key: journalName,
+    name: journalName,
+    queryNames: journalName
+      .split("|")
+      .map((name) => name.trim())
+      .filter(Boolean),
+    tier: "user-defined",
+    isCore: index < 4,
+  })).map((journal) => ({
+    ...journal,
+    key: journal.queryNames[0] || journal.key,
+    name: journal.queryNames[0] || journal.name,
+  }));
+  const dateFrom = normalizeDateInput(requestBody.dateFrom);
+  const dateTo = normalizeDateInput(requestBody.dateTo) || new Date().toISOString().slice(0, 10);
+  const lensId = String(requestBody.lensId || "antisemitism-antizionism").trim();
+  const availableLensIds = new Set((baseConfig.lenses || []).map((lens: any) => lens.id));
+
+  if (!searchTerms.length) {
+    throw new Error("Enter at least one search term.");
+  }
+  if (!journals.length) {
+    throw new Error("Enter at least one journal.");
+  }
+  if (!dateFrom) {
+    throw new Error("Choose a valid start date.");
+  }
+  if (dateFrom > dateTo) {
+    throw new Error("The start date must be on or before the end date.");
+  }
+  if (!availableLensIds.has(lensId)) {
+    throw new Error("Choose a valid TextLens lens.");
+  }
+
+  const monitorId = `ui-search-${Date.now()}`;
+  return {
+    config: {
+      ...baseConfig,
+      version: `${baseConfig.version || "custom"}-${monitorId}`,
+      updatedAt: new Date().toISOString(),
+      monitors: [
+        {
+          id: monitorId,
+          label: String(requestBody.label || "User-defined PubMed search").trim().slice(0, 120),
+          description: "User-defined PubMed search created in TextLens Research Lab.",
+          enabled: true,
+          provider: "pubmed",
+          lensIds: [lensId],
+          dateFrom,
+          dateTo,
+          defaultAnalysisMode: "healthcare",
+          batchSize: 10,
+          searchTerms,
+          journals,
+        },
+      ],
+    },
+    monitorId,
+  };
+}
 
 function getModeBoundaryDisclamation(mode: string): string {
   const policy = getModePolicy(mode);
@@ -517,6 +628,140 @@ async function startServer() {
       model: getAnalysisModel(),
       pipeline: compiledRuleLayer.version,
     });
+  });
+
+  app.get("/api/research/literature-corpus", async (req, res) => {
+    try {
+      const config = await readJsonFile<any>(literatureConfigPath, {
+        version: "missing",
+        lenses: [],
+        monitors: [],
+      });
+      const corpus = await readJsonFile(literatureCorpusPath, EMPTY_LITERATURE_CORPUS);
+      res.json({
+        config,
+        corpus,
+        summary: summarizeLiteratureCorpus(corpus, config),
+      });
+    } catch (err: any) {
+      console.error("Literature corpus read error:", err);
+      res.status(500).json({
+        error: err.message || "Failed to read the literature corpus.",
+      });
+    }
+  });
+
+  app.post("/api/research/literature-corpus/status", async (req, res) => {
+    try {
+      const { itemId, status } = req.body as {
+        itemId?: string;
+        status?: LiteratureCorpusStatus;
+      };
+      const validStatuses = new Set([
+        "new",
+        "queued",
+        "analysed",
+        "needs_review",
+        "ignored",
+      ]);
+
+      if (!itemId || !status || !validStatuses.has(status)) {
+        return res.status(400).json({
+          error: "Provide itemId and a valid status.",
+        });
+      }
+
+      const corpus = await readJsonFile(literatureCorpusPath, EMPTY_LITERATURE_CORPUS);
+      const itemIndex = corpus.items.findIndex((item) => item.id === itemId);
+      if (itemIndex === -1) {
+        return res.status(404).json({ error: "Corpus item was not found." });
+      }
+
+      corpus.items[itemIndex] = {
+        ...corpus.items[itemIndex],
+        status,
+        lastSeenAt: new Date().toISOString(),
+      };
+      corpus.generatedAt = new Date().toISOString();
+      await writeFile(literatureCorpusPath, `${JSON.stringify(corpus, null, 2)}\n`);
+      res.json({ item: corpus.items[itemIndex] });
+    } catch (err: any) {
+      console.error("Literature corpus status update error:", err);
+      res.status(500).json({
+        error: err.message || "Failed to update the literature corpus item.",
+      });
+    }
+  });
+
+  app.post("/api/research/literature-corpus/run", async (req, res) => {
+    let tempDir = "";
+    try {
+      const baseConfig = await readJsonFile<any>(literatureConfigPath, {
+        version: "missing",
+        lenses: [],
+        monitors: [],
+      });
+      const requestedMonitorId = String(req.body?.monitorId || "").trim();
+      const storedMonitor = requestedMonitorId
+        ? baseConfig.monitors?.find((monitor: any) => monitor.id === requestedMonitorId)
+        : null;
+      const customConfig = storedMonitor ? null : buildCustomLiteratureConfig(baseConfig, req.body || {});
+      const config = storedMonitor ? baseConfig : customConfig.config;
+      const monitorId = storedMonitor ? storedMonitor.id : customConfig.monitorId;
+      const configPathForRun = storedMonitor ? literatureConfigPath : path.join(await mkdtemp(path.join(os.tmpdir(), "textlens-literature-monitor-")), "monitor-config.json");
+      if (!storedMonitor) {
+        tempDir = path.dirname(configPathForRun);
+        await writeFile(configPathForRun, `${JSON.stringify(config, null, 2)}\n`);
+      }
+
+      const scriptArgs = [
+        updateLiteratureCorpusScriptPath,
+        "--config",
+        configPathForRun,
+        "--out",
+        literatureCorpusPath,
+        "--monitor",
+        monitorId,
+      ];
+      if (req.body?.dryRun) {
+        scriptArgs.push("--dry-run");
+      }
+
+      const { stdout, stderr } = await execFileAsync(process.execPath, scriptArgs, {
+        cwd: process.cwd(),
+        timeout: 180000,
+        maxBuffer: 1024 * 1024 * 20,
+        env: process.env,
+      });
+
+      const corpus = await readJsonFile(literatureCorpusPath, EMPTY_LITERATURE_CORPUS);
+      res.json({
+        ok: true,
+        monitorId,
+        monitorLabel: config.monitors?.find((monitor: any) => monitor.id === monitorId)?.label || monitorId,
+        dryRun: Boolean(req.body?.dryRun),
+        output: stdout,
+        warning: stderr,
+        queryShape: {
+          termCount: config.monitors?.find((monitor: any) => monitor.id === monitorId)?.searchTerms?.length || 0,
+          journalCount: config.monitors?.find((monitor: any) => monitor.id === monitorId)?.journals?.length || 0,
+          dateFrom: config.monitors?.find((monitor: any) => monitor.id === monitorId)?.dateFrom,
+          dateTo: config.monitors?.find((monitor: any) => monitor.id === monitorId)?.dateTo || "today",
+        },
+        summary: summarizeLiteratureCorpus(corpus, config),
+      });
+    } catch (err: any) {
+      console.error("Literature corpus run error:", err);
+      res.status(500).json({
+        error: err.message || "Failed to run the literature monitor.",
+        output: err.stdout,
+        warning: err.stderr,
+      });
+    } finally {
+      if (tempDir) {
+        await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+      }
+    }
   });
 
   app.post("/api/auth/verify-passcode", (req, res) => {

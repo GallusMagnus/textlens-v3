@@ -6,6 +6,8 @@ TextLens needs a method that is rigorous, transparent and adjustable without bec
 
 This document defines how to change the method over time.
 
+Mode-specific basis notes should be treated as governance companions to this document. The current healthcare note is `docs/healthcare-mode-basis.md`.
+
 ## The Three Controlled Layers
 
 Every methodological change should be made in one of three places only:
