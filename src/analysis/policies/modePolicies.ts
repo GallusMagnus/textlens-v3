@@ -85,6 +85,33 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "If the text is polemical but not clearly discriminatory or procedurally defective, record the uncertainty and avoid overstated findings.",
     protectedGuardrailIds: [...PROTECTED_GUARDRAILS],
   },
+  legal_profession: {
+    mode: "legal_profession",
+    label: "U.S. Legal (ABA)",
+    purpose:
+      "Assist lawyers, bar associations, law firms, schools and civil-rights reviewers in separating antisemitism concerns, protected speech boundaries, institutional response issues, missing facts and proportionate next steps.",
+    sourceRuleKeys: [
+      "ihra",
+      "jda",
+      "nexus",
+      "textlens_framework",
+      "aba_resolution_514_antisemitism",
+      "aba_resolutions_611_613_2025",
+      "us_national_strategy_counter_antisemitism",
+      "global_guidelines_countering_antisemitism",
+      "title_vi_shared_ancestry_discrimination",
+      "eeoc_religious_discrimination_accommodation",
+    ],
+    boundaryNote:
+      "[TextLens Boundary Note: U.S. Legal (ABA) mode is a screening and drafting aid for trained human review, built around ABA antisemitism policy and initiatives plus related civil-rights and workplace guidance. It does not provide legal advice, decide whether conduct is unlawful, or override First Amendment, academic freedom, labor, education, or professional-responsibility analysis.]",
+    reportPositioning:
+      "Separate antisemitism recognition, protected speech, discrimination or harassment concerns, institutional response questions, religious accommodation issues and evidentiary gaps.",
+    hallucinationPolicy:
+      "Do not infer unlawful conduct, hostile-environment liability, discriminatory intent, accommodation duties or institutional notice unless the submitted text or metadata supplies the basis.",
+    abstentionPolicy:
+      "If the submitted text shows controversial political speech but not identity-based targeting, response failure, exclusion, harassment or policy inconsistency, apply guardrails and frame any output as a review question.",
+    protectedGuardrailIds: [...PROTECTED_GUARDRAILS],
+  },
   bccsa: {
     mode: "bccsa",
     label: "BCCSA Broadcasting Mode",

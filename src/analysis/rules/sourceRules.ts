@@ -13,7 +13,7 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
     section: "Core Antisemitism Frameworks",
     usageKind: "trigger",
     clausePrefixes: ["IHRA"],
-    allowedModes: ["general", "healthcare", "academic", "bccsa", "press_code"],
+    allowedModes: ["general", "healthcare", "academic", "legal_profession", "bccsa", "press_code"],
     analyticalUse:
       "Use for classic anti-Jewish stereotypes, collective guilt, Holocaust distortion, dual loyalty and Israel-related rhetoric that reuses those forms.",
     triggerSignals: [
@@ -33,7 +33,7 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
     section: "Core Antisemitism Frameworks",
     usageKind: "guardrail",
     clausePrefixes: ["JDA"],
-    allowedModes: ["general", "healthcare", "academic", "bccsa", "press_code"],
+    allowedModes: ["general", "healthcare", "academic", "legal_profession", "bccsa", "press_code"],
     analyticalUse:
       "Use for boundary work: identifying antisemitism while preserving open debate on Israel, Palestine, Zionism, BDS and constitutional futures.",
     triggerSignals: [
@@ -54,7 +54,7 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
     section: "Core Antisemitism Frameworks",
     usageKind: "guardrail",
     clausePrefixes: ["NEXUS"],
-    allowedModes: ["general", "healthcare", "academic", "bccsa", "press_code"],
+    allowedModes: ["general", "healthcare", "academic", "legal_profession", "bccsa", "press_code"],
     analyticalUse:
       "Use when rhetoric about Israel or Zionism may derive from antisemitic myths, collective guilt logic, discriminatory treatment or dual-loyalty assumptions.",
     triggerSignals: [
@@ -68,6 +68,108 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
     ],
     extraLimits: [
       "Do not use Nexus to convert harsh politics into antisemitism without additional evidence of anti-Jewish animus.",
+    ],
+  },
+  aba_resolution_514_antisemitism: {
+    section: "U.S. Legal & Bar Profession Sources",
+    usageKind: "integrity",
+    clausePrefixes: ["ABA-514"],
+    allowedModes: ["legal_profession"],
+    analyticalUse:
+      "Use for legal-profession awareness, leadership and non-bystander response to antisemitism by lawyers and bar associations.",
+    triggerSignals: [
+      "Failure to recognize antisemitism as a professional or civic concern",
+      "Bar or lawyer response that ignores specific antisemitism concerns",
+      "Need for professional education or awareness response",
+    ],
+    guardrailSignals: [
+      "Do not present ABA policy orientation as binding law or as an ABA finding about the submitted text.",
+      "Keep legal-profession leadership distinct from legal liability.",
+    ],
+  },
+  aba_resolutions_611_613_2025: {
+    section: "U.S. Legal & Bar Profession Sources",
+    usageKind: "integrity",
+    clausePrefixes: ["ABA-611", "ABA-612", "ABA-613"],
+    allowedModes: ["legal_profession"],
+    analyticalUse:
+      "Use for K-12 protocols, higher-education discrimination education including Title VI framing, and support for Global Guidelines implementation.",
+    triggerSignals: [
+      "Institutional response protocol absent or inconsistent",
+      "School or university response fails to identify education or civil-rights pathway",
+      "Need to separate protected speech from harassment or discriminatory conduct",
+    ],
+    guardrailSignals: [
+      "Do not decide that a school or university violated law from text alone.",
+      "Uniform response protocols should cover antisemitism and hate without suppressing protected expression.",
+    ],
+  },
+  us_national_strategy_counter_antisemitism: {
+    section: "U.S. Legal & Bar Profession Sources",
+    usageKind: "integrity",
+    clausePrefixes: ["US-STRATEGY"],
+    allowedModes: ["legal_profession"],
+    analyticalUse:
+      "Use as a whole-of-society response frame: awareness, safety, reversing normalization, countering discrimination and cross-community solidarity.",
+    triggerSignals: [
+      "Antisemitic speech or conduct normalized without institutional response",
+      "Need for awareness, safety, accountability or solidarity next steps",
+      "Public or professional statement lacks a concrete action pathway",
+    ],
+    guardrailSignals: [
+      "Use as strategy and civic context, not as a legal cause of action.",
+      "Preserve cross-community solidarity and avoid zero-sum framing.",
+    ],
+  },
+  global_guidelines_countering_antisemitism: {
+    section: "U.S. Legal & Bar Profession Sources",
+    usageKind: "integrity",
+    clausePrefixes: ["GLOBAL-GUIDELINES"],
+    allowedModes: ["legal_profession"],
+    analyticalUse:
+      "Use as nonbinding best-practices guidance for practical institutional action, education, reporting, protocols and coalition work.",
+    triggerSignals: [
+      "Response is purely declaratory without practical implementation",
+      "Need for consistent data, reporting, education or protocol practices",
+      "Need to involve civic, faith, legal or institutional coalitions",
+    ],
+    guardrailSignals: [
+      "Do not cite nonbinding best practices as controlling legal authority.",
+      "Practical action should remain proportionate to verified facts.",
+    ],
+  },
+  title_vi_shared_ancestry_discrimination: {
+    section: "U.S. Legal & Bar Profession Sources",
+    usageKind: "integrity",
+    clausePrefixes: ["TITLE-VI"],
+    allowedModes: ["legal_profession"],
+    analyticalUse:
+      "Use for education-setting civil-rights screening involving shared ancestry, ethnic characteristics, national origin, harassment, exclusion, notice and response.",
+    triggerSignals: [
+      "Education setting with alleged Jewish identity or shared-ancestry targeting",
+      "Harassment, exclusion, differential treatment or institutional response concerns",
+      "Facts suggesting notice, complaint handling, remedy or policy consistency questions",
+    ],
+    guardrailSignals: [
+      "Protected political expression is not itself a Title VI violation.",
+      "Do not decide jurisdiction, hostile environment, causation, notice or remedy.",
+    ],
+  },
+  eeoc_religious_discrimination_accommodation: {
+    section: "U.S. Legal & Bar Profession Sources",
+    usageKind: "integrity",
+    clausePrefixes: ["EEOC-REL"],
+    allowedModes: ["legal_profession"],
+    analyticalUse:
+      "Use for workplace screening involving religious discrimination, harassment, retaliation and accommodation concerns in law firms or professional environments.",
+    triggerSignals: [
+      "Workplace or law firm exclusion tied to Jewish identity or religious practice",
+      "Religious accommodation concern involving observance, dress, holidays, diet or expression",
+      "Retaliation or harassment concern in professional employment context",
+    ],
+    guardrailSignals: [
+      "Do not decide Title VII liability, reasonable accommodation, undue hardship or retaliation.",
+      "Record missing request history, employer policy and context facts.",
     ],
   },
   bccsa_fta: {
@@ -152,7 +254,7 @@ const sourceRuleSpecs: Record<string, RuleSpec> = {
     section: "TextLens Working Framework",
     usageKind: "framework",
     clausePrefixes: ["TL-", "TEXTLENS"],
-    allowedModes: ["general", "healthcare", "academic", "bccsa", "press_code"],
+    allowedModes: ["general", "healthcare", "academic", "legal_profession", "bccsa", "press_code"],
     analyticalUse:
       "Use for the TextLens-specific Layer 3 taxonomy: evidence handling, language and emphasis, agency and responsibility, conflation, frame-shifting, immunity/counter-attack, and authority/amplification patterns.",
     triggerSignals: [

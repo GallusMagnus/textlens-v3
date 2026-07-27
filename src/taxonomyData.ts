@@ -11,8 +11,8 @@ export interface TaxonomyItem {
   primaryScoreImpact: 'High' | 'Moderate' | 'Low' | 'None';
   referenceKeys: string[];
   referenceNote: string;
-  relevantModes: ('general' | 'healthcare' | 'academic' | 'bccsa' | 'press_code')[];
-  modeWeighting: Record<'general' | 'healthcare' | 'academic' | 'bccsa' | 'press_code', 'primary' | 'supporting' | 'advisory' | 'guardrail'>;
+  relevantModes: ('general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code')[];
+  modeWeighting: Partial<Record<'general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code', 'primary' | 'supporting' | 'advisory' | 'guardrail'>>;
   
   // Backward compatibility with generic rendering code
   name: string; // matches categoryTitle
@@ -1471,6 +1471,97 @@ export const textLensTaxonomy: TaxonomyItem[] = [
   },
 
   // 7.3 Cumulative framing is intentionally deferred for a later multi-document build.
+
+  {
+    id: "L3-LEGAL-RESPONSE-PROTOCOL",
+    section: "Layer 3: Legal Profession and Institutional Response",
+    family: "Institutional judgement",
+    categoryTitle: "Institutional Response Protocol Gap",
+    quoteLabel: "Response Protocol Gap",
+    definition: "A legal, educational, bar, or workplace text identifies an antisemitism or hate concern but lacks a clear, consistent and evidence-preserving response pathway.",
+    flawOrWhyItMatters: "Without a protocol, institutions may underreact, overreact, lose evidence, apply standards inconsistently, or collapse protected speech questions into discrimination findings.",
+    modelResponseGuidance: "Flag as a review issue only. Identify the missing protocol step, such as preservation, intake, classification, policy check, notice, escalation, review or response drafting.",
+    boundaryNote: "A short public statement or early acknowledgement may reasonably omit full procedure. Do not treat brevity alone as a protocol failure.",
+    primaryScoreImpact: "Moderate",
+    referenceKeys: ["aba_resolution_514_antisemitism", "aba_resolutions_611_613_2025", "us_national_strategy_counter_antisemitism", "global_guidelines_countering_antisemitism", "textlens_framework"],
+    referenceNote: "ABA Resolution 514; ABA Resolutions 611-613; U.S. National Strategy; Global Guidelines; TextLens institutional-response taxonomy",
+    relevantModes: ["legal_profession"],
+    modeWeighting: {
+      legal_profession: "primary"
+    },
+    name: "institutional response protocol gap",
+    examples: [
+      "The committee condemns the incident but gives no intake pathway, preservation step, policy reference, review owner, or timeline for affected students.",
+      "The firm says employees should report concerns informally to leadership but does not identify anti-harassment, accommodation, retaliation, or escalation channels."
+    ],
+    nonExamples: [
+      "The school asks affected students to preserve screenshots, submit a report through the bias-response portal, and meet with the Title VI coordinator.",
+      "The bar association announces a CLE, directs members to resources, and states that individual incidents should be reviewed under existing conduct policies."
+    ],
+    severity: "Rhetorical / Methodological",
+    confidence: "Moderate",
+    likelyStandards: ["ABA-514-AWARENESS", "ABA-611-K12", "US-STRATEGY-ACCOUNTABILITY", "GLOBAL-GUIDELINES-ACTION"]
+  },
+  {
+    id: "L3-LEGAL-EDU-CIVIL-RIGHTS",
+    section: "Layer 3: Legal Profession and Institutional Response",
+    family: "Institutional judgement",
+    categoryTitle: "Education Civil-Rights Screening Question",
+    quoteLabel: "Education Civil-Rights Question",
+    definition: "A K-12 or higher-education text raises possible harassment, exclusion, differential treatment, shared-ancestry discrimination, or institutional response questions involving Jewish students, staff, faculty, or organizations.",
+    flawOrWhyItMatters: "Education-setting antisemitism disputes require careful separation of protected political expression from discriminatory conduct, harassment, access denial, notice and institutional response.",
+    modelResponseGuidance: "Flag only as a screening question. Identify what facts would be needed before any Title VI, school-policy, or institutional-conduct conclusion could be made.",
+    boundaryNote: "Do not classify campus protest, political advocacy, classroom debate, criticism of Israel, BDS advocacy, or anti-Zionist argument as a civil-rights issue without added facts showing identity targeting, harassment, exclusion, differential treatment, or response failure.",
+    primaryScoreImpact: "Moderate",
+    referenceKeys: ["aba_resolutions_611_613_2025", "title_vi_shared_ancestry_discrimination", "jda", "nexus", "textlens_framework"],
+    referenceNote: "ABA Resolutions 611-612; Title VI shared ancestry guidance; JDA and Nexus guardrails; TextLens legal-profession taxonomy",
+    relevantModes: ["legal_profession"],
+    modeWeighting: {
+      legal_profession: "primary"
+    },
+    name: "education civil-rights screening question",
+    examples: [
+      "The university says Jewish students who feel unsafe because of synagogue vandalism should avoid the affected building, but it does not identify any reporting, investigation, or equal-access response.",
+      "The student government bars the Jewish student group from cultural funding unless it first denounces Israel, while other ethnic or religious groups face no comparable test."
+    ],
+    nonExamples: [
+      "Students criticize Israeli government policy at a campus rally without targeting Jewish students or denying access to Jewish organizations.",
+      "A seminar discusses competing views about Zionism, Palestinian rights, and constitutional futures without imposing identity-based penalties."
+    ],
+    severity: "Rhetorical / Methodological",
+    confidence: "Expert Context Required",
+    likelyStandards: ["ABA-612-HIGHER-ED", "TITLE-VI-SHARED-ANCESTRY", "TITLE-VI-RESPONSE-QUESTION"]
+  },
+  {
+    id: "L3-LEGAL-WORKPLACE-ACCOMMODATION",
+    section: "Layer 3: Legal Profession and Institutional Response",
+    family: "Institutional judgement",
+    categoryTitle: "Workplace Religious Discrimination or Accommodation Question",
+    quoteLabel: "Workplace Accommodation Question",
+    definition: "A workplace, law firm, bar program, or professional setting text raises possible religious discrimination, harassment, retaliation, or accommodation questions involving Jewish identity or practice.",
+    flawOrWhyItMatters: "Workplace response requires attention to religious identity, observance, scheduling, attire, dietary needs, retaliation concerns, firm policy and the factual history of any accommodation request.",
+    modelResponseGuidance: "Flag only as a screening question. Identify the missing facts needed for counsel or HR review, such as request history, policy text, timing, comparator treatment, adverse action, or hardship explanation.",
+    boundaryNote: "Do not infer discrimination from disagreement, scheduling conflict, office politics, or general criticism without textual evidence tying the issue to Jewish identity, religion, ancestry, observance or protected conduct.",
+    primaryScoreImpact: "Moderate",
+    referenceKeys: ["eeoc_religious_discrimination_accommodation", "aba_resolution_514_antisemitism", "textlens_framework"],
+    referenceNote: "EEOC religious discrimination and accommodation guidance; ABA Resolution 514; TextLens legal-profession taxonomy",
+    relevantModes: ["legal_profession"],
+    modeWeighting: {
+      legal_profession: "primary"
+    },
+    name: "workplace religious discrimination or accommodation question",
+    examples: [
+      "The firm denies all requests to avoid mandatory Friday evening events for Shabbat observance and tells Jewish employees that participation is a loyalty test.",
+      "A bar program excludes kippahs and Stars of David from visible attire while allowing comparable religious symbols from other traditions."
+    ],
+    nonExamples: [
+      "A firm schedules an emergency hearing preparation session without any indication that Jewish observance was raised or treated differently.",
+      "A workplace policy restricts all political signs and apparel equally during client-facing court appearances."
+    ],
+    severity: "Rhetorical / Methodological",
+    confidence: "Expert Context Required",
+    likelyStandards: ["EEOC-REL-DISCRIMINATION", "EEOC-REL-ACCOMMODATION", "ABA-514-LEADERSHIP"]
+  },
 
   // LAYER 0: GUARDRAILS AND EXEMPTIONS (Protected non-trigger categories)
   {

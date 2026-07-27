@@ -494,5 +494,252 @@ Sincerely,
       pressReleaseSummary: `A complaint has been lodged with the South African Press Ombud targeting 'The Sentinel Online' for an investigative article laden with antisemitic tropes. Audited under the TextLens regulatory framework, the article was found to violate journalism codes regarding accurate, balanced reporting and hate speech. The text alleges a hidden conspiratorial takeover of local municipal budgets by "dual-loyalty Zionists," using pathologizing terminology like "foreign parasite" and "shadow networks" to depict local civic participants.`,
       publicCorrectionRequest: `Ombud complaint filed against Statement from @TheSentinel for anti-Jewish conspiratorial tropes. The article accuses local volunteers and donors of acting as a "foreign parasite" with "dual loyalty," manipulating municipal funds behind the scenes without citing a single public record.`
     }
+  },
+  {
+    id: 'legal-aba-university-1',
+    name: 'U.S. Legal (ABA): Campus Statement After Protest Incident',
+    metadata: {
+      title: 'Campus Statement After Protest Incident',
+      author: 'Office of Student Affairs',
+      platform: 'Midland University',
+      date: '2026-07-27',
+      url: '',
+      textType: 'Institutional Statement',
+      jurisdiction: 'United States',
+      analysisMode: 'legal_profession',
+      communicationType: 'institutional_statement',
+      rhetoricalFunction: 'institutional_response',
+      legalSetting: 'Higher education',
+      desiredLegalOutput: 'Triage memo and response draft',
+      incidentSummary: 'Jewish students report access interference, identity-targeted exclusion, online exposure, and a generic institutional response after a campus protest.',
+      institutionalPolicyExcerpt: 'The university prohibits harassment based on religion, ethnicity, national origin, shared ancestry, or association with protected groups. The policy also protects peaceful political protest and viewpoint-neutral debate.'
+    },
+    originalText: `Midland University affirms the right of students to protest, including criticism of Israel, Zionism, U.S. foreign policy, and university investments. Peaceful advocacy, including boycott or divestment advocacy, is protected by university policy and will not be investigated merely because some members of the campus community strongly disagree with it.
+
+Last Thursday, a coalition of student groups held a permitted protest outside the administration building calling for divestment from companies doing business with Israel. The permit authorized amplified sound from noon to 3 p.m. and required that building entrances, classroom paths, and religious or cultural centers remain accessible. University police reported that most of the event remained peaceful and that several speakers focused on foreign policy, civilian casualties, and university investment policy.
+
+Several Jewish students later reported that a group of demonstrators moved from the administration building toward the Hillel building after the scheduled rally ended. Two students said they were blocked from entering the Hillel building for an evening study session and told that "Zionists are not welcome anywhere on campus unless they denounce Israel." One student reported that she was asked whether she was "one of the campus foreign agents" after another student noticed her Star of David necklace. A photo of the necklace was later posted on a public social-media account with the caption "foreign agents among us."
+
+The protest organizers deny that anyone was physically blocked. They state that their members were chanting near the sidewalk, not controlling access to the building, and that criticism of Zionism is a political position protected by the First Amendment and university policy. They also note that Muslim, Arab, and Palestinian students have reported feeling unsafe when their advocacy is described as hate speech.
+
+The Office of Student Affairs received three bias reports and one complaint from a faculty advisor. The university's public statement said: "Midland condemns all hate and bias. Students who feel uncomfortable should avoid areas where protests are occurring. We will continue to monitor the situation." The statement did not mention the alleged obstruction, the Hillel building, Jewish students, shared ancestry, religious harassment, reporting options, interim measures, or how the university distinguishes protected political advocacy from conduct directed at students because they are Jewish or perceived as connected to Israel.
+
+The Dean of Students has asked for a triage memo identifying what can be said publicly now, what facts must be verified, and what response steps would be consistent with protecting both protest rights and equal access to campus facilities.`,
+    summaryJudgement: 'Simulated demo input for U.S. Legal (ABA) mode. Expected value: separate protected political speech from possible access interference, identity-targeted harassment, and institutional response gaps.',
+    flaggedPassages: [],
+    evidentiaryIssues: [],
+    standardsMentioned: [
+      'ihra',
+      'jda',
+      'nexus',
+      'aba_resolution_514_antisemitism',
+      'title_vi_shared_ancestry_discrimination',
+      'textlens_framework'
+    ],
+    humanReviewPrompts: [
+      {
+        id: 'legal-campus-q1',
+        question: 'Did any student or group block access to a religious, cultural, or identity-based campus facility?',
+        contextNote: 'The speech context may be protected, while obstruction or exclusion based on real or perceived Jewish identity may require separate review.'
+      },
+      {
+        id: 'legal-campus-q2',
+        question: 'What steps did the institution take after receiving reports of identity-targeted conduct?',
+        contextNote: 'The demo should test whether TextLens flags response-protocol gaps without treating all protest speech as unlawful.'
+      }
+    ],
+    suggestedComplaintLanguage: {
+      formalLetter: 'Demo fixture only. Load the input and run U.S. Legal (ABA) analysis to generate a current triage memo.',
+      pressReleaseSummary: 'Demo fixture only. This sample is designed to show protected-speech guardrails and institutional-response triage.',
+      publicCorrectionRequest: 'Demo fixture only. Run analysis before using generated language externally.'
+    }
+  },
+  {
+    id: 'legal-aba-law-firm-1',
+    name: 'U.S. Legal (ABA): Law Firm Workplace Memo',
+    metadata: {
+      title: 'Internal Attendance Policy Reminder',
+      author: 'People Operations',
+      platform: 'Hamilton & Reed LLP',
+      date: '2026-07-27',
+      url: '',
+      textType: 'Internal Workplace Memo',
+      jurisdiction: 'United States',
+      analysisMode: 'legal_profession',
+      communicationType: 'workplace_policy',
+      rhetoricalFunction: 'policy_instruction',
+      legalSetting: 'Law firm workplace',
+      desiredLegalOutput: 'HR/legal review memo',
+      incidentSummary: 'Mandatory Friday evening business-development events and visible religious-item restrictions may implicate religious accommodation, expression, and retaliation concerns.',
+      institutionalPolicyExcerpt: 'The firm states that it provides equal employment opportunity and reasonable religious accommodations unless doing so would create legally cognizable undue hardship.'
+    },
+    originalText: `All litigation associates are expected to attend the mandatory client development dinner series every Friday evening this quarter. The series is part of the firm's new "partnership readiness" initiative. Attendance will be considered in year-end reviews because visibility with clients is a key signal of commitment to the firm.
+
+The program was scheduled from 6:30 p.m. to 9:30 p.m. every Friday for twelve weeks. Three associates asked whether they could attend a Sunday or weekday alternative, participate remotely before sundown, or receive credit for other client-development work. Two of the requests came from Jewish associates who observe Shabbat. One came from an employee with a standing religious service obligation at the same time. The practice group leader responded that "no exceptions will be granted because client development requires flexibility" and that the firm "cannot redesign a major program around individual belief systems."
+
+Human Resources circulated this reminder after the requests were raised:
+
+"Several employees have requested religious scheduling accommodations, including Jewish associates observing Shabbat. The firm respects all beliefs, but business development requires flexibility. Employees who cannot attend should understand that partnership readiness will be assessed accordingly. Partners need to see who is fully available when clients expect us to be available."
+
+The same memo added a client-facing appearance rule: "Political symbols and religious items should be kept out of client-facing spaces. This includes kippahs, Stars of David, keffiyehs, campaign pins, union buttons, and other visible items that may distract clients." A senior associate asked whether a small cross necklace, a hijab, or wedding ring would also be covered. HR replied that the rule would be applied with "business judgment" and that people should avoid "items likely to provoke discussion."
+
+Two associates are concerned that declining Friday evening events will be treated as lack of commitment. One partner has already commented that "future leaders find a way to show up." Another partner privately suggested that the Jewish associates could attend the first hour before sundown and "not make this a legal issue." The firm's written accommodation policy says reasonable religious accommodations should be considered unless they create undue hardship, but there is no record of an individualized accommodation discussion, cost estimate, client need, or analysis of alternatives.
+
+The General Counsel has asked for a short HR/legal review memo identifying risk signals, missing facts, questions for managers, and a revised communication that preserves business goals without penalizing religious observance or visible religious identity.`,
+    summaryJudgement: 'Simulated demo input for U.S. Legal (ABA) mode. Expected value: surface religious accommodation, visible religious expression, workplace retaliation risk, comparator questions, and missing-facts prompts.',
+    flaggedPassages: [],
+    evidentiaryIssues: [],
+    standardsMentioned: [
+      'aba_resolution_514_antisemitism',
+      'aba_resolutions_611_613_2025',
+      'eeoc_religious_discrimination_accommodation',
+      'textlens_framework'
+    ],
+    humanReviewPrompts: [
+      {
+        id: 'legal-workplace-q1',
+        question: 'Has the employer engaged in an individualized accommodation process for employees observing Shabbat or other religious obligations?',
+        contextNote: 'The sample tests whether TextLens asks for accommodation facts before making legal conclusions.'
+      },
+      {
+        id: 'legal-workplace-q2',
+        question: 'Are visible religious items restricted equally, and is there a documented client-facing business necessity?',
+        contextNote: 'Comparator evidence and policy scope are central to a useful HR/legal triage memo.'
+      }
+    ],
+    suggestedComplaintLanguage: {
+      formalLetter: 'Demo fixture only. Load the input and run U.S. Legal (ABA) analysis to generate a current HR/legal review memo.',
+      pressReleaseSummary: 'Demo fixture only. This sample is designed to show workplace accommodation and religious-expression triage.',
+      publicCorrectionRequest: 'Demo fixture only. Run analysis before using generated language externally.'
+    }
+  },
+  {
+    id: 'legal-aba-bar-resolution-1',
+    name: 'U.S. Legal (ABA): Bar Association Draft Resolution',
+    metadata: {
+      title: 'Draft Resolution on Antisemitism Education',
+      author: 'Civil Rights Committee',
+      platform: 'State Bar Working Group',
+      date: '2026-07-27',
+      url: '',
+      textType: 'Draft Bar Association Resolution',
+      jurisdiction: 'United States',
+      analysisMode: 'legal_profession',
+      communicationType: 'policy_resolution',
+      rhetoricalFunction: 'professional_education',
+      legalSetting: 'Bar association',
+      desiredLegalOutput: 'Policy review',
+      incidentSummary: 'Draft bar resolution proposes antisemitism education while preserving protected criticism, viewpoint-neutral discussion, and cross-community participation.',
+      institutionalPolicyExcerpt: 'The State Bar supports education on bias, harassment, religious discrimination, professional civility, civil rights, and constitutional protections for speech and association.'
+    },
+    originalText: `Proposed Resolution of the State Bar Working Group on Antisemitism Education and Professional Responsibility
+
+Whereas lawyers, judges, law students, clients, and members of the public have reported a rise in antisemitic incidents, including threats, harassment, vandalism, Holocaust denial and distortion, conspiracy claims about Jewish power or control, and accusations that Jewish individuals are collectively responsible for the acts of the State of Israel;
+
+Whereas the legal profession has a responsibility to support civil rights, equal access to legal institutions, professional civility, and education about bias affecting religious, ethnic, and ancestry-based communities;
+
+Whereas lawyers should be able to recognize antisemitism when it appears in classic forms, including anti-Jewish conspiracy claims, Holocaust denial and distortion, dual-loyalty accusations, dehumanizing language, exclusion from professional spaces because of Jewish identity, and harassment targeting Jewish lawyers or students because of real or perceived connection to Israel;
+
+Whereas the Bar also recognizes that criticism of Israeli government policy, advocacy for Palestinian rights, support for nonviolent boycotts, debate over Zionism, and debate over constitutional futures are not automatically antisemitic without additional evidence of anti-Jewish hostility, discriminatory treatment, threats, exclusion, or identity-based harassment;
+
+Resolved, that the State Bar should create continuing legal education programming to help lawyers distinguish protected political speech from antisemitic conduct, discriminatory harassment, or professional exclusion;
+
+Resolved, that the program should avoid using any definition or framework as a speech code and should instead present multiple sources as educational tools, including ABA policy, civil-rights guidance on shared ancestry and religious discrimination, and widely discussed antisemitism frameworks with their limits and guardrails;
+
+Resolved, that the Bar should convene CLE sessions, publish a short resource guide, and invite Jewish, Muslim, Arab, Palestinian, Israeli, civil-rights, First Amendment, education-law, employment-law, and professional-responsibility voices to participate;
+
+Resolved, that the resource guide should include practical scenarios for law firms, law schools, courts, bar events, and client intake, including when a lawyer or student is asked to denounce Israel as a condition of participation, when a workplace event conflicts with religious observance, when political advocacy is mistakenly treated as harassment, and when identity-targeted conduct is dismissed as mere political disagreement;
+
+Resolved, that the State Bar should make clear that education about antisemitism is compatible with vigorous debate, viewpoint neutrality, anti-discrimination obligations, and concern for other affected communities.`,
+    summaryJudgement: 'Simulated demo input for U.S. Legal (ABA) mode. Expected value: show low concern, strong alignment with ABA educational intent, explicit protected-speech guardrails, and inclusive implementation design.',
+    flaggedPassages: [],
+    evidentiaryIssues: [],
+    standardsMentioned: [
+      'ihra',
+      'jda',
+      'nexus',
+      'aba_resolution_514_antisemitism',
+      'aba_resolutions_611_613_2025',
+      'us_national_strategy_counter_antisemitism',
+      'textlens_framework'
+    ],
+    humanReviewPrompts: [
+      {
+        id: 'legal-bar-q1',
+        question: 'Does the final resolution preserve viewpoint-neutral education while identifying antisemitic conduct and tropes with specificity?',
+        contextNote: 'The sample should demonstrate that TextLens can identify constructive ABA-aligned drafting, not only violations.'
+      },
+      {
+        id: 'legal-bar-q2',
+        question: 'Are civil-rights, First Amendment, education-law, employment-law, Jewish, Muslim, and Arab perspectives included in implementation?',
+        contextNote: 'Inclusive design is central to making the educational initiative credible to legal-profession partners.'
+      }
+    ],
+    suggestedComplaintLanguage: {
+      formalLetter: 'Demo fixture only. Load the input and run U.S. Legal (ABA) analysis to generate a current policy review.',
+      pressReleaseSummary: 'Demo fixture only. This sample is designed to show an aligned, low-concern bar association use case.',
+      publicCorrectionRequest: 'Demo fixture only. Run analysis before using generated language externally.'
+    }
+  },
+  {
+    id: 'legal-aba-k12-1',
+    name: 'U.S. Legal (ABA): K-12 Parent Complaint',
+    metadata: {
+      title: 'Parent Complaint About Classroom Incident',
+      author: 'Parent Email',
+      platform: 'Oak Valley Public Schools',
+      date: '2026-07-27',
+      url: '',
+      textType: 'Parent Complaint Email',
+      jurisdiction: 'United States',
+      analysisMode: 'legal_profession',
+      communicationType: 'complaint_email',
+      rhetoricalFunction: 'incident_report',
+      legalSetting: 'K-12 school',
+      desiredLegalOutput: 'Incident triage and next steps',
+      incidentSummary: 'Parent reports identity-targeted classroom comments, lack of teacher intervention, and a generic school response that omits antisemitism, shared ancestry, reporting, and review steps.',
+      institutionalPolicyExcerpt: 'The district prohibits harassment based on race, color, national origin, religion, ancestry, ethnicity, and shared ancestry. The district also protects age-appropriate discussion of current events.'
+    },
+    originalText: `Dear Principal Morales,
+
+I am writing because my daughter came home upset after a classroom discussion about the Middle East in her ninth-grade civics class. The teacher had assigned students to discuss how schools should handle difficult international issues while respecting classmates. I support students learning about hard topics. I am not asking the school to punish political opinions or prevent students from criticizing governments, including Israel.
+
+During the discussion, one student reportedly said that Jewish students should be "made to answer for what Israel does" before being allowed to speak about discrimination. Another student asked my daughter whether her family "supports the killing" and said she should not speak about prejudice unless she first denounced Zionism. My daughter says she tried to explain that she is Jewish, not a spokesperson for a foreign government. She says the teacher moved on without addressing the comments directly.
+
+After class, several students continued the discussion in a group chat used for the civics project. One message said, "Ask the Zionists in class why they think they get special treatment." Another posted a screenshot of my daughter's project profile with a Star of David sticker visible on her laptop. My daughter did not respond in the chat. She skipped the next civics class because she was embarrassed and did not know whether the teacher would intervene.
+
+The school later sent a general email saying that students may express strong views on international affairs and that families should encourage resilience. The email did not mention antisemitism, shared ancestry, religious harassment, reporting options, whether the classroom incident would be reviewed, or whether teachers were given guidance on how to distinguish political speech from identity-targeted harassment.
+
+I understand that the school must protect student speech and cannot treat all criticism of Israel as antisemitism. I am asking the school to explain what steps it will take when Jewish students are told they must answer for Israel before they can participate in class. I would also like to know whether the district's policy on harassment based on religion, ancestry, ethnicity, or national origin applies to this incident, who will review the group-chat messages, and what support will be offered so my daughter can return to class without being singled out.
+
+Please confirm receipt of this complaint, identify the reporting process, and tell us when we can expect a response.`,
+    summaryJudgement: 'Simulated demo input for U.S. Legal (ABA) mode. Expected value: separate protected political speech from alleged identity-targeted student conduct and school response gaps.',
+    flaggedPassages: [],
+    evidentiaryIssues: [],
+    standardsMentioned: [
+      'ihra',
+      'jda',
+      'nexus',
+      'aba_resolution_514_antisemitism',
+      'title_vi_shared_ancestry_discrimination',
+      'textlens_framework'
+    ],
+    humanReviewPrompts: [
+      {
+        id: 'legal-k12-q1',
+        question: 'What exactly was said in class, who heard it, and what action did the teacher take in the moment?',
+        contextNote: 'The sample should keep the review evidence-based and avoid overclaiming from a parent summary alone.'
+      },
+      {
+        id: 'legal-k12-q2',
+        question: 'Did the school identify reporting options, review steps, and the distinction between political speech and identity-targeted harassment?',
+        contextNote: 'This supports a practical next-steps memo aligned with civil-rights response expectations.'
+      }
+    ],
+    suggestedComplaintLanguage: {
+      formalLetter: 'Demo fixture only. Load the input and run U.S. Legal (ABA) analysis to generate current incident-triage language.',
+      pressReleaseSummary: 'Demo fixture only. This sample is designed to show K-12 incident triage and response-gap analysis.',
+      publicCorrectionRequest: 'Demo fixture only. Run analysis before using generated language externally.'
+    }
   }
 ];

@@ -5,6 +5,7 @@ export type CoreAnalysisMode =
   | "general"
   | "healthcare"
   | "academic"
+  | "legal_profession"
   | "bccsa"
   | "press_code";
 
@@ -12,6 +13,7 @@ export type AnalysisMode = CoreAnalysisMode | "consumer";
 
 export type SourceRuleSection =
   | "Core Antisemitism Frameworks"
+  | "U.S. Legal & Bar Profession Sources"
   | "Media & Regulatory Codes"
   | "Academic & Publication Standards"
   | "Health Media Standards"

@@ -61,5 +61,12 @@ export function getSourceContextFields(metadata: TextLensMetadata): SourceContex
     pushField(fields, "Author Affiliation", metadata.authorAffiliation);
   }
 
+  if (metadata.analysisMode === "legal_profession") {
+    pushField(fields, "Legal Setting", metadata.legalSetting);
+    pushField(fields, "Desired Output", metadata.desiredLegalOutput);
+    pushField(fields, "Incident / Reviewer Concern", metadata.incidentSummary);
+    pushField(fields, "Policy Excerpt", metadata.institutionalPolicyExcerpt);
+  }
+
   return fields;
 }

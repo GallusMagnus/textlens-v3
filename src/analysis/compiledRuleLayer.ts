@@ -9,6 +9,7 @@ const CORE_MODES: CoreAnalysisMode[] = [
   "general",
   "healthcare",
   "academic",
+  "legal_profession",
   "bccsa",
   "press_code",
 ];
@@ -48,11 +49,11 @@ export function getAllowedTaxonomyItems(mode: string) {
     return [];
   }
 
-  return textLensTaxonomy.filter(
-    (item) =>
-      item.family !== "Protected non-trigger" &&
-      item.relevantModes.includes(mode as CoreAnalysisMode)
-  );
+  return textLensTaxonomy.filter((item) => {
+    if (item.family === "Protected non-trigger") return false;
+    if (item.relevantModes.includes(mode as CoreAnalysisMode)) return true;
+    return mode === "legal_profession" && item.relevantModes.includes("general");
+  });
 }
 
 export function getProtectedNonTriggerItems() {
@@ -69,7 +70,10 @@ export function isTaxonomyItemAllowedInMode(taxonomyItemId: string, mode: string
   if (!CORE_MODES.includes(mode as CoreAnalysisMode)) {
     return false;
   }
-  return item.relevantModes.includes(mode as CoreAnalysisMode);
+  return (
+    item.relevantModes.includes(mode as CoreAnalysisMode) ||
+    (mode === "legal_profession" && item.relevantModes.includes("general"))
+  );
 }
 
 export function getSourceKeyForClauseId(clauseId: string) {

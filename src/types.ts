@@ -6,7 +6,7 @@ export interface TextLensMetadata {
   url: string;
   textType: string;
   jurisdiction: string;
-  analysisMode: 'general' | 'healthcare' | 'academic' | 'bccsa' | 'press_code' | 'consumer' | 'accountability';
+  analysisMode: 'general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code' | 'consumer' | 'accountability';
   communicationType?: string;
   rhetoricalFunction?: string;
 
@@ -28,6 +28,12 @@ export interface TextLensMetadata {
   articleType?: string;
   doiOrPmid?: string;
   authorAffiliation?: string;
+
+  // U.S. Legal (ABA) Mode
+  legalSetting?: string;
+  incidentSummary?: string;
+  institutionalPolicyExcerpt?: string;
+  desiredLegalOutput?: string;
 }
 
 export interface StandardClause {
@@ -40,7 +46,7 @@ export interface StandardDoc {
   id: string;
   name: string;
   shortName: string;
-  category: 'Antisemitism Definitions' | 'Media & Broadcasting Codes' | 'Academic & Publishing Standards' | 'Rhetorical Frameworks';
+  category: 'Antisemitism Definitions' | 'U.S. Legal & Bar Profession Sources' | 'Media & Broadcasting Codes' | 'Academic & Publishing Standards' | 'Rhetorical Frameworks';
   description: string;
   clauses: StandardClause[];
   fullTextUrl?: string;

@@ -161,6 +161,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
                   <option value="general">Consensus Standards Mode</option>
                   <option value="healthcare">Healthcare Publishing Mode</option>
                   <option value="academic">Academic/University Mode</option>
+                  <option value="legal_profession">U.S. Legal (ABA)</option>
                   <option value="bccsa">BCCSA Mode</option>
                   <option value="press_code">Press Code Mode</option>
                   <option value="accountability">Accountability Mode (Beta)</option>
@@ -379,6 +380,69 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
                     value={metadata.authorAffiliation || ''}
                     onChange={handleChange}
                     placeholder="e.g. Division of Social Medicine, Harvard Public Health"
+                    className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-slate-950 transition-all font-sans"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {metadata.analysisMode === 'legal_profession' && (
+            <div className="space-y-3 p-4 bg-slate-50 border border-slate-200/60 rounded-lg animate-[fadeIn_0.2s_ease-out]">
+              <div className="flex items-center space-x-2 pb-2 border-b border-slate-200/60">
+                <Users className="w-4 h-4 text-slate-700" />
+                <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest">2. U.S. Legal (ABA) Context</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                    Setting
+                  </label>
+                  <input
+                    type="text"
+                    name="legalSetting"
+                    value={metadata.legalSetting || ''}
+                    onChange={handleChange}
+                    placeholder="e.g. law firm, K-12 school, university, bar association"
+                    className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-slate-950 transition-all font-sans"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                    Desired Output
+                  </label>
+                  <input
+                    type="text"
+                    name="desiredLegalOutput"
+                    value={metadata.desiredLegalOutput || ''}
+                    onChange={handleChange}
+                    placeholder="e.g. triage memo, response draft, policy review"
+                    className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-slate-950 transition-all font-sans"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                    Incident or Reviewer Concern
+                  </label>
+                  <textarea
+                    name="incidentSummary"
+                    value={metadata.incidentSummary || ''}
+                    onChange={handleChange}
+                    rows={2}
+                    placeholder="Briefly describe the incident, complaint, or concern the reviewer wants TextLens to keep in view."
+                    className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-slate-950 transition-all font-sans"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                    Relevant Policy Excerpt
+                  </label>
+                  <textarea
+                    name="institutionalPolicyExcerpt"
+                    value={metadata.institutionalPolicyExcerpt || ''}
+                    onChange={handleChange}
+                    rows={2}
+                    placeholder="Optional excerpt from a school, university, firm, bar, HR, or anti-harassment policy."
                     className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-slate-950 transition-all font-sans"
                   />
                 </div>

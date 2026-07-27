@@ -167,6 +167,142 @@ export const standardsList: StandardDoc[] = [
     ]
   },
   {
+    id: 'aba_resolution_514_antisemitism',
+    name: 'ABA Resolution 514 and Task Force to Combat Antisemitism',
+    shortName: 'ABA Resolution 514',
+    category: 'U.S. Legal & Bar Profession Sources',
+    description: 'ABA policy orientation for lawyers and bar associations responding to antisemitism.',
+    fullTextUrl: 'https://www.americanbar.org/groups/leadership/office_of_the_president/antisemitism/',
+    jurisdictionContext: 'United States legal profession',
+    clauses: [
+      {
+        id: 'ABA-514-AWARENESS',
+        title: 'Awareness and Recognition',
+        text: 'Use this source to assess whether a legal-profession response helps reviewers recognize antisemitism and understand why lawyers and bar associations should not be passive bystanders.'
+      },
+      {
+        id: 'ABA-514-LEADERSHIP',
+        title: 'Bar Leadership Role',
+        text: 'Use this source to assess whether the response is suitable for lawyers, bar associations, law firms, or legal networks acting with professional care.'
+      }
+    ]
+  },
+  {
+    id: 'aba_resolutions_611_613_2025',
+    name: 'ABA 2025 Resolutions 611, 612 and 613',
+    shortName: 'ABA 611-613',
+    category: 'U.S. Legal & Bar Profession Sources',
+    description: 'ABA policy orientation for K-12 protocols, higher-education discrimination education, and Global Guidelines support.',
+    fullTextUrl: 'https://www.americanbar.org/groups/leadership/office_of_the_president/antisemitism/',
+    jurisdictionContext: 'United States schools, higher education and bar associations',
+    clauses: [
+      {
+        id: 'ABA-611-K12',
+        title: 'K-12 Incident Protocols',
+        text: 'Use this source to assess whether K-12 materials identify consistent response protocols for antisemitism and hate incidents.'
+      },
+      {
+        id: 'ABA-612-HIGHER-ED',
+        title: 'Higher Education Discrimination Education',
+        text: 'Use this source to assess whether higher-education materials distinguish discrimination and harassment education from protected expression and identify Title VI relevance where appropriate.'
+      },
+      {
+        id: 'ABA-613-GLOBAL-GUIDELINES',
+        title: 'Global Guidelines Support',
+        text: 'Use this source to assess whether bar or institutional materials align with practical, nonbinding best-practices guidance.'
+      }
+    ]
+  },
+  {
+    id: 'us_national_strategy_counter_antisemitism',
+    name: 'U.S. National Strategy to Counter Antisemitism',
+    shortName: 'U.S. National Strategy',
+    category: 'U.S. Legal & Bar Profession Sources',
+    description: 'Whole-of-society strategy context for awareness, safety, accountability and solidarity.',
+    fullTextUrl: 'https://www.justice.gov/hatecrimes/resource/us-national-strategy-counter-antisemitism',
+    jurisdictionContext: 'United States',
+    clauses: [
+      {
+        id: 'US-STRATEGY-AWARENESS',
+        title: 'Awareness and Understanding',
+        text: 'Use this source to assess whether a response increases understanding of antisemitism and its civic impact.'
+      },
+      {
+        id: 'US-STRATEGY-ACCOUNTABILITY',
+        title: 'Normalization and Accountability',
+        text: 'Use this source to assess whether response language counters normalization and supports proportionate accountability for discriminatory conduct.'
+      },
+      {
+        id: 'US-STRATEGY-SOLIDARITY',
+        title: 'Cross-Community Solidarity',
+        text: 'Use this source to assess whether response language builds coalition and avoids framing antisemitism as only a Jewish concern.'
+      }
+    ]
+  },
+  {
+    id: 'global_guidelines_countering_antisemitism',
+    name: 'Global Guidelines for Countering Antisemitism',
+    shortName: 'Global Guidelines',
+    category: 'U.S. Legal & Bar Profession Sources',
+    description: 'Nonbinding best-practices guidance for practical institutional action.',
+    fullTextUrl: 'https://www.state.gov/global-guidelines-for-countering-antisemitism/',
+    jurisdictionContext: 'International nonbinding guidance',
+    clauses: [
+      {
+        id: 'GLOBAL-GUIDELINES-ACTION',
+        title: 'Practical Action',
+        text: 'Use this source to assess whether a proposed response includes practical steps such as education, reporting, protocol development, or coalition work.'
+      },
+      {
+        id: 'GLOBAL-GUIDELINES-NONBINDING',
+        title: 'Nonbinding Guidance Boundary',
+        text: 'Use this source as best-practices context, not as controlling law or proof of a legal violation.'
+      }
+    ]
+  },
+  {
+    id: 'title_vi_shared_ancestry_discrimination',
+    name: 'Title VI Shared Ancestry and Ethnic Characteristics Discrimination Guidance',
+    shortName: 'Title VI Shared Ancestry',
+    category: 'U.S. Legal & Bar Profession Sources',
+    description: 'Education civil-rights screening context for shared ancestry, ethnic characteristics, harassment and institutional response.',
+    fullTextUrl: 'https://www.ed.gov/laws-and-policy/civil-rights-laws/title-vi/title-vi-key-issues/discrimination-based-shared-ancestry-or-ethnic-characteristics',
+    jurisdictionContext: 'United States education programs receiving federal funding',
+    clauses: [
+      {
+        id: 'TITLE-VI-SHARED-ANCESTRY',
+        title: 'Shared Ancestry and Ethnic Characteristics',
+        text: 'Use this source to identify whether an education-setting concern appears tied to Jewish identity, shared ancestry, ethnic characteristics, religion, or national origin.'
+      },
+      {
+        id: 'TITLE-VI-RESPONSE-QUESTION',
+        title: 'Notice and Institutional Response Question',
+        text: 'Use this source to frame missing-fact questions about harassment, exclusion, differential treatment, institutional notice, and response without deciding liability.'
+      }
+    ]
+  },
+  {
+    id: 'eeoc_religious_discrimination_accommodation',
+    name: 'EEOC Religious Discrimination and Accommodation Guidance',
+    shortName: 'EEOC Religious Guidance',
+    category: 'U.S. Legal & Bar Profession Sources',
+    description: 'Employment screening context for religious discrimination, harassment, retaliation and accommodation.',
+    fullTextUrl: 'https://www.eeoc.gov/laws/guidance/section-12-religious-discrimination',
+    jurisdictionContext: 'United States employment',
+    clauses: [
+      {
+        id: 'EEOC-REL-DISCRIMINATION',
+        title: 'Religious Discrimination and Harassment',
+        text: 'Use this source to identify workplace questions involving religious discrimination, harassment, exclusion or retaliation.'
+      },
+      {
+        id: 'EEOC-REL-ACCOMMODATION',
+        title: 'Religious Accommodation Questions',
+        text: 'Use this source to frame missing-fact questions about observance, dress, holidays, scheduling, diet or religious expression without deciding accommodation liability.'
+      }
+    ]
+  },
+  {
     id: 'bccsa_fta',
     name: 'BCCSA Free-to-Air Code of Conduct for Broadcasting Service Licensees',
     shortName: 'BCCSA FTA',

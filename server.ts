@@ -160,10 +160,10 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
 
   // Warn about missing parameters in metadata
   const validationWarnings: string[] = [];
-  if (!metadata?.articleType) {
+  if (selectedMode === "healthcare" && !metadata?.articleType) {
     validationWarnings.push("Warning: Analysis may lack complete accuracy due to missing article type in metadata.");
   }
-  if (!metadata?.journalOrPublication && !metadata?.platform) {
+  if ((selectedMode === "healthcare" || selectedMode === "academic") && !metadata?.journalOrPublication && !metadata?.platform) {
     validationWarnings.push("Warning: Analysis context limited due to missing publication venue/platform in metadata.");
   }
   if (selectedMode === "bccsa" && (!metadata?.broadcaster || !metadata?.programmeName || !metadata?.broadcastDateTime)) {
@@ -172,7 +172,7 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
   if (!metadata?.jurisdiction) {
     validationWarnings.push("Warning: Legal and regulatory analysis lack geographical boundary mapping due to missing jurisdiction context.");
   }
-  if (!metadata?.authorAffiliation) {
+  if ((selectedMode === "healthcare" || selectedMode === "academic") && !metadata?.authorAffiliation) {
     validationWarnings.push("Warning: Assessment of institutional conflict of interest is limited due to missing author affiliation.");
   }
   if (!metadata?.date) {
@@ -190,6 +190,10 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
   // Healthcare restriction (Check 6)
   if (selectedMode === "healthcare") {
     validationWarnings.push("TextLens does not make legal findings. It may identify legal or humanitarian terms, map them to relevant criteria at a high level, and assess whether the article defines, attributes, evidences, omits, assumes or overstates those criteria.");
+  }
+
+  if (selectedMode === "legal_profession") {
+    validationWarnings.push("TextLens U.S. Legal (ABA) mode is a screening and drafting aid built around ABA antisemitism policy and initiatives. It does not provide legal advice, decide liability, or determine whether conduct is unlawful.");
   }
 
   data.limitations.push(...validationWarnings);

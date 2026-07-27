@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Play, FileText, CheckCircle2, RotateCcw, AlertCircle, Info, FileUp, Trash2, Paperclip, Loader2, Check, Film, Heart, Sliders, Sparkles } from 'lucide-react';
+import { Play, FileText, CheckCircle2, RotateCcw, AlertCircle, Info, FileUp, Trash2, Paperclip, Loader2, Check, Film, Heart, Sliders, Sparkles, Users } from 'lucide-react';
 import { TextLensMetadata, AnalysisReport } from '../types';
 import { mockReports } from '../mockReportsData';
 import { communicationTypes, rhetoricalFunctions } from '../communicationContext';
@@ -13,7 +13,7 @@ interface AnalyseTabProps {
   setMetadata: React.Dispatch<React.SetStateAction<TextLensMetadata>>;
   activeReport: AnalysisReport | null;
   setActiveReport: (report: AnalysisReport | null) => void;
-  onAnalysisStart: () => void;
+  onAnalysisStart: (analysisInput?: { originalText: string; metadata: TextLensMetadata }) => void;
   isAnalyzing: boolean;
   onNavigateToReport: () => void;
   analysisError?: string | null;
@@ -478,9 +478,11 @@ export default function AnalyseTab({
     if (!sampleId) return;
     
     let sample: AnalysisReport | undefined;
+    let shouldLoadReport = false;
     if (sampleId.startsWith('saved-')) {
       const realId = sampleId.replace('saved-', '');
       sample = savedReports?.find(r => r.id === realId);
+      shouldLoadReport = true;
     } else {
       sample = mockReports.find(r => r.id === sampleId);
     }
@@ -489,8 +491,7 @@ export default function AnalyseTab({
       clearAnalysisSourceNotice?.();
       setOriginalText(sample.originalText);
       setMetadata({ ...sample.metadata });
-      // Clear current report to let them "Analyze" it, or load it immediately
-      setActiveReport(sample);
+      setActiveReport(shouldLoadReport ? sample : null);
     }
   };
 
@@ -521,8 +522,8 @@ export default function AnalyseTab({
       clearAnalysisSourceNotice?.();
       setOriginalText(sample.originalText);
       setMetadata({ ...sample.metadata });
-      setActiveReport(sample);
-      onAnalysisStart();
+      setActiveReport(null);
+      onAnalysisStart({ originalText: sample.originalText, metadata: sample.metadata });
     }
   };
 
@@ -556,7 +557,7 @@ export default function AnalyseTab({
       return;
     }
     setShowValidation(false);
-    onAnalysisStart();
+    onAnalysisStart({ originalText, metadata });
   };
 
   return (
@@ -599,7 +600,7 @@ export default function AnalyseTab({
             id: 'professional-family',
             title: 'Professional Modes',
             summary: 'For standards-based review in specialist, institutional, media and regulatory contexts.',
-            modes: ['general', 'healthcare', 'academic', 'bccsa', 'press_code', 'accountability'] as const
+            modes: ['general', 'healthcare', 'academic', 'legal_profession', 'bccsa', 'press_code', 'accountability'] as const
           }
         ] as const).map((family) => (
           <div key={family.id} className="space-y-3">
@@ -668,6 +669,15 @@ export default function AnalyseTab({
                 desc: 'Academic freedom, institutional standards and evidence handling',
                 badgeColor: 'bg-blue-50 text-blue-800',
                 badgeLabel: '',
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
+              };
+            } else if (mode === 'legal_profession') {
+              modeDetails = {
+                title: 'U.S. Legal (ABA)',
+                desc: 'ABA-aligned legal screening, protected speech and response triage',
+                badgeColor: 'bg-slate-100 text-slate-850 border border-slate-200',
+                badgeLabel: 'MVP',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -782,6 +792,13 @@ export default function AnalyseTab({
                 <option value="academic-1">Academic: Student Resolution</option>
                 <option value="broadcast-1">Broadcast: BCCSA Television Interview</option>
                 <option value="presscode-1">Press Code: Investigative Sentinel</option>
+              </optgroup>
+
+              <optgroup label="U.S. Legal (ABA) Demo Inputs">
+                <option value="legal-aba-university-1">Campus: Protest Incident Statement</option>
+                <option value="legal-aba-law-firm-1">Workplace: Law Firm Attendance Memo</option>
+                <option value="legal-aba-bar-resolution-1">Bar Association: Education Resolution</option>
+                <option value="legal-aba-k12-1">K-12: Parent Complaint Email</option>
               </optgroup>
             </select>
           </div>
@@ -1456,6 +1473,74 @@ export default function AnalyseTab({
                   value={metadata.authorAffiliation || ''}
                   onChange={handleMetaChange}
                   placeholder="e.g. Division of Social Medicine, Harvard"
+                  className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-indigo-500 transition-all font-sans"
+                  disabled={isAnalyzing}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* C. U.S. Legal (ABA) context */}
+        {metadata.analysisMode === 'legal_profession' && (
+          <div className="space-y-3 p-4 bg-slate-50 border border-slate-200/60 rounded-lg animate-in slide-in-from-top-1 duration-250">
+            <div className="flex items-center space-x-2 pb-2 border-b border-slate-150">
+              <Users className="w-4 h-4 text-slate-700" />
+              <h3 className="text-[10px] font-bold text-slate-800 uppercase tracking-widest font-mono">U.S. Legal (ABA) Context</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px]">
+              <div>
+                <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                  Setting
+                </label>
+                <input
+                  type="text"
+                  name="legalSetting"
+                  value={metadata.legalSetting || ''}
+                  onChange={handleMetaChange}
+                  placeholder="e.g. law firm, K-12 school, university, bar association"
+                  className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-indigo-500 transition-all font-sans"
+                  disabled={isAnalyzing}
+                />
+              </div>
+              <div>
+                <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                  Desired Output
+                </label>
+                <input
+                  type="text"
+                  name="desiredLegalOutput"
+                  value={metadata.desiredLegalOutput || ''}
+                  onChange={handleMetaChange}
+                  placeholder="e.g. triage memo, response draft, policy review"
+                  className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-indigo-500 transition-all font-sans"
+                  disabled={isAnalyzing}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                  Incident or Reviewer Concern
+                </label>
+                <textarea
+                  name="incidentSummary"
+                  value={metadata.incidentSummary || ''}
+                  onChange={handleMetaChange}
+                  rows={2}
+                  placeholder="Briefly describe the incident, complaint, or concern the reviewer wants TextLens to keep in view."
+                  className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-indigo-500 transition-all font-sans"
+                  disabled={isAnalyzing}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                  Relevant Policy Excerpt
+                </label>
+                <textarea
+                  name="institutionalPolicyExcerpt"
+                  value={metadata.institutionalPolicyExcerpt || ''}
+                  onChange={handleMetaChange}
+                  rows={2}
+                  placeholder="Optional excerpt from a school, university, firm, bar, HR, or anti-harassment policy."
                   className="w-full border border-slate-200 rounded p-1.5 text-xs text-slate-900 bg-white focus:outline-hidden focus:border-indigo-500 transition-all font-sans"
                   disabled={isAnalyzing}
                 />

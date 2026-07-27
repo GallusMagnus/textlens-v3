@@ -11,6 +11,7 @@ const CORE_MODES: CoreAnalysisMode[] = [
   "general",
   "healthcare",
   "academic",
+  "legal_profession",
   "bccsa",
   "press_code",
 ];
@@ -29,6 +30,12 @@ const INTEGRITY_KEYS = new Set([
   "schwitzer_health_journalism_500_stories_2008",
   "ahcj_health_journalism_principles",
   "cse_publication_ethics_white_paper",
+  "aba_resolution_514_antisemitism",
+  "aba_resolutions_611_613_2025",
+  "us_national_strategy_counter_antisemitism",
+  "global_guidelines_countering_antisemitism",
+  "title_vi_shared_ancestry_discrimination",
+  "eeoc_religious_discrimination_accommodation",
 ]);
 const TERMINOLOGY_KEYS = new Set([
   "icrc_customary_ihl_rule_1",
@@ -74,12 +81,18 @@ function toModeUsageRole(weight: string | undefined): ModeUsageRole {
   return "excluded";
 }
 
+function getModeWeight(item: (typeof textLensTaxonomy)[number], mode: CoreAnalysisMode) {
+  if (item.modeWeighting?.[mode]) return item.modeWeighting[mode];
+  if (mode === "legal_profession") return item.modeWeighting?.general;
+  return undefined;
+}
+
 export const taxonomyMappings: CompiledTaxonomyMapping[] = textLensTaxonomy.map((item) => {
   const isGuardrailItem = item.family === "Protected non-trigger";
 
   const modeUsage = CORE_MODES.reduce(
     (acc, mode) => {
-      acc[mode] = toModeUsageRole(item.modeWeighting?.[mode]);
+      acc[mode] = toModeUsageRole(getModeWeight(item, mode));
       return acc;
     },
     {} as Record<CoreAnalysisMode, ModeUsageRole>

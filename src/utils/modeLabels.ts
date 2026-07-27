@@ -8,6 +8,8 @@ export function getAnalysisModeLabel(mode?: string) {
       return 'Healthcare Publishing Mode';
     case 'academic':
       return 'Academic/University Mode';
+    case 'legal_profession':
+      return 'U.S. Legal (ABA)';
     case 'bccsa':
       return 'BCCSA Mode';
     case 'press_code':

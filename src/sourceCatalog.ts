@@ -73,6 +73,120 @@ export const sourceCatalogList: SourceCatalogItem[] = [
     limitations: "Nexus is guidance, not a binding legal definition. It explicitly warns that harsh criticism of Israel, opposition to Zionism, and disproportionate attention to Israel are not in themselves proof of antisemitism."
   },
   {
+    sourceKey: "aba_resolution_514_antisemitism",
+    sourceName: "ABA Resolution 514 and Task Force to Combat Antisemitism",
+    sourceType: "Bar Association Policy",
+    shortLabel: "ABA Resolution 514",
+    whyIncluded: "Resolution 514 and the ABA task force frame combatting antisemitism as a professional responsibility for lawyers and bar associations, with emphasis on awareness, leadership and appropriate action.",
+    url: "https://www.americanbar.org/groups/leadership/office_of_the_president/antisemitism/",
+    notes: "Useful for partner-facing legal-profession mode because it explains why lawyers and bars have a role in recognizing and responding to antisemitism.",
+    appliesToModes: ["legal_profession"],
+    role: "Bar-profession policy signal for awareness, leadership, condemnation and non-bystander response.",
+    summary: "Use to assess whether a proposed response helps lawyers or bar associations recognize antisemitism, avoid bystander posture, and respond with professional care.",
+    keyCriteria: [
+      "Does the text recognize antisemitism as a professional and civic concern?",
+      "Does it equip lawyers or bar associations to identify antisemitism rather than ignore it?",
+      "Does the response remain professional and evidence-grounded?",
+      "Does it avoid overstating TextLens analysis as an ABA finding or legal adjudication?"
+    ],
+    limitations: "Use as ABA policy orientation and professional intent, not as a statutory rule, disciplinary finding, or substitute for counsel's legal analysis."
+  },
+  {
+    sourceKey: "aba_resolutions_611_613_2025",
+    sourceName: "ABA 2025 Resolutions 611, 612 and 613",
+    sourceType: "Bar Association Policy",
+    shortLabel: "ABA 611-613",
+    whyIncluded: "The 2025 ABA resolutions extend the task force agenda into K-12 response protocols, higher-education discrimination education including Title VI, and support for the Global Guidelines.",
+    url: "https://www.americanbar.org/groups/leadership/office_of_the_president/antisemitism/",
+    notes: "Useful for legal-profession review of school, university, bar association and institutional response materials.",
+    appliesToModes: ["legal_profession"],
+    role: "Education, protocol and institutional-response policy orientation.",
+    summary: "Use to test whether a school, higher-education or bar-oriented response identifies the right institutional setting, supports consistent response protocols, and points reviewers toward education on religion, national origin and shared-ancestry discrimination.",
+    keyCriteria: [
+      "Is the setting K-12, higher education, bar association, law firm or another institution?",
+      "Does the text identify a consistent response protocol for antisemitism or hate incidents?",
+      "Does higher-education discussion distinguish discrimination or harassment from protected expression?",
+      "Does the response direct human reviewers to relevant education, policy or protocol steps?"
+    ],
+    limitations: "Use as policy orientation. TextLens does not decide whether any institution violated Title VI or a local school policy."
+  },
+  {
+    sourceKey: "us_national_strategy_counter_antisemitism",
+    sourceName: "U.S. National Strategy to Counter Antisemitism",
+    sourceType: "Government Strategy",
+    shortLabel: "U.S. National Strategy",
+    whyIncluded: "The national strategy supplies a whole-of-society framework organized around awareness, safety, reversing normalization, countering discrimination and cross-community solidarity.",
+    url: "https://www.justice.gov/hatecrimes/resource/us-national-strategy-counter-antisemitism",
+    notes: "Useful for turning analysis into proportionate civic and institutional next steps without treating every concern as litigation.",
+    appliesToModes: ["legal_profession"],
+    role: "Whole-of-society action framework for awareness, accountability and solidarity.",
+    summary: "Use to map potential responses to awareness and understanding, safety and security, accountability for discrimination, and cross-community solidarity.",
+    keyCriteria: [
+      "Does the proposed response increase awareness and understanding?",
+      "Does it identify safety or security implications without exaggeration?",
+      "Does it counter normalization or discrimination with proportionate accountability?",
+      "Does it preserve cross-community solidarity and avoid zero-sum framing?"
+    ],
+    limitations: "Use as strategy and policy context, not as a legal cause of action or proof of discrimination."
+  },
+  {
+    sourceKey: "global_guidelines_countering_antisemitism",
+    sourceName: "Global Guidelines for Countering Antisemitism",
+    sourceType: "International Best-Practices Guidance",
+    shortLabel: "Global Guidelines",
+    whyIncluded: "The Global Guidelines provide practical best-practice orientation for governments, civil society and institutions countering antisemitism.",
+    url: "https://www.state.gov/global-guidelines-for-countering-antisemitism/",
+    notes: "Useful as a nonbinding implementation frame for legal networks, education, leadership statements and consistent data/protocol practices.",
+    appliesToModes: ["legal_profession"],
+    role: "Nonbinding best-practices framework for practical action.",
+    summary: "Use to test whether response language is practical, implementable, cooperative and institutionally useful rather than merely declaratory.",
+    keyCriteria: [
+      "Does the response recommend practical action rather than only condemnation?",
+      "Does it support uniform data, reporting, education or protocol practices where relevant?",
+      "Does it invite institutional and civic coalitions?",
+      "Does it avoid presenting nonbinding guidance as controlling law?"
+    ],
+    limitations: "The guidelines are best-practices guidance and should not be cited as binding legal authority."
+  },
+  {
+    sourceKey: "title_vi_shared_ancestry_discrimination",
+    sourceName: "Title VI Shared Ancestry and Ethnic Characteristics Discrimination Guidance",
+    sourceType: "Civil Rights Legal Guidance",
+    shortLabel: "Title VI Shared Ancestry",
+    whyIncluded: "U.S. education antisemitism disputes often turn on discrimination or harassment based on race, color, national origin, shared ancestry, or ethnic characteristics in federally funded programs.",
+    url: "https://www.ed.gov/laws-and-policy/civil-rights-laws/title-vi/title-vi-key-issues/discrimination-based-shared-ancestry-or-ethnic-characteristics",
+    notes: "Useful for higher-education and K-12 screening when allegations involve harassment, exclusion, institutional notice or inconsistent response.",
+    appliesToModes: ["legal_profession"],
+    role: "Education civil-rights screening context for shared ancestry and ethnic characteristics.",
+    summary: "Use to frame questions about discrimination or harassment in education settings, including whether facts show protected-class targeting, severe or pervasive conduct, institutional notice, response, and remedy issues.",
+    keyCriteria: [
+      "Is the setting an education program or activity receiving federal funds?",
+      "Is the alleged conduct tied to Jewish identity, shared ancestry, ethnic characteristics, religion or national origin?",
+      "Does the text show harassment, exclusion, differential treatment or failure to respond?",
+      "What facts are missing before any Title VI conclusion could be responsibly made?"
+    ],
+    limitations: "TextLens does not decide Title VI liability, agency jurisdiction, hostile-environment status, causation, notice or remedy."
+  },
+  {
+    sourceKey: "eeoc_religious_discrimination_accommodation",
+    sourceName: "EEOC Religious Discrimination and Accommodation Guidance",
+    sourceType: "Employment Civil Rights Guidance",
+    shortLabel: "EEOC Religious Guidance",
+    whyIncluded: "Law firm and workplace antisemitism issues may involve religious discrimination, harassment, retaliation, scheduling, attire, holidays, dietary needs or other accommodation questions.",
+    url: "https://www.eeoc.gov/laws/guidance/section-12-religious-discrimination",
+    notes: "Useful for law firm, employer, employee-resource, and professional-workplace review.",
+    appliesToModes: ["legal_profession"],
+    role: "Employment screening context for religious discrimination, harassment and accommodation.",
+    summary: "Use to identify workplace questions about religious discrimination, harassment, retaliation and reasonable accommodation while preserving the need for counsel review.",
+    keyCriteria: [
+      "Is the setting employment, professional workplace, law firm or bar-related work environment?",
+      "Does the text suggest religious harassment, exclusion, retaliation or differential treatment?",
+      "Does it raise accommodation questions such as observance, dress, scheduling, diet or religious expression?",
+      "What employer policy, request history or hardship facts are missing?"
+    ],
+    limitations: "TextLens does not decide Title VII liability, reasonable accommodation, undue hardship, retaliation or employer knowledge."
+  },
+  {
     sourceKey: "bccsa_fta",
     sourceName: "BCCSA Free-to-Air Code of Conduct for Broadcasting Service Licensees",
     sourceType: "Regulatory Broadcast Code",

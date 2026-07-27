@@ -232,7 +232,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
       <div class="header-meta">
         <span><strong>System:</strong> TextLens</span>
         <span><strong>Guide:</strong> user and reference manual</span>
-        <span><strong>Updated:</strong> June 2026</span>
+        <span><strong>Updated:</strong> July 2026</span>
       </div>
       <h1>TextLens™ User Guide</h1>
       <p class="subtitle">A practical guide to using TextLens: what the app does, how the mode families differ, what the outputs mean, and where human review remains essential.</p>
@@ -246,13 +246,14 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
         <li><a href="#overview">1. What TextLens is</a></li>
         <li><a href="#workflow">2. Basic workflow</a></li>
         <li><a href="#modes">3. Analysis modes</a></li>
-        <li><a href="#taxonomy">4. Taxonomy and guardrails</a></li>
-        <li><a href="#healthcare">5. Healthcare Publishing Mode</a></li>
-        <li><a href="#legal-criteria">6. Legal terminology and criteria mapping</a></li>
-        <li><a href="#sources">7. Standards and source summaries</a></li>
-        <li><a href="#outputs">8. Outputs and exports</a></li>
-        <li><a href="#responsible-use">9. Responsible use</a></li>
-        <li><a href="#limits">10. Current limitations</a></li>
+        <li><a href="#legal-profession">4. U.S. Legal (ABA) Mode</a></li>
+        <li><a href="#taxonomy">5. Taxonomy and guardrails</a></li>
+        <li><a href="#healthcare">6. Healthcare Publishing Mode</a></li>
+        <li><a href="#legal-criteria">7. Legal terminology and criteria mapping</a></li>
+        <li><a href="#sources">8. Standards and source summaries</a></li>
+        <li><a href="#outputs">9. Outputs and exports</a></li>
+        <li><a href="#responsible-use">10. Responsible use</a></li>
+        <li><a href="#limits">11. Current limitations</a></li>
       </ul>
     </nav>
 
@@ -358,6 +359,12 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
             <td>Academic freedom guardrails, evidentiary standards, institutional authority and publication-ethics issues where relevant.</td>
           </tr>
           <tr>
+            <td><strong>U.S. Legal (ABA)</strong></td>
+            <td><code>legal_profession</code></td>
+            <td>Lawyers, bar associations, law firms, schools, universities and civil-rights reviewers assessing antisemitism concerns, protected speech, response protocols and missing facts.</td>
+            <td>Triage memo orientation, protected-speech analysis, source-bounded legal-profession screening, response gaps and practical next steps.</td>
+          </tr>
+          <tr>
             <td><strong>BCCSA Mode</strong></td>
             <td><code>bccsa</code></td>
             <td>South African broadcast and broadcaster-linked online content.</td>
@@ -385,8 +392,59 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
       <p><strong>Communication type</strong> and <strong>rhetorical function</strong> are interpretive context. They do not decide whether a text is antisemitic or unethical; they help the system ask whether claims are appropriate for a news report, editorial, open letter, academic article, broadcast segment, formal complaint, petition or other text type.</p>
     </section>
 
+    <section id="legal-profession">
+      <h2>4. U.S. Legal (ABA) Mode</h2>
+      <p><strong>U.S. Legal (ABA)</strong> is a first-level MVP mode for legal-profession and civil-rights review in the United States. It is built around ABA antisemitism policy and initiatives, plus related education and workplace guidance.</p>
+      <p>The mode is designed to separate possible antisemitism concerns, protected political expression, education or employment civil-rights screening questions, institutional response gaps, missing facts, and proportionate response language.</p>
+      <div class="callout warning">
+        <strong>Not legal advice</strong>
+        U.S. Legal (ABA) does not decide liability, hostile environment, retaliation, accommodation, Title VI, Title VII, professional-responsibility, First Amendment or academic-freedom questions. It helps organize review questions for trained human decision-makers.
+      </div>
+      <h3>Specific source texts represented in the MVP</h3>
+      <table>
+        <thead>
+          <tr><th>Stored source key</th><th>Policy or guidance text represented</th><th>How TextLens uses it</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>aba_resolution_514_antisemitism</code></td>
+            <td>ABA Resolution 514 and the ABA Task Force to Combat Antisemitism.</td>
+            <td>Bar-profession awareness, leadership, professional care, and non-bystander response.</td>
+          </tr>
+          <tr>
+            <td><code>aba_resolutions_611_613_2025</code></td>
+            <td>ABA 2025 Resolutions 611, 612 and 613.</td>
+            <td>K-12 response protocols, higher-education discrimination education including Title VI, and support for the Global Guidelines.</td>
+          </tr>
+          <tr>
+            <td><code>us_national_strategy_counter_antisemitism</code></td>
+            <td>U.S. National Strategy to Counter Antisemitism.</td>
+            <td>Awareness, safety, reversing normalization, countering discrimination and cross-community solidarity.</td>
+          </tr>
+          <tr>
+            <td><code>global_guidelines_countering_antisemitism</code></td>
+            <td>Global Guidelines for Countering Antisemitism.</td>
+            <td>Nonbinding best-practices orientation for practical institutional action, education, reporting and coalition work.</td>
+          </tr>
+          <tr>
+            <td><code>title_vi_shared_ancestry_discrimination</code></td>
+            <td>U.S. Department of Education OCR shared ancestry and ethnic characteristics discrimination guidance.</td>
+            <td>Education-setting screening for harassment, exclusion, differential treatment, notice, response and missing facts.</td>
+          </tr>
+          <tr>
+            <td><code>eeoc_religious_discrimination_accommodation</code></td>
+            <td>EEOC religious discrimination and accommodation guidance.</td>
+            <td>Workplace screening for religious harassment, scheduling, attire, observance, retaliation and accommodation questions.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>How sources are stored</h3>
+      <p>The analysis engine does not retrieve full policy documents from the web during a run. Instead, the repository stores compact source summaries, key criteria, limitations and rule signals in code. The main storage points are <code>modePolicies.ts</code>, <code>sourceCatalog.ts</code>, <code>standardsData.ts</code> and <code>sourceRules.ts</code>. The staged engine receives only the active source summaries and rule signals for the selected mode.</p>
+      <p>This keeps the MVP bounded and inspectable. Linked URLs are included for human verification and later source expansion, but the model should not invent extra source detail beyond the summaries supplied in the run.</p>
+    </section>
+
     <section id="taxonomy">
-      <h2>4. Taxonomy and guardrails</h2>
+      <h2>5. Taxonomy and guardrails</h2>
       <p>The taxonomy organises recurring textual patterns. It is a working analytical framework, not a legally authoritative diagnostic instrument. TextLens should tie each flagged concern to an exact quote and should also record protected-speech guardrails where relevant.</p>
       <ul class="layer-list">
         <li class="guardrail"><strong>Layer 0: Protected speech and non-trigger guardrails.</strong><br />Ordinary political criticism, human-rights advocacy, policy disagreement, BDS and other boycott advocacy, alternative political arrangements, and other protected expressions should not be treated as antisemitic without additional textual evidence. TextLens does not treat BDS as inherently antisemitic in this build, though some institutions and users would take a broader view.</li>
@@ -405,7 +463,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
     </section>
 
     <section id="healthcare">
-      <h2>5. Healthcare Publishing Mode</h2>
+      <h2>6. Healthcare Publishing Mode</h2>
       <p><strong>Healthcare Publishing Mode</strong> is for healthcare, medical, public-health, bioethics, journal, institutional and healthcare-in-conflict texts. It should not be treated as a simple “COPE plus antisemitism” mode. It is a layered review.</p>
       <h3>Article type first</h3>
       <p>The report should first identify the type of article or text where possible: empirical research, review, editorial, commentary, correspondence, open letter, bioethics/legal analysis, health journalism, institutional statement, advocacy statement, public-health or humanitarian report, or other.</p>
@@ -451,7 +509,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
     </section>
 
     <section id="legal-criteria">
-      <h2>6. Legal terminology and criteria mapping</h2>
+      <h2>7. Legal terminology and criteria mapping</h2>
       <p>TextLens is not a court, judge, prosecutor, military legal adviser or fact-finding commission. It must not decide whether a war crime, genocide, unlawful attack, proportionality breach, collective punishment or other legal violation occurred.</p>
       <p>It may, however, perform <strong>legal terminology and criteria mapping</strong>. That means it can identify the legal or humanitarian term used, summarise relevant criteria at a high level, and assess whether the article defines, attributes, evidences, omits, assumes or overstates information relevant to those criteria.</p>
       <div class="callout danger">
@@ -489,7 +547,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
     </section>
 
     <section id="sources">
-      <h2>7. Standards and source summaries</h2>
+      <h2>8. Standards and source summaries</h2>
       <p>The app uses compact source summaries, key criteria and compiled source rules embedded in the source catalogue. It does not dynamically retrieve or read the linked PDFs or web pages during analysis. The URLs are included for transparency and human follow-up.</p>
       <table>
         <thead>
@@ -513,6 +571,10 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
             <td>IHRA, JDA, Nexus, TextLens, COPE, and medical-editorial sources where the item is medical scholarship or journal-related.</td>
           </tr>
           <tr>
+            <td>U.S. Legal (ABA)</td>
+            <td>IHRA, JDA, Nexus, TextLens, ABA Resolution 514 and Task Force to Combat Antisemitism, ABA 2025 Resolutions 611-613, U.S. National Strategy, Global Guidelines, OCR Title VI shared ancestry guidance and EEOC religious discrimination/accommodation guidance.</td>
+          </tr>
+          <tr>
             <td>BCCSA</td>
             <td>IHRA, JDA, Nexus, TextLens, BCCSA Free-to-Air Code, BCCSA Subscription Code, BCCSA Online Code.</td>
           </tr>
@@ -533,7 +595,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
     </section>
 
     <section id="outputs">
-      <h2>8. Outputs and exports</h2>
+      <h2>9. Outputs and exports</h2>
       <p>Reports may include an executive summary, concern level, confidence, exact flagged quotes, taxonomy mapping, standards applied, protected-speech guardrails, alternative interpretations, limitations, human-review prompts, and suggested response or complaint language where warranted.</p>
       <h3>Community / General Review Mode output</h3>
       <p>This mode is the scoring mode. It may report antisemitism content, anti-Zionist intensity, rhetorical distortion and response-worthiness, often displayed through a radar-style visual. These scores are analytical indicators, not formal findings.</p>
@@ -549,7 +611,7 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
     </section>
 
     <section id="responsible-use">
-      <h2>9. Responsible use</h2>
+      <h2>10. Responsible use</h2>
       <ul>
         <li>Always review exact quotes against the original source.</li>
         <li>Check whether the submitted text is complete, excerpted, badly extracted or missing context.</li>
@@ -561,14 +623,14 @@ export function downloadUserGuide(action: 'download' | 'view' = 'download') {
     </section>
 
     <section id="limits">
-      <h2>10. Current limitations</h2>
+      <h2>11. Current limitations</h2>
       <ul>
         <li><strong>Model fallibility:</strong> The AI may miss relevant context, overstate a concern, or apply a source summary too broadly.</li>
         <li><strong>Source summaries:</strong> The backend uses compact embedded summaries, not full live PDFs or web retrieval.</li>
         <li><strong>Metadata dependence:</strong> Missing author, venue, date, jurisdiction, article type or broadcast details can weaken the analysis.</li>
         <li><strong>Text extraction:</strong> PDF/DOCX extraction may omit tables, captions, footnotes, images or formatting.</li>
         <li><strong>Regulatory limits:</strong> BCCSA and Press Code modes may support complaint drafting but do not represent those bodies or make final findings.</li>
-        <li><strong>Legal limits:</strong> Healthcare mode may map legal terminology to criteria but does not decide legality.</li>
+        <li><strong>Legal limits:</strong> Healthcare mode may map legal terminology to criteria but does not decide legality. U.S. Legal (ABA) mode may screen and draft for legal-profession review but does not provide legal advice or decide liability.</li>
         <li><strong>Export limits:</strong> Verify whether exports in your deployed version are real downloads or interface simulations.</li>
       </ul>
     </section>

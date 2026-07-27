@@ -390,16 +390,21 @@ export default function App() {
   };
 
   // Action: Trigger Real API or Simulated preset Audit sequence
-  const handleStartAnalysis = async () => {
+  const handleStartAnalysis = async (analysisInput?: { originalText: string; metadata: TextLensMetadata }) => {
+    const analysisText = analysisInput?.originalText ?? originalText;
+    const analysisMetadata = analysisInput?.metadata ?? metadata;
+
     setIsAnalyzing(true);
     setAnalysisError(null);
     setAccountabilityDraftError(null);
+    setActiveReport(null);
     setActiveTab('analyse'); // Stay here to view loading log / status
 
     // If the text perfectly matches one of our local expert pre-coded preset reports,
     // load it directly to guarantee perfect instant analysis for the expert samples!
     const matchingPreset = mockReports.find(
-      r => r.originalText.trim().substring(0, 40) === originalText.trim().substring(0, 40)
+      r => r.metadata.analysisMode !== 'legal_profession'
+        && r.originalText.trim().substring(0, 40) === analysisText.trim().substring(0, 40)
     );
 
     if (matchingPreset) {
@@ -411,7 +416,7 @@ export default function App() {
             analyzedAt: new Date().toISOString(),
             model: 'preset-case-study'
           },
-          metadata: { ...metadata } // Preserve metadata overrides
+          metadata: { ...analysisMetadata } // Preserve metadata overrides
         });
         setActiveTab('report');
       }, 1000);
@@ -427,8 +432,8 @@ export default function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          originalText,
-          metadata,
+          originalText: analysisText,
+          metadata: analysisMetadata,
           selectedStandards: standardsList,
           taxonomy: textLensTaxonomy
         })
@@ -440,7 +445,7 @@ export default function App() {
       }
 
       const reportData = await response.json();
-      const enrichedReport = mapAiResponseToReport(reportData, originalText, metadata);
+      const enrichedReport = mapAiResponseToReport(reportData, analysisText, analysisMetadata);
       setActiveReport(enrichedReport);
       
       // Advance user to report tab to review results

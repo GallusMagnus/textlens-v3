@@ -95,6 +95,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   const hasAnalysisTrace = Boolean(analysisTrace);
   const isPresetAnalysis = analysisTrace?.model === 'preset-case-study';
   const analysisMetricsRows = [
+    ['Model', analysisModelText],
     ['Total Runtime', formatDuration(analysisTrace?.runtimeMs)],
     ['Model Calls', typeof analysisTrace?.modelCallCount === 'number' ? String(analysisTrace.modelCallCount) : 'Not recorded'],
     ['Input Tokens', formatTokenCount(analysisTrace?.tokenUsage?.inputTokens)],
@@ -206,10 +207,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
     let report = "";
     report += "================================================================================\n";
-    report += "                        TEXTLENS COMPLIANCE AUDIT PLATFORM\n";
-    report += "                     Official Case Docket & Compliance Brief\n";
+    report += "                            TEXTLENS ANALYSIS PLATFORM\n";
+    report += "                         Media Bias Analysis Brief\n";
     report += "================================================================================\n";
-    report += `Case Reference ID: #${activeReport.id.toUpperCase()}\n`;
     report += `Analysis Date:     ${analysisDateText}\n`;
     report += `Model:             ${analysisModelText}\n\n`;
     
@@ -255,7 +255,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           report += `  - Uncertainty:  ${p.uncertaintyLabel}\n`;
           const appliedStr = p.standardsApplied?.map(s => `${s.standardName} (${s.clauseTitle})`).join(', ') || "General Rule";
           report += `  - Applied Codes: ${appliedStr}\n`;
-          report += `  - Audit Explanation: ${p.explanation}\n\n`;
+          report += `  - Analysis Explanation: ${p.explanation}\n\n`;
         });
       }
 
@@ -311,7 +311,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     }
 
     report += "--------------------------------------------------------------------------------\n";
-    report += "End of official compliance brief.\n";
+    report += "End of TextLens analysis brief.\n";
     report += "================================================================================\n";
     return report;
   };
@@ -324,7 +324,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     };
 
     const rows = [
-      ["Audit Item Type", "Document Clause/Ref", "Text Snippet or Flawed Claim", "Detected Category / Pattern", "Severity / Confident Metric", "Assessment & Reasoning Analysis"]
+      ["Analysis Item Type", "Document Clause/Ref", "Text Snippet or Flawed Claim", "Detected Category / Pattern", "Severity / Confident Metric", "Assessment & Reasoning Analysis"]
     ];
 
     if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
@@ -453,7 +453,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         const link = document.createElement('a');
         link.href = url;
         const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
-        link.download = `textlens_legal_dossier_${normalizedTitle || 'brief'}.txt`;
+        link.download = `textlens_analysis_brief_${normalizedTitle || 'brief'}.txt`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -479,7 +479,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         const link = document.createElement('a');
         link.href = url;
         const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
-        link.download = `textlens_audit_grid_${normalizedTitle || 'grid'}.csv`;
+        link.download = `textlens_analysis_grid_${normalizedTitle || 'grid'}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -567,7 +567,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             doc.setLineWidth(0.2);
             doc.line(marginX, pageHeight - 12, pageWidth - marginX, pageHeight - 12);
 
-            doc.text(`Case Ref: #${activeReport.id.toUpperCase().substring(0, 8)}`, marginX, pageHeight - 8);
+            doc.text("TextLens analysis brief", marginX, pageHeight - 8);
             doc.text(`Page ${i} of ${totalPages}`, pageWidth - marginX - 15, pageHeight - 8);
           }
         };
@@ -721,7 +721,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(18);
         doc.setTextColor(30, 41, 59); // slate-800
-        const titleLines = doc.splitTextToSize(metadata.title || "Compliance Brief", widthMax);
+        const titleLines = doc.splitTextToSize(metadata.title || "Analysis Brief", widthMax);
         doc.text(titleLines, marginX, currentY);
         currentY += (titleLines.length * 8) + 5;
 
@@ -773,7 +773,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(12);
         doc.setTextColor(15, 23, 42); // slate-900
-        doc.text("I. Executive Summary & Audit Judgement", marginX, currentY);
+        doc.text("I. Executive Summary & Analysis Judgement", marginX, currentY);
         currentY += 6;
 
         doc.setFont('Helvetica', 'normal');
@@ -970,7 +970,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             }
             innerY += 3;
 
-            // Compliance Rule applied
+            // Standards/source basis applied
             doc.setFont('Helvetica', 'bold');
             doc.setFontSize(8);
             doc.setTextColor(148, 163, 184);
@@ -986,7 +986,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             }
             innerY += 3;
 
-            // Explanation audit
+            // Analysis explanation
             doc.setFont('Helvetica', 'bold');
             doc.setFontSize(8);
             doc.setTextColor(148, 163, 184);
@@ -1229,7 +1229,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         // Build and save the actual binary blobs to local systems
         const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
-        doc.save(`textlens_compliance_dossier_${normalizedTitle || 'brief'}.pdf`);
+        doc.save(`textlens_analysis_brief_${normalizedTitle || 'brief'}.pdf`);
 
         setExportSuccess(prev => ({ ...prev, pdf: true }));
       } catch (err) {
@@ -1306,9 +1306,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       <div id="textlens-printable-report" className="p-8 max-w-4xl mx-auto bg-white text-slate-900 leading-relaxed">
         {/* COVER SHEET */}
         <div className="text-center py-12 border-b-4 border-double border-slate-350">
-          <div className="text-xs font-mono tracking-widest text-slate-400 uppercase font-bold">TextLens Compliance Audit Platform</div>
-          <h1 className="text-3xl font-serif font-semibold text-slate-900 mt-3 uppercase tracking-tight">Official Media Bias & Compliance Brief</h1>
-          <div className="text-sm font-mono text-indigo-600 mt-2 font-bold">[Case Reference: #{activeReport.id.substring(0, 8).toUpperCase()}]</div>
+          <div className="text-xs font-mono tracking-widest text-slate-400 uppercase font-bold">TextLens Analysis Platform</div>
+          <h1 className="text-3xl font-serif font-semibold text-slate-900 mt-3 uppercase tracking-tight">Media Bias Analysis Brief</h1>
           
           <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto text-left mt-8 p-4 bg-slate-50 border border-slate-205 text-xs font-mono">
             <div><strong>Document Title:</strong> {metadata.title}</div>
@@ -1324,7 +1323,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         {/* SECTION 1: EXEC SUMMARY */}
         <div className="mt-8">
-          <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1. Executive Summary & Audit Judgement</h2>
+          <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">1. Executive Summary & Analysis Judgement</h2>
           <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap font-serif">
             {activeReport.summaryJudgement}
           </p>
@@ -1449,7 +1448,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                       <span className="font-medium text-slate-700">{p.uncertaintyLabel}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Applied Compliance Clause:</span>
+                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Applied Standard or Source:</span>
                       <span className="font-mono text-[9px] text-indigo-700">
                         {p.standardsApplied?.map(s => `${s.standardName} (${s.clauseTitle})`).join(', ') || 'General Bias Definition'}
                       </span>
@@ -1457,7 +1456,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   </div>
 
                   <div>
-                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Compliance Audit & Reasoning:</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Analysis & Reasoning:</span>
                     <p className="text-xs text-slate-700 leading-normal font-sans">{p.explanation}</p>
                   </div>
                 </div>
@@ -1494,7 +1493,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   </div>
 
                   <div>
-                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Remedial Compliance Action Advice:</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase block">Suggested Response Action:</span>
                     <p className="text-xs text-emerald-800 bg-emerald-50/40 p-2 rounded border border-emerald-100 font-sans leading-normal">{issue.suggestedAction}</p>
                   </div>
                 </div>
@@ -1506,7 +1505,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
         {/* SECTION 4: INCLUDED ORIGINAL TEXT */}
         {includeOriginalText && activeReport.originalText && (
           <div className="mt-8 page-break">
-            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">4. Appended Audited Source Plaintext</h2>
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-3">4. Appended Source Plaintext</h2>
             <div dir="auto" className={`print-source-text bg-slate-50 border border-slate-200 p-4 rounded text-xs text-slate-700 leading-relaxed font-mono whitespace-pre-wrap ${hasRtlText(activeReport.originalText) ? 'print-rtl-source' : ''}`}>
               {activeReport.originalText}
             </div>
@@ -1573,8 +1572,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         {/* PRINT FOOTER */}
         <div className="mt-12 pt-6 border-t border-slate-300 text-center text-[10px] font-mono text-slate-400">
-          <div>This compliance report dossier conforms to institutional media audit practices.</div>
-          <div>Report generated via TextLens workspace platform on {new Date().toISOString().split('T')[0]}. Case reference: #{activeReport.id}</div>
+          <div>TextLens analysis brief generated for review and response planning.</div>
+          <div>Report generated via TextLens workspace platform on {new Date().toISOString().split('T')[0]}.</div>
         </div>
       </div>
       
@@ -1582,7 +1581,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs">
         <h2 className="text-lg font-semibold text-gray-950">Compilation & Share Registry</h2>
         <p className="text-gray-600 text-sm mt-1">
-          Select target file formats to compile and download active document case files, compliance audit tables, and suggested complaint response letters instantly.
+          Select target file formats to compile and download active document analysis files, evidence tables, and suggested response letters.
         </p>
       </div>
 
@@ -1600,9 +1599,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
               <div className="border border-gray-200 hover:border-gray-300 rounded p-4 flex flex-col justify-between space-y-3 transition-all">
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] text-gray-400 uppercase font-bold">Standard Text Filename</span>
-                  <h4 className="text-sm font-semibold text-gray-900">Compile Legal Brief File</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Compile Analysis Brief File</h4>
                   <p className="text-xs text-gray-500 font-sans leading-normal">
-                    Generates a formal text-dossier document containing active metadata, comprehensive flagged bias excerpts, and administrative complaint letter models.
+                    Generates a structured text document containing active metadata, flagged bias excerpts, and suggested response letter models.
                   </p>
                 </div>
                 <button
@@ -1635,9 +1634,9 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
               <div className="border border-gray-200 hover:border-gray-300 rounded p-4 flex flex-col justify-between space-y-3 transition-all">
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] text-gray-400 uppercase font-bold">Adobe PDF Vectors</span>
-                  <h4 className="text-sm font-semibold text-gray-900">Render PDF Compliance Report</h4>
+                  <h4 className="text-sm font-semibold text-gray-900">Render PDF Analysis Report</h4>
                   <p className="text-xs text-gray-500 font-sans leading-normal">
-                    Generates an unmodifiable, professionally styled PDF with system metadata cover sheet, evidentiary audit matrix, and responsive correction requests.
+                    Generates a professionally styled PDF with system metadata cover sheet, evidence matrix, and response planning material.
                   </p>
                 </div>
                 <button
@@ -1754,7 +1753,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                 <br />
                 Output file format set: [.{exportingType.toUpperCase()}]
                 <br />
-                Compiles fully conforming to standard regulatory compliance structures.
+                Compiles using the current TextLens analysis structure.
               </code>
             </div>
           )}
@@ -1779,7 +1778,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                 />
                 <div className="ml-3 font-sans text-xs">
                   <span className="font-semibold text-gray-950 block">Include Original Plaintext</span>
-                  <span className="text-gray-500 block text-[11px]">Includes the complete submitted original text inside the legal dossier.</span>
+                  <span className="text-gray-500 block text-[11px]">Includes the complete submitted original text inside the analysis brief.</span>
                 </div>
               </label>
 
@@ -1791,7 +1790,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   className="rounded text-indigo-600 border-gray-300 focus:ring-indigo-500 h-3.5 w-3.5 mt-0.5 shrink-0"
                 />
                 <div className="ml-3 font-sans text-xs">
-                  <span className="font-semibold text-gray-950 block">Include Evidentiary Audit Grid</span>
+                  <span className="font-semibold text-gray-950 block">Include Evidence Analysis Grid</span>
                   <span className="text-gray-500 block text-[11px]">Includes systematic Layer evaluations, logical errors and action advice.</span>
                 </div>
               </label>

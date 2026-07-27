@@ -92,7 +92,24 @@ export default function MethodsTab() {
             <h3 className="text-xs font-bold uppercase tracking-wider font-mono text-slate-900">Professional Modes</h3>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            The other modes are <strong className="text-slate-900">standards-based professional modes</strong>. They use more specific frameworks, codes and source boundaries for specialist review, such as consensus antisemitism definitions, healthcare publication standards, academic norms, broadcast codes and the South African Press Code.
+            The other modes are <strong className="text-slate-900">standards-based professional modes</strong>. They use more specific frameworks, codes and source boundaries for specialist review, such as consensus antisemitism definitions, ABA-aligned legal-profession sources, healthcare publication standards, academic norms, broadcast codes and the South African Press Code.
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-2xs flex flex-col lg:flex-row lg:items-start gap-4">
+        <div className="p-2 bg-slate-50 border border-slate-200 rounded text-slate-700 shrink-0">
+          <Scale className="w-5 h-5" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-xs font-bold font-mono text-slate-900 uppercase tracking-widest">
+            U.S. Legal (ABA)
+          </h3>
+          <p className="text-xs text-slate-700 leading-relaxed max-w-4xl">
+            U.S. Legal (ABA) applies the same staged TextLens method to legal-profession review: select mode-specific sources, apply protected-speech guardrails, classify exact passages, and surface missing facts for human review. The detailed ABA, civil-rights and workplace source list is maintained in the <strong className="text-slate-900">Standards</strong> tab under <strong className="text-slate-900">U.S. Legal & Bar Profession Sources</strong>.
+          </p>
+          <p className="text-[11px] text-slate-500 leading-relaxed max-w-4xl">
+            The mode is a screening and drafting aid, not legal advice or a liability determination.
           </p>
         </div>
       </div>
@@ -420,6 +437,7 @@ export default function MethodsTab() {
                                     {mode === 'general' ? 'Consensus Stds' :
                                      mode === 'healthcare' ? 'Health Pub' :
                                      mode === 'academic' ? 'Acad/University' :
+                                     mode === 'legal_profession' ? 'U.S. Legal (ABA)' :
                                      mode === 'bccsa' ? 'BCCSA Broadcast' : 'SA Press Code'}
                                   </span>
                                   <span className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded mt-1.5 border uppercase ${

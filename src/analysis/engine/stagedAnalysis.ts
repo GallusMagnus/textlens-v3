@@ -383,6 +383,9 @@ function scoreSegment(
           : mode === "press_code" &&
               /(report|article|headline|comment|reply|correction|press)/i.test(segmentText)
             ? 2
+            : mode === "legal_profession" &&
+                /(title vi|shared ancestry|harassment|discrimination|accommodation|retaliation|law firm|bar association|school|university|campus|protocol|complaint|policy|incident|jewish|zionist|antisemitism)/i.test(segmentText)
+              ? 2
             : 0;
 
   const score =
@@ -562,6 +565,14 @@ function buildPreprocessWarnings(
       code: "healthcare-boundary",
       message:
         "Healthcare mode uses humanitarian and IHL sources for terminology and criteria-mapping only, not legal adjudication.",
+    });
+  }
+
+  if (mode === "legal_profession") {
+    warnings.push({
+      code: "legal-profession-boundary",
+      message:
+        "U.S. Legal (ABA) mode is a screening and drafting aid built around ABA antisemitism policy and initiatives. It does not provide legal advice or decide liability.",
     });
   }
 
@@ -924,7 +935,11 @@ function scoreFindings(
     const standardChoice = chooseStandardForFinding(mode, taxonomyItem);
     const numericScore =
       (severityPoints(finding.severity) + impactPoints(taxonomyItem.primaryScoreImpact)) *
-      roleMultiplier(taxonomyItem.modeWeighting[mode]) *
+      roleMultiplier(
+        taxonomyItem.modeWeighting[mode] ||
+          (mode === "legal_profession" ? taxonomyItem.modeWeighting.general : undefined) ||
+          "supporting"
+      ) *
       confidenceMultiplier(finding.confidence);
 
     findings.push({
@@ -1050,6 +1065,10 @@ ${JSON.stringify(
       author: metadata.author,
       platform: metadata.platform,
       jurisdiction: metadata.jurisdiction,
+      legalSetting: metadata.legalSetting,
+      incidentSummary: metadata.incidentSummary,
+      institutionalPolicyExcerpt: metadata.institutionalPolicyExcerpt,
+      desiredLegalOutput: metadata.desiredLegalOutput,
     },
     null,
     2

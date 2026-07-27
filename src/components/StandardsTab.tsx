@@ -43,6 +43,12 @@ const STANDARD_DISPLAY_ORDER = [
   'ihra',
   'jda',
   'nexus',
+  'aba_resolution_514_antisemitism',
+  'aba_resolutions_611_613_2025',
+  'us_national_strategy_counter_antisemitism',
+  'global_guidelines_countering_antisemitism',
+  'title_vi_shared_ancestry_discrimination',
+  'eeoc_religious_discrimination_accommodation',
   'bccsa_fta',
   'bccsa_sub',
   'bccsa_on',
@@ -81,6 +87,19 @@ const STANDARD_SECTIONS: Array<{
     title: 'Core Antisemitism Frameworks',
     summary: 'Foundational definitions and interpretive frameworks used to distinguish antisemitism from protected political speech.',
     docIds: ['ihra', 'jda', 'nexus'],
+  },
+  {
+    id: 'us-legal-bar',
+    title: 'U.S. Legal & Bar Profession Sources',
+    summary: 'ABA, civil-rights, workplace, and whole-of-society sources used for legal-profession screening and response triage.',
+    docIds: [
+      'aba_resolution_514_antisemitism',
+      'aba_resolutions_611_613_2025',
+      'us_national_strategy_counter_antisemitism',
+      'global_guidelines_countering_antisemitism',
+      'title_vi_shared_ancestry_discrimination',
+      'eeoc_religious_discrimination_accommodation',
+    ],
   },
   {
     id: 'media-codes',
@@ -159,7 +178,7 @@ export default function StandardsTab() {
     }));
   };
 
-  const categories = ['All', 'Antisemitism Definitions', 'Media & Broadcasting Codes', 'Academic & Publishing Standards', 'Rhetorical Frameworks'];
+  const categories = ['All', 'Antisemitism Definitions', 'U.S. Legal & Bar Profession Sources', 'Media & Broadcasting Codes', 'Academic & Publishing Standards', 'Rhetorical Frameworks'];
 
   const filteredDocs = standardsList
     .filter((doc) => {

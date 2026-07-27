@@ -4,7 +4,7 @@
 
 This document describes the method currently implemented in code.
 
-Date aligned to code review: 2026-06-30
+Date aligned to code review: 2026-07-27
 Default pipeline: `v2 staged engine`
 Feature flag: `TEXTLENS_PIPELINE_VERSION=v1|v2`
 
@@ -21,6 +21,12 @@ Core runtime files:
 - `src/analysis/rules/taxonomyMappings.ts`
 - `src/taxonomyData.ts`
 - `src/sourceCatalog.ts`
+
+Mode-specific basis notes:
+
+- `docs/healthcare-mode-basis.md`
+- `docs/legal-profession-mode-mvp.md`
+- `docs/legal-aba-demo-inputs.md`
 
 ## Core Design
 
@@ -47,6 +53,8 @@ What happens:
 - metadata gaps are recorded
 - short-text and excerpt risk warnings are generated
 - healthcare mode gets an explicit non-adjudication boundary warning
+- U.S. Legal (ABA) mode gets an explicit non-legal-advice and non-liability boundary warning
+- U.S. Legal (ABA) mode uses embedded source summaries and source rules for ABA policy, civil-rights guidance and workplace guidance; it does not retrieve full source documents during a run
 
 This stage makes no substantive finding.
 
