@@ -14,7 +14,8 @@ import {
   Download,
   ChevronDown,
   Eye,
-  FlaskConical
+  FlaskConical,
+  Radio
 } from 'lucide-react';
 
 import { downloadUserGuide } from './utils/userGuide';
@@ -37,11 +38,12 @@ import ReportTab from './components/ReportTab';
 import MethodsTab from './components/MethodsTab';
 import ExportTab from './components/ExportTab';
 import ResearchLabTab from './components/ResearchLabTab';
+import SocialMediaTab from './components/SocialMediaTab';
 
 import { saveUserReport, listUserReports } from './lib/reportsService';
 import textLensLogo from './textlens_icon_true_transparent_clean.png';
 
-type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export' | 'research';
+type TabId = 'analyse' | 'standards' | 'report' | 'methods' | 'export' | 'research' | 'social';
 const LITERATURE_HANDOFF_STORAGE_KEY = 'textlens_literature_analysis_handoff';
 
 // Stabilize mock user representation outside the component to prevent referential-trigger re-renders
@@ -630,6 +632,8 @@ export default function App() {
         return <MethodsTab />;
       case 'research':
         return <ResearchLabTab onLoadCorpusItemForAnalysis={handleLoadCorpusItemForAnalysis} />;
+      case 'social':
+        return <SocialMediaTab />;
       case 'export':
         return (
           <ExportTab
@@ -937,6 +941,16 @@ export default function App() {
               >
                 <FlaskConical className="w-3.5 h-3.5" />
                 <span>Research</span>
+              </button>
+
+              <button
+                id="tab-btn-social"
+                type="button"
+                className={getTabClass('social')}
+                onClick={() => setActiveTab('social')}
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span>Social</span>
               </button>
             </nav>
           </div>

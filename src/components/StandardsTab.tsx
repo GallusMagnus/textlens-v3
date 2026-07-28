@@ -149,6 +149,51 @@ const STANDARD_SECTIONS: Array<{
   },
 ];
 
+const legalRecentDevelopments = [
+  {
+    date: '2023-02-06',
+    title: 'ABA Resolution 514 adopted',
+    status: 'Encoded source',
+    summary: 'ABA policy condemning antisemitism and calling for ABA leadership anchors legal-profession mode as a bar-awareness and non-bystander response source.',
+    href: 'https://www.americanbar.org/groups/leadership/office_of_the_president/antisemitism/',
+  },
+  {
+    date: '2023-05-30',
+    title: 'U.S. National Strategy to Counter Antisemitism',
+    status: 'Encoded source',
+    summary: 'Whole-of-society framework organized around awareness, safety, countering discrimination and cross-community solidarity.',
+    href: 'https://www.justice.gov/hatecrimes/resource/us-national-strategy-counter-antisemitism',
+  },
+  {
+    date: '2024-07-17',
+    title: 'Global Guidelines for Countering Antisemitism',
+    status: 'Encoded source',
+    summary: 'Nonbinding best-practices guidance for practical institutional action, reporting, education, protocols and coalition work.',
+    href: 'https://2021-2025.state.gov/office-of-the-special-envoy-to-monitor-and-combat-antisemitism/global-action-to-combat-antisemitism-under-ambassador-deborah-e-lipstadt-ph-d/',
+  },
+  {
+    date: '2025-08-12',
+    title: 'ABA 2025 Resolutions 611, 612 and 613',
+    status: 'Encoded source',
+    summary: 'ABA antisemitism policy extensions covering K-12 protocols, higher-education discrimination education, Title VI context, and support for the Global Guidelines.',
+    href: 'https://www.americanbar.org/groups/leadership/office_of_the_president/antisemitism/',
+  },
+  {
+    date: '2026-01-12',
+    title: 'OCR shared ancestry guidance page reviewed',
+    status: 'Encoded source',
+    summary: 'Education civil-rights context for Jewish, Israeli, Muslim, Arab, Sikh, Hindu and other shared-ancestry or ethnic-characteristics discrimination concerns.',
+    href: 'https://www.ed.gov/laws-and-policy/civil-rights-laws/title-vi/title-vi-key-issues/discrimination-based-shared-ancestry-or-ethnic-characteristics',
+  },
+  {
+    date: '2026-05-19',
+    title: 'DOJ Anti-Semitism Advisory Committee announced',
+    status: 'Watch item',
+    summary: 'Recent federal development relevant to future legal-mode source review. Not currently encoded as an active source rule.',
+    href: 'https://www.justice.gov/opa/pr/justice-department-announces-formation-advisory-committee-anti-semitism',
+  },
+];
+
 function getTaxonomyItemsForLayer(layerId: TaxonomySummaryLayerId): TaxonomyItem[] {
   if (layerId === 0) {
     return textLensTaxonomy.filter(item => item.section.includes('Layer 0') || item.family === 'Protected non-trigger');
@@ -460,6 +505,51 @@ export default function StandardsTab() {
           Broad consensus definitions such as the <strong>Jerusalem Declaration (JDA)</strong> and the <strong>Nexus Document</strong> are used as interpretive frameworks. Their guidance is mapped through the core <strong>TextLens taxonomy of {totalTaxonomyItems} diagnostic elements</strong>. The entry under <em>Rhetorical Frameworks</em> below is a summary of that taxonomy, not the full registry.
         </p>
       </div>
+
+      <section className="bg-white border border-slate-200 rounded-lg shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-150 bg-slate-50/55 flex flex-col lg:flex-row lg:items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold font-mono text-slate-900 uppercase tracking-widest flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-indigo-655" />
+              <span>U.S. Legal (ABA) Source Updates</span>
+            </h3>
+            <p className="text-xs text-slate-500 max-w-4xl">
+              Source coverage for legal-profession mode. Encoded sources are available to the analysis engine; watch items are tracked for future review.
+            </p>
+          </div>
+          <span className="inline-flex items-center rounded border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-mono font-bold text-slate-600">
+            Checked July 27, 2026
+          </span>
+        </div>
+
+        <div className="p-5 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+          {legalRecentDevelopments.map(item => (
+            <a
+              key={`${item.date}-${item.title}`}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-md border border-slate-200 bg-slate-50/55 p-4 hover:border-indigo-200 hover:bg-indigo-50/35 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <span className="block text-[10px] font-mono font-bold text-slate-500">{item.date}</span>
+                  <h4 className="text-xs font-bold leading-snug text-slate-950 group-hover:text-indigo-900">{item.title}</h4>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 shrink-0" />
+              </div>
+              <span className={`mt-3 inline-flex rounded border px-1.5 py-0.5 text-[10px] font-mono font-bold ${
+                item.status === 'Encoded source'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-750'
+                  : 'border-amber-200 bg-amber-50 text-amber-800'
+              }`}>
+                {item.status}
+              </span>
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-600">{item.summary}</p>
+            </a>
+          ))}
+        </div>
+      </section>
 
       <div className="space-y-6">
         {filteredDocs.length === 0 ? (
