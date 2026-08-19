@@ -6,12 +6,13 @@ export interface TextLensMetadata {
   url: string;
   textType: string;
   jurisdiction: string;
-  analysisMode: 'general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code' | 'consumer' | 'accountability';
+  analysisMode: 'general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code' | 'consumer' | 'accountability' | 'maaz';
   communicationType?: string;
   rhetoricalFunction?: string;
 
   // Consumer Mode
   publicationProminenceTier?: 1 | 2 | 3 | 4 | 5;
+  consumerReviewScope?: 'strict' | 'review' | 'broad';
 
   // BCCSA Broadcast Complaint Mode
   broadcaster?: string;
@@ -69,6 +70,17 @@ export interface FlaggedPassage {
   explanation: string;
   uncertaintyLabel: 'Confident' | 'Probable' | 'Borderline / Ambiguous' | 'System Low Confidence';
   severity: 'Informational' | 'Minor Bias' | 'Moderate / Distorted' | 'Severe / Direct';
+}
+
+export interface ConsumerReviewSignal {
+  id: string;
+  exactQuote: string;
+  reviewReason: string;
+  taxonomyItemId?: string;
+  taxonomyCategoryTitle?: string;
+  signalType: 'needs_review' | 'broad_scan';
+  confidence: 'low' | 'moderate' | 'high';
+  reviewerQuestion: string;
 }
 
 export interface EvidentiaryIssue {
@@ -163,6 +175,34 @@ export interface AccountabilityStageTwoResponse {
   cautionAcknowledged?: boolean;
 }
 
+export interface MaazTacticalFinding {
+  id: string;
+  exactQuote: string;
+  tactic: string;
+  narrativeMechanism: string;
+  maazAnalyticalDeconstruction: string;
+  responseProtocol: string;
+  severity: 'moderate' | 'high' | 'severe';
+  confidence: 'moderate' | 'high';
+}
+
+export interface MaazSourceCitation {
+  label: string;
+  url: string;
+}
+
+export interface MaazReport {
+  axiom: string;
+  sourceNote: string;
+  summary: string;
+  overallConcernLevel: 'none' | 'low' | 'moderate' | 'high' | 'severe';
+  findings: MaazTacticalFinding[];
+  publicAdvocacyStatement: string;
+  authorDirectedResponse: string;
+  sourceCitations: MaazSourceCitation[];
+  limitations: string[];
+}
+
 export interface AnalysisReport {
   id: string;
   name: string;
@@ -201,6 +241,8 @@ export interface AnalysisReport {
   analysisTrace?: AnalysisTrace;
   accountabilityReport?: AccountabilityReport;
   stageTwoResponse?: AccountabilityStageTwoResponse;
+  consumerReviewSignals?: ConsumerReviewSignal[];
+  maazReport?: MaazReport;
 
   // Consumer Mode scores
   consumerScores?: {

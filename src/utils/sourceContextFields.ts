@@ -68,5 +68,10 @@ export function getSourceContextFields(metadata: TextLensMetadata): SourceContex
     pushField(fields, "Policy Excerpt", metadata.institutionalPolicyExcerpt);
   }
 
+  if (metadata.analysisMode === "maaz") {
+    pushField(fields, "Governing Protocol", "Movement Against Antizionism Protocol");
+    pushField(fields, "Response Style", "Public advocacy statement");
+  }
+
   return fields;
 }

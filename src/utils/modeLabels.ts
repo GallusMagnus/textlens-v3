@@ -16,6 +16,8 @@ export function getAnalysisModeLabel(mode?: string) {
       return 'Press Code Mode';
     case 'accountability':
       return 'Accountability Mode';
+    case 'maaz':
+      return 'MAAZ (Antizionism) Mode';
     default:
       return mode || 'Unspecified Mode';
   }

@@ -314,6 +314,12 @@ export default function ReportTab({
       rhetorical: cs.rhetoricalDistortionScore,
       worthy: cs.worthyOfResponseScore,
     };
+    const reviewScope = activeReport.metadata.consumerReviewScope || 'broad';
+    const reviewScopeLabel = reviewScope === 'broad'
+      ? 'Broad scan'
+      : reviewScope === 'review'
+        ? 'Findings that need review'
+        : 'Only clear findings';
     const dimensions = [
       { key: 'antisemitism', label: 'Antisemitism Content',     score: cs.antisemitismScore,        narrative: cs.antisemitismNarrative,    dot: 'bg-red-500',    text: 'text-red-700',    border: 'border-red-200',    bg: 'bg-red-50'    },
       { key: 'antizionist',  label: 'Anti-Zionist Intensity ⊹', score: cs.antiZionistIntensityScore, narrative: cs.antiZionistNarrative,     dot: 'bg-amber-500',  text: 'text-amber-700',  border: 'border-amber-200',  bg: 'bg-amber-50'  },
@@ -379,6 +385,11 @@ export default function ReportTab({
             <ShieldAlert className="w-4 h-4" /><span>Overall Assessment</span>
           </h3>
           <p className="text-sm text-slate-700 leading-relaxed">{cs.overallConsumerNarrative}</p>
+          <div className="pt-2">
+            <span className="inline-flex items-center rounded border border-violet-200 bg-white px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-violet-800">
+              Review Scope Used: {reviewScopeLabel}
+            </span>
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {dimensions.map(d => (
@@ -401,7 +412,19 @@ export default function ReportTab({
         )}
         {activeReport.flaggedPassages.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500">Flagged Findings For Review ({activeReport.flaggedPassages.length})</h3>
+            <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-block text-[10px] font-mono font-bold uppercase tracking-wider text-amber-900 bg-white border border-amber-200 px-2 py-0.5 rounded">
+                  Higher priority
+                </span>
+                <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-700">
+                  Clear Flagged Findings ({activeReport.flaggedPassages.length})
+                </h3>
+              </div>
+              <p className="text-[11px] text-slate-600 mt-1">
+                Stronger, clearer findings that crossed the Consumer / General threshold.
+              </p>
+            </div>
             {activeReport.flaggedPassages.map(p => (
               <div key={p.id} className={`bg-white border-l-4 rounded-lg p-4 border border-gray-200 space-y-2 ${p.layer === 1 ? 'border-l-red-500' : p.layer === 2 ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
                 <p className="text-sm font-serif italic text-slate-800">"{p.textSnippet}"</p>
@@ -420,6 +443,51 @@ export default function ReportTab({
                 <p className="text-xs text-slate-600 leading-relaxed">{p.explanation}</p>
                 {p.standardsApplied[0]?.clauseId && p.standardsApplied[0].clauseId !== 'CONSUMER' && (
                   <span className="inline-block text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">{p.standardsApplied[0].clauseId}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {activeReport.consumerReviewSignals && activeReport.consumerReviewSignals.length > 0 && (
+          <div className="space-y-3">
+            <div className="bg-teal-50/50 border border-teal-100 rounded-lg p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-block text-[10px] font-mono font-bold uppercase tracking-wider text-teal-900 bg-white border border-teal-100 px-2 py-0.5 rounded">
+                  Lower priority
+                </span>
+                <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-700">
+                  Secondary Review Signals ({activeReport.consumerReviewSignals.length})
+                </h3>
+              </div>
+              <p className="text-[11px] text-slate-600 mt-1">
+                Borderline or pattern-contributing passages for human review. These are not clear flagged findings.
+              </p>
+            </div>
+            {activeReport.consumerReviewSignals.map(signal => (
+              <div key={signal.id} className="bg-white border-l-4 border-l-teal-500 rounded-lg p-4 border border-gray-200 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
+                    signal.signalType === 'broad_scan'
+                      ? 'text-slate-600 bg-slate-50 border-slate-200'
+                      : 'text-teal-800 bg-teal-50 border-teal-100'
+                  }`}>
+                    {signal.signalType === 'broad_scan' ? 'Broad Scan Candidate' : 'Needs Review'}
+                  </span>
+                  <span className="inline-block text-[10px] font-mono font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                    {signal.confidence} confidence
+                  </span>
+                </div>
+                <p className="text-sm font-serif italic text-slate-800">"{signal.exactQuote}"</p>
+                {signal.taxonomyCategoryTitle && (
+                  <span className="inline-block text-[10px] font-mono font-bold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">
+                    {signal.taxonomyItemId ? `${signal.taxonomyItemId}: ` : ''}{signal.taxonomyCategoryTitle}
+                  </span>
+                )}
+                <p className="text-xs text-slate-600 leading-relaxed">{signal.reviewReason}</p>
+                {signal.reviewerQuestion && (
+                  <p className="text-xs text-teal-900 bg-teal-50/60 border border-teal-100 rounded p-2">
+                    {signal.reviewerQuestion}
+                  </p>
                 )}
               </div>
             ))}
@@ -560,6 +628,217 @@ export default function ReportTab({
     if (match) return `Claim ${match[1]}`;
     return "General / Unlinked";
   };
+
+  if (metadata.analysisMode === 'maaz' && activeReport.maazReport) {
+    const maaz = activeReport.maazReport;
+
+    return (
+      <div id="textlens-maaz-report-container" className="space-y-6 font-sans">
+        <div className="bg-red-50/40 border border-red-200 text-red-950 text-xs py-3.5 px-4 rounded-lg space-y-2">
+          <div className="flex items-center space-x-2 font-medium">
+            <ShieldAlert className="w-4.5 h-4.5 text-red-600 shrink-0" />
+            <span><strong>MAAZ Protocol:</strong> {maaz.axiom}</span>
+          </div>
+          <p className="text-[11px] text-red-900/80 pl-6 border-l border-red-200 mt-1 leading-relaxed">
+            {maaz.sourceNote}
+          </p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-2xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-red-50 border border-red-100 text-red-700">
+                MAAZ Report Status: Compiled
+              </span>
+              <span className="text-xs text-gray-400 font-mono">ID: {activeReport.id}</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-950 mt-1.5">{metadata.title}</h2>
+            <p className="text-xs text-gray-500 mt-1 font-mono">
+              Source: <strong className="text-gray-700">{metadata.author}</strong> on <strong className="text-gray-700">{metadata.platform}</strong> ({metadata.date})
+            </p>
+          </div>
+          <div className="text-xs font-mono space-y-1 bg-gray-50 border border-gray-200 p-3 rounded shrink-0">
+            <div><span className="text-gray-400">Analysis Mode:</span> <strong className="text-gray-750 font-semibold">{getAnalysisModeLabel(metadata.analysisMode)}</strong></div>
+            <div><span className="text-gray-400">Concern:</span> <strong className="text-gray-750 font-semibold">{maaz.overallConcernLevel}</strong></div>
+            {activeReport.analysisTrace && (
+              <>
+                <div><span className="text-gray-400">Analysis Date:</span> <strong className="text-gray-750 font-semibold">{formatAnalysisTimestamp(activeReport.analysisTrace.analyzedAt)}</strong></div>
+                <div><span className="text-gray-400">Model:</span> <strong className="text-gray-750 font-semibold">{activeReport.analysisTrace.model}</strong></div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden bg-gradient-to-r from-red-50/60 via-slate-50/25 to-white text-slate-800 rounded-xl p-6 border border-red-150/70 shadow-3xs before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-red-650 space-y-3 pl-8">
+          <h3 className="text-xs uppercase font-mono font-bold text-red-800 tracking-widest">MAAZ Summary Judgement</h3>
+          <p className="text-sm font-sans leading-relaxed text-slate-700 font-medium">
+            {maaz.summary}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 flex items-center space-x-2">
+              <Layers className="w-4 h-4 text-slate-400" />
+              <span>MAAZ Tactical Matrix Findings ({maaz.findings.length})</span>
+            </h3>
+            <p className="text-slate-500 text-[11px] mt-0.5">
+              Each item follows the MAAZ matrix: tactic, severity, confidence, narrative mechanism, analytical deconstruction, and public response protocol.
+            </p>
+          </div>
+
+          {maaz.findings.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-lg p-5 text-sm text-slate-600">
+              No MAAZ tactical matrix finding was identified in the submitted text.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {maaz.findings.map((finding, idx) => (
+                <div key={finding.id || idx} className="bg-white border border-gray-200 border-l-4 border-l-red-500 rounded-lg shadow-xs overflow-hidden">
+                  <div className="bg-red-50/55 border-b border-red-100 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-red-500 block">Finding {idx + 1}</span>
+                      <h4 className="text-sm font-bold text-slate-950">{finding.tactic}</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${getAccountabilitySeverityClass(finding.severity)}`}>
+                        Severity: {finding.severity}
+                      </span>
+                      <span className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded border bg-white text-slate-600 border-slate-200">
+                        Confidence: {finding.confidence}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                    <div className="p-4 border-b lg:border-b-0 lg:border-r border-gray-150/80">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">Quoted Passage</span>
+                      <p className="font-serif italic text-gray-905 leading-relaxed text-[13px]">"{finding.exactQuote}"</p>
+                    </div>
+                    <div className="p-4">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">Narrative Mechanism</span>
+                      <p className="text-xs text-slate-700 leading-relaxed">{finding.narrativeMechanism}</p>
+                    </div>
+                    <div className="p-4 border-t border-gray-150/80 lg:border-r">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">MAAZ Analytical Deconstruction</span>
+                      <p className="text-xs text-slate-700 leading-relaxed">{finding.maazAnalyticalDeconstruction}</p>
+                    </div>
+                    <div className="p-4 border-t border-gray-150/80 bg-slate-50/45">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-gray-400 block mb-2">Scalable Public Response Protocol</span>
+                      <p className="text-xs text-slate-700 leading-relaxed">{finding.responseProtocol}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white border border-gray-250 p-6 rounded-lg shadow-xs space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-gray-950">Public Advocacy Statement</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                A concise public judgement derived from the tactical findings.
+              </p>
+            </div>
+            {maaz.publicAdvocacyStatement && (
+              <button
+                type="button"
+                onClick={() => handleCopyToClipboard(maaz.publicAdvocacyStatement, "maaz-public-statement")}
+                className="p-1 px-3 bg-white text-gray-700 hover:text-red-600 border border-gray-200 rounded text-[11px] font-mono flex items-center space-x-1.5 transition-all shadow-2xs hover:bg-gray-50"
+              >
+                {copyState["maaz-public-statement"] ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-green-700 font-semibold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Clipboard className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Copy Draft</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded p-4 font-mono text-xs text-gray-850 leading-relaxed whitespace-pre-wrap select-text">
+            {maaz.publicAdvocacyStatement || "No public advocacy statement was generated."}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-250 p-6 rounded-lg shadow-xs space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-gray-950">Author-Directed Response Draft</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Fuller response language addressed to the author, editor, or publisher.
+              </p>
+            </div>
+            {maaz.authorDirectedResponse && (
+              <button
+                type="button"
+                onClick={() => handleCopyToClipboard(maaz.authorDirectedResponse, "maaz-author-response")}
+                className="p-1 px-3 bg-white text-gray-700 hover:text-red-600 border border-gray-200 rounded text-[11px] font-mono flex items-center space-x-1.5 transition-all shadow-2xs hover:bg-gray-50"
+              >
+                {copyState["maaz-author-response"] ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-green-700 font-semibold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Clipboard className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Copy Draft</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <textarea
+            readOnly
+            value={maaz.authorDirectedResponse || "No author-directed response was generated."}
+            className="w-full h-96 bg-gray-50 border border-gray-200 rounded p-4 text-xs text-gray-850 font-mono focus:outline-hidden leading-relaxed select-text"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
+            <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+              <Info className="w-5 h-5 text-gray-700" />
+              <span>MAAZ Sources Cited</span>
+            </h3>
+            <div className="space-y-2 text-xs">
+              {maaz.sourceCitations.map((citation, idx) => (
+                <a
+                  key={idx}
+                  href={citation.url.startsWith('http') ? citation.url : undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block bg-slate-50 border border-slate-200 rounded p-3 text-slate-700 hover:text-red-700"
+                >
+                  {citation.label}
+                  <span className="block text-[10px] text-slate-400 mt-0.5">{citation.url}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-xs space-y-3">
+            <h3 className="text-sm font-semibold text-gray-950 flex items-center space-x-2">
+              <Info className="w-5 h-5 text-gray-700" />
+              <span>Mode Boundaries</span>
+            </h3>
+            <ul className="list-disc pl-4 text-xs text-slate-600 space-y-1 leading-relaxed">
+              {maaz.limitations.map((limit, index) => <li key={index}>{limit}</li>)}
+            </ul>
+          </div>
+        </div>
+
+        {renderSourceContextSection()}
+        {renderAnalysisMetricsSection()}
+      </div>
+    );
+  }
 
   if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
     const accountability = activeReport.accountabilityReport;

@@ -2,6 +2,61 @@ import { StandardDoc } from './types';
 
 export const standardsList: StandardDoc[] = [
   {
+    id: 'maaz_protocol',
+    name: 'Movement Against Antizionism Protocol',
+    shortName: 'MAAZ Protocol',
+    category: 'Rhetorical Frameworks',
+    description: 'Standalone MAAZ protocol for classifying antizionism itself and generating public advocacy responses.',
+    fullTextUrl: 'https://www.movementagainstantizionism.org/learn',
+    clauses: [
+      {
+        id: 'MAAZ-AXIOM',
+        title: 'Concise Axiom',
+        text: 'Antizionism is hatred of Israel.'
+      },
+      {
+        id: 'MAAZ-DOCTRINE',
+        title: 'Doctrinal Definition',
+        text: 'Antizionism is an ideology that treats the existence of Israel as an inherent crime, advances colonizer, apartheid and genocide libels as axioms, and marks Jews worldwide as Zionists to justify exclusion, intimidation, purges and violence.'
+      },
+      {
+        id: 'MAAZ-COLONIZER',
+        title: 'The Colonizer Libel',
+        text: 'Frames Israel as a European colonial outpost and Jews as alien invaders without indigenous ties.'
+      },
+      {
+        id: 'MAAZ-APARTHEID',
+        title: 'The Apartheid Libel',
+        text: 'Accuses Israel of maintaining an institutional system of racial supremacy and segregation as an extension of the claim that Jewish sovereignty is intrinsically illegitimate.'
+      },
+      {
+        id: 'MAAZ-GENOCIDE',
+        title: 'The Genocide Libel',
+        text: 'Accuses Israel of structural, systematic intent to exterminate Palestinians and uses genocide language as a terminal delegitimizing charge.'
+      },
+      {
+        id: 'MAAZ-CONSPIRACY',
+        title: 'Conspiracy and Scapegoating',
+        text: 'Depicts Zionists as orchestrating media, foreign policy, campus oppression or wider social control.'
+      },
+      {
+        id: 'MAAZ-PURGES',
+        title: 'Institutional Litmus Tests and Purges',
+        text: 'Conditions participation in academic, cultural, professional or civic spaces on denouncing Israel or renouncing Zionism.'
+      },
+      {
+        id: 'MAAZ-TOKENIZATION',
+        title: 'Tokenization / The Jewish Shield',
+        text: 'Uses anti-Zionist Jewish figures or organizations to claim that anti-Israel measures cannot be discriminatory.'
+      },
+      {
+        id: 'MAAZ-ELIMINATIONIST',
+        title: 'Eliminationist Sloganeering',
+        text: 'Calls for dismantling Israel or uses slogans and demands that imply the destruction of a sovereign nation-state.'
+      }
+    ]
+  },
+  {
     id: 'ihra',
     name: 'IHRA Working Definition of Antisemitism',
     shortName: 'IHRA Working Definition',

@@ -40,6 +40,7 @@ const taxonomyLayerConfigs: Record<TaxonomySummaryLayerId, {
 };
 
 const STANDARD_DISPLAY_ORDER = [
+  'maaz_protocol',
   'ihra',
   'jda',
   'nexus',
@@ -87,6 +88,12 @@ const STANDARD_SECTIONS: Array<{
     title: 'Core Antisemitism Frameworks',
     summary: 'Foundational definitions and interpretive frameworks used to distinguish antisemitism from protected political speech.',
     docIds: ['ihra', 'jda', 'nexus'],
+  },
+  {
+    id: 'maaz-framework',
+    title: 'MAAZ Antizionism Protocol',
+    summary: 'Standalone Movement Against Antizionism framework used only in MAAZ mode for antizionism classification and public advocacy response.',
+    docIds: ['maaz_protocol'],
   },
   {
     id: 'us-legal-bar',

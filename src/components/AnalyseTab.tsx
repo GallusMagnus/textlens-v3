@@ -509,7 +509,8 @@ export default function AnalyseTab({
       url: '',
       textType: 'Unspecified Text',
       jurisdiction: 'Global / Multi-Jurisdiction',
-      analysisMode: 'consumer'
+      analysisMode: 'consumer',
+      consumerReviewScope: 'broad'
     });
   };
 
@@ -530,7 +531,15 @@ export default function AnalyseTab({
   const handleModeChange = (mode: TextLensMetadata['analysisMode']) => {
     setMetadata(prev => ({
       ...prev,
-      analysisMode: mode
+      analysisMode: mode,
+      ...(mode === 'consumer' && !prev.consumerReviewScope ? { consumerReviewScope: 'broad' as const } : {})
+    }));
+  };
+
+  const handleConsumerReviewScopeChange = (scope: NonNullable<TextLensMetadata['consumerReviewScope']>) => {
+    setMetadata(prev => ({
+      ...prev,
+      consumerReviewScope: scope
     }));
   };
 
@@ -600,7 +609,7 @@ export default function AnalyseTab({
             id: 'professional-family',
             title: 'Professional Modes',
             summary: 'For standards-based review in specialist, institutional, media and regulatory contexts.',
-            modes: ['general', 'healthcare', 'academic', 'legal_profession', 'bccsa', 'press_code', 'accountability'] as const
+            modes: ['general', 'maaz', 'healthcare', 'academic', 'legal_profession', 'bccsa', 'press_code', 'accountability'] as const
           }
         ] as const).map((family) => (
           <div key={family.id} className="space-y-3">
@@ -638,7 +647,7 @@ export default function AnalyseTab({
 
             if (mode === 'consumer') {
               modeDetails = {
-                title: 'Community / General Review Mode',
+                title: 'Community / General Review',
                 desc: 'Community monitoring, scoring and response triage',
                 badgeColor: 'bg-indigo-50 text-indigo-850',
                 badgeLabel: '',
@@ -647,16 +656,25 @@ export default function AnalyseTab({
               };
             } else if (mode === 'general') {
               modeDetails = {
-                title: 'Consensus Standards Mode',
+                title: 'Consensus Standards',
                 desc: 'Core antisemitism frameworks with stronger guardrails',
                 badgeColor: 'bg-slate-100 text-slate-850',
                 badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
+            } else if (mode === 'maaz') {
+              modeDetails = {
+                title: 'MAAZ (Antizionism)',
+                desc: 'Antizionism framework, tactical matrix',
+                badgeColor: 'bg-red-50 text-red-700 border border-red-200',
+                badgeLabel: 'Protocol',
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
+              };
             } else if (mode === 'healthcare') {
               modeDetails = {
-                title: 'Healthcare Publishing Mode',
+                title: 'Healthcare Publishing',
                 desc: 'Healthcare publication ethics, rhetoric and conflict terminology',
                 badgeColor: 'bg-emerald-50 text-emerald-800',
                 badgeLabel: '',
@@ -665,8 +683,8 @@ export default function AnalyseTab({
               };
             } else if (mode === 'academic') {
               modeDetails = {
-                title: 'Academic/University Mode',
-                desc: 'Academic freedom, institutional standards and evidence handling',
+                title: 'Academic / University',
+                desc: 'Academic freedom, institutional standards',
                 badgeColor: 'bg-blue-50 text-blue-800',
                 badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
@@ -683,7 +701,7 @@ export default function AnalyseTab({
               };
             } else if (mode === 'bccsa') {
               modeDetails = {
-                title: 'BCCSA Mode',
+                title: 'BCCSA',
                 desc: 'South African broadcast standards and complaint support',
                 badgeColor: 'bg-indigo-50 text-indigo-850',
                 badgeLabel: '',
@@ -692,7 +710,7 @@ export default function AnalyseTab({
               };
             } else if (mode === 'press_code') {
               modeDetails = {
-                title: 'Press Code Mode',
+                title: 'Press Code',
                 desc: 'South African press standards for news and comment',
                 badgeColor: 'bg-amber-50 text-amber-850',
                 badgeLabel: '',
@@ -701,7 +719,7 @@ export default function AnalyseTab({
               };
             } else if (mode === 'accountability') {
               modeDetails = {
-                title: 'Accountability Mode',
+                title: 'Accountability',
                 desc: 'Claims, evidence gaps, action steps',
                 badgeColor: 'bg-rose-50 text-rose-700 border border-rose-200',
                 badgeLabel: 'Beta',
@@ -1586,6 +1604,54 @@ export default function AnalyseTab({
                   </button>
                 );
               })}
+            </div>
+            <div className="pt-3 mt-2 border-t border-teal-100 space-y-3">
+              <div>
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Review Scope</h3>
+                <p className="text-[11px] text-teal-900 leading-relaxed font-sans mt-1">
+                  Default: broad scan for fuller quoted review. Narrow the scope when you only want clearer findings.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <label className={`flex items-start gap-2 rounded border p-3 transition-all ${
+                  (metadata.consumerReviewScope || 'broad') !== 'strict'
+                    ? 'bg-white border-teal-300 shadow-xs'
+                    : 'bg-white/70 border-teal-100'
+                }`}>
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded border-teal-300 text-teal-700 focus:ring-teal-600"
+                    checked={(metadata.consumerReviewScope || 'broad') !== 'strict'}
+                    onChange={(e) => handleConsumerReviewScopeChange(e.target.checked ? 'review' : 'strict')}
+                    disabled={isAnalyzing}
+                  />
+                  <span className="space-y-1">
+                    <span className="block text-xs font-semibold text-slate-900">+ Findings that need review</span>
+                    <span className="block text-[10px] leading-relaxed text-slate-500">
+                      Adds borderline or pattern-contributing passages in a lower-priority Secondary Review Signals section.
+                    </span>
+                  </span>
+                </label>
+                <label className={`flex items-start gap-2 rounded border p-3 transition-all ${
+                  (metadata.consumerReviewScope || 'broad') === 'broad'
+                    ? 'bg-white border-teal-300 shadow-xs'
+                    : 'bg-white/70 border-teal-100'
+                }`}>
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded border-teal-300 text-teal-700 focus:ring-teal-600"
+                    checked={(metadata.consumerReviewScope || 'broad') === 'broad'}
+                    onChange={(e) => handleConsumerReviewScopeChange(e.target.checked ? 'broad' : 'review')}
+                    disabled={isAnalyzing}
+                  />
+                  <span className="space-y-1">
+                    <span className="block text-xs font-semibold text-slate-900">+ Broad scan</span>
+                    <span className="block text-[10px] leading-relaxed text-slate-500">
+                      Adds a wider candidate sweep for diagnostic review. These are not formal flags.
+                    </span>
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
         )}

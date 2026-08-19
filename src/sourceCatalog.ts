@@ -16,6 +16,26 @@ export interface SourceCatalogItem {
 
 export const sourceCatalogList: SourceCatalogItem[] = [
   {
+    sourceKey: "maaz_protocol",
+    sourceName: "Movement Against Antizionism Protocol",
+    sourceType: "Advocacy and Analytical Protocol",
+    shortLabel: "MAAZ Protocol",
+    whyIncluded: "Primary source framework for MAAZ (Antizionism) Mode, which classifies antizionism itself and generates public advocacy responses using the MAAZ tactical matrix.",
+    url: "https://www.movementagainstantizionism.org/learn",
+    notes: "Used as the governing source in MAAZ mode, alongside Adam Louis-Klein's published theoretical work in SAPIR and the local MAAZ overview document supplied for this implementation.",
+    appliesToModes: ["maaz"],
+    role: "Standalone antizionism classification and public advocacy response protocol.",
+    summary: "Use MAAZ's axiom, doctrinal definition, and tactical matrix to identify colonizer, apartheid, genocide, conspiracy, purge, tokenization, and eliminationist-sloganeering patterns.",
+    keyCriteria: [
+      "Does the text treat Israel's existence as inherently illegitimate or criminal?",
+      "Does it deploy the colonizer, apartheid, or genocide libel as an axiom rather than a contestable claim?",
+      "Does it replace Jews with Zionists as a target category for exclusion, stigma, intimidation, or purging?",
+      "Does it use Jewish anti-Zionist figures or organizations as a shield for institutional hostility?",
+      "Does it call for, normalize, or rhetorically sanitize the dismantling of Israel?"
+    ],
+    limitations: "MAAZ mode applies the MAAZ protocol as its governing framework. It is not a legal adjudication, a regulatory finding, or a consensus antisemitism-definition analysis."
+  },
+  {
     sourceKey: "ihra",
     sourceName: "IHRA Working Definition of Antisemitism",
     sourceType: "Working Definition",

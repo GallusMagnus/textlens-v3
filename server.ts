@@ -72,6 +72,74 @@ function cleanTextList(value: unknown, maxItems = 80): string[] {
   );
 }
 
+function cleanExtractedDocumentText(text: string): string {
+  return String(text || "")
+    .replace(/\u00ad/g, "")
+    .replace(/([A-Za-z])-\s*\r?\n\s*([a-z])/g, "$1$2")
+    .replace(/[ \t]*\r?\n[ \t]*(?!\r?\n)/g, " ")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function normalizeQuoteForComparison(text: string): string {
+  return String(text || "")
+    .normalize("NFKC")
+    .replace(/\u00ad/g, "")
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/([A-Za-z])-\s+([A-Za-z])/g, "$1$2")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function isQuoteSupportedByText(quote: string, originalText: string): boolean {
+  const trimmedQuote = String(quote || "").trim();
+  if (!trimmedQuote) return false;
+  if (String(originalText || "").includes(trimmedQuote)) return true;
+
+  const normalizedQuote = normalizeQuoteForComparison(trimmedQuote);
+  if (normalizedQuote.length < 12) return false;
+
+  return normalizeQuoteForComparison(originalText).includes(normalizedQuote);
+}
+
+function stripWrappingQuoteMarks(text: string): string {
+  return String(text || "")
+    .trim()
+    .replace(/^["'\u2018\u2019\u201C\u201D]+/, "")
+    .replace(/["'\u2018\u2019\u201C\u201D]+$/, "")
+    .trim();
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function findSupportedQuoteText(quote: string, originalText: string): string {
+  const candidates = Array.from(
+    new Set([
+      String(quote || "").trim(),
+      stripWrappingQuoteMarks(quote),
+    ].filter(Boolean))
+  );
+
+  for (const candidate of candidates) {
+    if (originalText.includes(candidate)) return candidate;
+
+    const flexibleWhitespacePattern = candidate
+      .split(/\s+/)
+      .map(escapeRegExp)
+      .join("\\s+");
+    const match = originalText.match(new RegExp(flexibleWhitespacePattern));
+    if (match?.[0]) return match[0];
+  }
+
+  return "";
+}
+
 function normalizeDateInput(value: unknown): string {
   const text = String(value || "").trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return "";
@@ -148,6 +216,71 @@ function getModeBoundaryDisclamation(mode: string): string {
   return policy ? `\n\n${policy.boundaryNote}` : "";
 }
 
+function sanitizeMaazReport(data: any, originalText: string) {
+  if (!data) return data;
+
+  const report = data.maazReport || data;
+  const findings = Array.isArray(report.findings) ? report.findings : [];
+  let hasInvalidQuote = false;
+
+  report.axiom = "Antizionism is hatred of Israel.";
+  report.sourceNote =
+    report.sourceNote ||
+    "This report applies the MAAZ antizionism protocol as its governing framework, drawing on the Movement Against Antizionism, Adam Louis-Klein's published work, and the local MAAZ overview document.";
+  report.findings = findings
+    .filter((finding: any) => {
+      const exactQuote = typeof finding.exactQuote === "string" ? finding.exactQuote : "";
+      const supportedQuote = findSupportedQuoteText(exactQuote, originalText);
+      if (supportedQuote) {
+        finding.exactQuote = supportedQuote;
+        return true;
+      }
+      hasInvalidQuote = true;
+      return false;
+    })
+    .map((finding: any, index: number) => {
+      const rawSeverity = String(finding.severity || "").toLowerCase();
+      const rawConfidence = String(finding.confidence || "").toLowerCase();
+      return {
+        id: finding.id || `maaz-finding-${index + 1}`,
+        exactQuote: finding.exactQuote || "",
+        tactic: finding.tactic || "Other MAAZ Antizionism Pattern",
+        narrativeMechanism: finding.narrativeMechanism || "",
+        maazAnalyticalDeconstruction: finding.maazAnalyticalDeconstruction || "",
+        responseProtocol: finding.responseProtocol || "",
+        severity: rawSeverity === "severe" ? "severe" : rawSeverity === "high" ? "high" : "moderate",
+        confidence: rawConfidence === "high" ? "high" : "moderate",
+      };
+    });
+  report.sourceCitations = [
+    {
+      label: "Movement Against Antizionism - Learn",
+      url: "https://www.movementagainstantizionism.org/learn",
+    },
+    {
+      label: "Adam Louis-Klein, Defeating Antizionism, SAPIR",
+      url: "https://sapirjournal.org/aspiration-ii/2026/defeating-antizionism/",
+    },
+    {
+      label: "Movement Against Antizionism Overview.docx",
+      url: "local:Movement Against Antizionism Overview.docx",
+    },
+  ];
+  report.limitations = Array.isArray(report.limitations) ? report.limitations : [];
+  report.limitations.unshift(
+    "This report applies the MAAZ protocol as its governing framework. It is not a legal adjudication, regulatory finding, or consensus antisemitism-definition analysis."
+  );
+  if (hasInvalidQuote) {
+    report.limitations.push("One or more MAAZ findings were removed because the quoted passage was not supported by the submitted text after PDF-safe normalization.");
+  }
+  report.limitations = Array.from(new Set(report.limitations.filter(Boolean)));
+  report.publicAdvocacyStatement = report.publicAdvocacyStatement || "";
+  report.authorDirectedResponse = report.authorDirectedResponse || "";
+  data.maazReport = report;
+  data.suggestedComplaintOrResponse = report.authorDirectedResponse || report.publicAdvocacyStatement || data.suggestedComplaintOrResponse || "";
+  return data;
+}
+
 // Primary validation and sanitization runner for reports received from the model
 function sanitizeReport(data: any, selectedMode: string, originalText: string, metadata: any) {
   if (!data) return data;
@@ -155,6 +288,11 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
   // Initialize arrays if they do not exist
   if (!data.limitations) data.limitations = [];
   if (!data.flaggedPassages) data.flaggedPassages = [];
+  if (Array.isArray(data.reviewSignals)) {
+    data.reviewSignals = data.reviewSignals;
+  } else if ("reviewSignals" in data) {
+    data.reviewSignals = [];
+  }
   if (!data.humanReviewPrompts) data.humanReviewPrompts = [];
   if (!data.standardsApplied) data.standardsApplied = [];
 
@@ -209,7 +347,7 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
   // Validate flaggedPassages
   data.flaggedPassages = data.flaggedPassages.filter((p: any) => {
     const exactQuote = typeof p.exactQuote === "string" ? p.exactQuote : "";
-    if (exactQuote && !originalText.includes(exactQuote)) {
+    if (exactQuote && !isQuoteSupportedByText(exactQuote, originalText)) {
       hasInvalidQuote = true;
       return false;
     }
@@ -233,6 +371,24 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
     return true;
   });
 
+  if (Array.isArray(data.reviewSignals)) {
+    data.reviewSignals = data.reviewSignals.filter((signal: any) => {
+      const exactQuote = typeof signal.exactQuote === "string" ? signal.exactQuote : "";
+      if (exactQuote && !isQuoteSupportedByText(exactQuote, originalText)) {
+        hasInvalidQuote = true;
+        return false;
+      }
+
+      const tid = signal.taxonomyItemId;
+      if (tid && (!validTaxonomyIds.has(tid) || !isTaxonomyItemAllowedInMode(tid, selectedMode))) {
+        hasInvalidTaxonomy = true;
+        return false;
+      }
+
+      return true;
+    });
+  }
+
   // Validate standardsApplied array (for non-consumer mode)
   if (data.standardsApplied && Array.isArray(data.standardsApplied)) {
     data.standardsApplied = data.standardsApplied.filter((stdId: string) => {
@@ -253,7 +409,7 @@ function sanitizeReport(data: any, selectedMode: string, originalText: string, m
     data.limitations.push("Model returned an out-of-scope source reference removed during validation.");
   }
   if (hasInvalidQuote) {
-    data.limitations.push("Model returned a flagged quote not found verbatim in the submitted text; it was removed during validation.");
+    data.limitations.push("Model returned a quoted finding or review signal not supported by the submitted text after PDF-safe normalization; it was removed during validation.");
   }
 
   // Deduplicate limitations
@@ -301,7 +457,7 @@ function sanitizeAccountabilityReport(report: any, originalText: string) {
     const exactQuote = typeof claim.exactQuote === "string" ? claim.exactQuote.trim() : "";
     return {
       originalId: claim.id || `claim-${index + 1}`,
-      exactQuote: exactQuote && originalText.includes(exactQuote) ? exactQuote : "",
+      exactQuote: exactQuote && isQuoteSupportedByText(exactQuote, originalText) ? exactQuote : "",
       claimSummary: claim.claimSummary || "",
       claimType: claim.claimType || "other",
       seriousness: normalizeSeverity(claim.seriousness),
@@ -343,7 +499,7 @@ function sanitizeAccountabilityReport(report: any, originalText: string) {
     return {
       claimId: normalizeClaimId(evidence.claimId),
       evidenceSummary: evidence.evidenceSummary || "",
-      evidenceQuote: evidenceQuote && originalText.includes(evidenceQuote) ? evidenceQuote : "",
+      evidenceQuote: evidenceQuote && isQuoteSupportedByText(evidenceQuote, originalText) ? evidenceQuote : "",
       sourceNamed: evidence.sourceNamed || "",
       credibilityConcern: evidence.credibilityConcern || "",
     };
@@ -828,7 +984,7 @@ async function startServer() {
         }
 
         const data = await pdfParser(buffer);
-        extractedText = data.text || "";
+        extractedText = cleanExtractedDocumentText(data.text || "");
       } else if (lowerName.endsWith(".docx") || fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         const result = await mammoth.extractRawText({ buffer });
         extractedText = result.value || "";
@@ -961,6 +1117,25 @@ ${truncatedText}`;
       // ── CONSUMER MODE: separate prompt, schema, and scoring ──────────────────
       if (selectedMode === "consumer") {
         const prominenceTier: number = metadata?.publicationProminenceTier ?? 3;
+        const consumerReviewScope = ["strict", "review", "broad"].includes(metadata?.consumerReviewScope)
+          ? metadata.consumerReviewScope
+          : "broad";
+        const reviewScopeGuidance = {
+          strict: `Review Scope: ONLY CLEAR FINDINGS.
+- Return flaggedPassages only when they clearly and confidently cross the Consumer Mode threshold.
+- Set reviewSignals to an empty array.`,
+          review: `Review Scope: FINDINGS PLUS MATERIAL THAT NEEDS REVIEW.
+- Keep flaggedPassages reserved for clear, high-confidence findings.
+- Also return 3 to 8 reviewSignals for borderline or pattern-contributing passages that should be checked by a human reviewer but should not be called findings.
+- Use signalType "needs_review" for these entries.`,
+          broad: `Review Scope: BROAD SCAN.
+- Keep flaggedPassages reserved for clear, high-confidence findings.
+- Return 8 to 12 reviewSignals if the text contains enough distinct candidate passages.
+- Include at least 3 entries with signalType "broad_scan" unless the submitted text genuinely has fewer than 3 distinct broad-scan candidates; if fewer exist, explain that in limitations.
+- Broad-scan candidates may be lower confidence. They should include wider diagnostic material that contributes to rhetorical-distortion, delegitimisation, unsupported genocide-framing, totalising anti-Zionist framing, category conflation, agency imbalance, emotional loading, or double-standard concerns.
+- Use signalType "needs_review" for stronger review candidates and "broad_scan" for weaker diagnostic candidates.
+- Do not duplicate flaggedPassages inside reviewSignals. Review signals must add distinct quoted material.`,
+        }[consumerReviewScope];
         const prominenceMultipliers: Record<number, number> = { 5: 1.15, 4: 1.0, 3: 0.85, 2: 0.75, 1: 0.60 };
         const prominenceMultiplier = prominenceMultipliers[prominenceTier] ?? 0.85;
         const prominenceLabels: Record<number, string> = {
@@ -1008,9 +1183,13 @@ RULES:
 - Write all narratives in plain accessible language for a non-specialist reader.
 - doubleStandardAssessment must directly address whether the text applies different standards to Israel vs. comparable states.
 - Generate a high-quality suggested Response Draft or Complaint Letter tailored to the findings, saved in the "suggestedComplaintOrResponse" field. This should provide structured rebuttals or letters suitable for advocates, community readers, or editors. Use a clean, professional, and firm tone.
+- REVIEW SCOPE CALIBRATION:
+${reviewScopeGuidance}
+- Review signals are not findings and are not automatic antisemitism classifications. They are passages worth human attention because they help explain the score, pattern, or evidentiary concern.
+- Do not move weaker review signals into flaggedPassages merely because the review scope is broader.
 - HALLUCINATION MINIMISATION IS A CORE PRODUCT GOAL. When the text does not support a claim, do not imply, infer, or embellish it.
 - DEFAULT TO RESTRAINT. If evidence is thin, ambiguous, excerpted, or absent, lower the score, avoid a flagged passage, and record the uncertainty in "limitations" or narrative text.
-- USE ONLY VERBATIM SUPPORT. Every "flaggedPassages.exactQuote" must appear exactly in the submitted text, character-for-character.
+- USE ONLY VERBATIM SUPPORT. Every "flaggedPassages.exactQuote" and "reviewSignals.exactQuote" must appear exactly in the submitted text, character-for-character.
 - DO NOT INVENT intent, motive, chronology, omitted context, source content, or legal meaning beyond what is explicitly supplied in the submitted text, metadata, taxonomy, or source summaries.
 - WHEN IN DOUBT, SAY SO. It is better to return a narrower, incomplete, or lower-confidence analysis than an overconfident one.`;
 
@@ -1055,6 +1234,23 @@ Return structured JSON matching the required schema exactly.`;
                 required: ["exactQuote", "plainLanguageIssue", "taxonomyItemId", "standardCited", "severity"]
               }
             },
+            reviewSignals: {
+              type: Type.ARRAY,
+              description: "Consumer-mode passages worth human review but not classified as clear flagged findings. Empty when Review Scope is strict.",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  exactQuote: { type: Type.STRING },
+                  reviewReason: { type: Type.STRING },
+                  taxonomyItemId: { type: Type.STRING },
+                  taxonomyCategoryTitle: { type: Type.STRING },
+                  signalType: { type: Type.STRING, enum: ["needs_review", "broad_scan"] },
+                  confidence: { type: Type.STRING, enum: ["low", "moderate", "high"] },
+                  reviewerQuestion: { type: Type.STRING },
+                },
+                required: ["exactQuote", "reviewReason", "taxonomyItemId", "taxonomyCategoryTitle", "signalType", "confidence", "reviewerQuestion"]
+              }
+            },
             humanReviewPrompts: { type: Type.ARRAY, items: { type: Type.STRING } },
             limitations: { type: Type.ARRAY, items: { type: Type.STRING } },
             suggestedComplaintOrResponse: { type: Type.STRING, description: "Structured high-quality response language drafts or complaint templates suitable for advocacy or community usage." },
@@ -1065,7 +1261,7 @@ Return structured JSON matching the required schema exactly.`;
             "rhetoricalDistortionScore", "rhetoricalNarrative",
             "baseWorthinessScore", "worthinessNarrative",
             "doubleStandardAssessment", "overallConsumerNarrative",
-            "flaggedPassages", "humanReviewPrompts", "limitations",
+            "flaggedPassages", "reviewSignals", "humanReviewPrompts", "limitations",
             "suggestedComplaintOrResponse"
           ]
         };
@@ -1079,6 +1275,36 @@ Return structured JSON matching the required schema exactly.`;
 
         // Backend validation and safety sanitation
         sanitizeReport(consumerData, "consumer", originalText, metadata);
+        const flaggedQuoteKeys = new Set(
+          (consumerData.flaggedPassages || [])
+            .map((passage: any) => normalizeQuoteForComparison(passage.exactQuote || ""))
+            .filter(Boolean)
+        );
+        const seenSignalQuoteKeys = new Set<string>();
+        const distinctReviewSignals = (consumerData.reviewSignals || []).filter((signal: any) => {
+          const key = normalizeQuoteForComparison(signal.exactQuote || "");
+          if (!key || flaggedQuoteKeys.has(key) || seenSignalQuoteKeys.has(key)) return false;
+          seenSignalQuoteKeys.add(key);
+          return true;
+        });
+
+        if (consumerReviewScope === "strict") {
+          consumerData.reviewSignals = [];
+        } else if (consumerReviewScope === "review") {
+          consumerData.reviewSignals = distinctReviewSignals
+            .filter((signal: any) => signal.signalType !== "broad_scan")
+            .slice(0, 8);
+        } else {
+          const needsReviewSignals = distinctReviewSignals.filter((signal: any) => signal.signalType !== "broad_scan");
+          const broadScanSignals = distinctReviewSignals.filter((signal: any) => signal.signalType === "broad_scan");
+          consumerData.reviewSignals = [
+            ...needsReviewSignals.slice(0, 6),
+            ...broadScanSignals.slice(0, 6),
+          ].slice(0, 12);
+        }
+        console.log(
+          `[TextLens] Consumer review scope=${consumerReviewScope}; flags=${(consumerData.flaggedPassages || []).length}; reviewSignals=${(consumerData.reviewSignals || []).length}; broadScanSignals=${(consumerData.reviewSignals || []).filter((signal: any) => signal.signalType === "broad_scan").length}`
+        );
 
         const worthyOfResponseScore = Math.min(100, Math.round((consumerData.baseWorthinessScore || 0) * prominenceMultiplier));
 
@@ -1100,12 +1326,166 @@ Return structured JSON matching the required schema exactly.`;
           doubleStandardAssessment: consumerData.doubleStandardAssessment || "",
           overallConsumerNarrative: consumerData.overallConsumerNarrative || "",
           flaggedPassages: consumerData.flaggedPassages || [],
+          reviewSignals: consumerData.reviewSignals || [],
           humanReviewPrompts: consumerData.humanReviewPrompts || [],
           limitations: consumerData.limitations || [],
           suggestedComplaintOrResponse: consumerData.suggestedComplaintOrResponse || "",
         });
       }
       // ── END CONSUMER MODE ─────────────────────────────────────────────────────
+
+      // ── MAAZ MODE: standalone antizionism protocol and advocacy response ─────
+      if (selectedMode === "maaz") {
+        const maazSystemInstruction = `You are TextLens operating in MAAZ (ANTIZIONISM) MODE.
+
+GOVERNING FRAMEWORK:
+- Apply the Movement Against Antizionism (MAAZ) protocol as the sole governing analytical framework.
+- Use this axiom exactly: "Antizionism is hatred of Israel."
+- Classify antizionism itself, not only antisemitism expressed through antizionist rhetoric.
+- Do not apply IHRA, JDA, Nexus, TextLens protected-speech guardrails, or legal/regulatory balancing.
+- Be forceful in substance, precise in attribution, transparent about the governing source, and grounded in the submitted text.
+- Do not include legal, labor, civil-rights, workplace, Title VI, or regulatory recommendations.
+
+MAAZ DEFINITIONS:
+- Antizionism is an ideology that treats the existence of Israel as an inherent crime.
+- It advances three core libels: colonizer, apartheid, and genocide.
+- It can also appear as conspiracy/scapegoating, institutional litmus tests or purges, tokenization through anti-Zionist Jewish figures, and eliminationist sloganeering.
+- MAAZ distinguishes historical pre-1948 anti-Zionism from modern antizionism directed at the existing Jewish state and Jewish peoplehood.
+
+TACTICAL MATRIX CATEGORIES:
+1. The Colonizer Libel: frames Israel as a European colonial outpost and Jews as alien invaders without indigenous ties.
+2. The Apartheid Libel: accuses Israel of maintaining an institutional system of racial supremacy and segregation as an outgrowth of illegitimacy claims.
+3. The Genocide Libel: accuses Israel of structural, systematic intent to exterminate Palestinians and uses genocide language as the terminal delegitimizing charge.
+4. Conspiracy and Scapegoating: depicts Zionists as controlling media, foreign policy, institutions, campuses, or other systems of power.
+5. Institutional Litmus Tests and Purges: conditions belonging, participation, employment, publication, or legitimacy on denouncing Israel or renouncing Zionism.
+6. Tokenization / The Jewish Shield: cites anti-Zionist Jewish voices to claim that anti-Israel measures cannot be hostile to Jewish peoplehood.
+7. Eliminationist Sloganeering: calls for dismantling Israel or uses slogans/demands that imply destruction of the sovereign Jewish state.
+
+OUTPUT RULES:
+- Use the tactical matrix as the report structure.
+- Every finding must include an exact quote from the submitted text.
+- Extract findings across all distinct MAAZ tactical categories supported by the submitted text. For a substantive article, aim for 4 to 8 findings when the text supports that many; return only one finding if only one distinct MAAZ-relevant quote is actually present.
+- Prefer short exact quotes of 5 to 35 words. Copy the quote without adding your own surrounding quotation marks, ellipses, brackets, or paraphrase.
+- Do not rely only on the headline. Scan the full submitted text for colonizer, apartheid, genocide, conspiracy/scapegoating, purge/litmus-test, tokenization, and eliminationist patterns.
+- Do not invent motive, omitted context, chronology, source content, or external facts.
+- If the text does not contain MAAZ-relevant antizionist material, say so directly and return no findings.
+- The publicAdvocacyStatement must be a public advocacy statement, not a legal complaint, labor grievance, civil-rights memo, or regulatory submission. It must issue the judgement directly and should not repeatedly refer to MAAZ, Adam Louis-Klein, TextLens, the protocol, or "the framework"; the report header and source note already identify the protocol.
+- The authorDirectedResponse must be a fuller direct response addressed to the author, editor, or publisher. It should be detailed, firm, quote-grounded, and structured like other TextLens response drafts, but it must still avoid legal, labor, civil-rights, workplace, Title VI, or regulatory recommendations.
+- Cite MAAZ and Adam Louis-Klein as the source authority in the sourceNote and sourceCitations.
+- Keep language clear and assertive. Do not soften the MAAZ framing.`;
+
+        const maazPrompt = `Submitted text:
+"""
+${originalText}
+"""
+
+Metadata:
+${JSON.stringify(metadata, null, 2)}
+
+Return structured JSON matching the schema exactly.`;
+
+        const maazResponseSchema = {
+          type: Type.OBJECT,
+          properties: {
+            maazReport: {
+              type: Type.OBJECT,
+              properties: {
+                axiom: { type: Type.STRING },
+                sourceNote: { type: Type.STRING },
+                summary: { type: Type.STRING },
+                overallConcernLevel: { type: Type.STRING, enum: ["none", "low", "moderate", "high", "severe"] },
+                findings: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      exactQuote: { type: Type.STRING },
+                      tactic: {
+                        type: Type.STRING,
+                        enum: [
+                          "The Colonizer Libel",
+                          "The Apartheid Libel",
+                          "The Genocide Libel",
+                          "Conspiracy and Scapegoating",
+                          "Institutional Litmus Tests and Purges",
+                          "Tokenization / The Jewish Shield",
+                          "Eliminationist Sloganeering",
+                          "Other MAAZ Antizionism Pattern"
+                        ]
+                      },
+                      narrativeMechanism: { type: Type.STRING },
+                      maazAnalyticalDeconstruction: { type: Type.STRING },
+                      responseProtocol: { type: Type.STRING },
+                      severity: { type: Type.STRING, enum: ["moderate", "high", "severe"] },
+                      confidence: { type: Type.STRING, enum: ["moderate", "high"] },
+                    },
+                    required: [
+                      "exactQuote",
+                      "tactic",
+                      "narrativeMechanism",
+                      "maazAnalyticalDeconstruction",
+                      "responseProtocol",
+                      "severity",
+                      "confidence"
+                    ]
+                  }
+                },
+                publicAdvocacyStatement: { type: Type.STRING },
+                authorDirectedResponse: { type: Type.STRING },
+                sourceCitations: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      label: { type: Type.STRING },
+                      url: { type: Type.STRING },
+                    },
+                    required: ["label", "url"]
+                  }
+                },
+                limitations: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+              },
+              required: [
+                "axiom",
+                "sourceNote",
+                "summary",
+                "overallConcernLevel",
+                "findings",
+                "publicAdvocacyStatement",
+                "authorDirectedResponse",
+                "sourceCitations",
+                "limitations"
+              ]
+            }
+          },
+          required: ["maazReport"]
+        };
+
+        const maazData = await generateAnalysisJson<any>({
+          instructions: maazSystemInstruction,
+          input: maazPrompt,
+          schemaName: "maaz_mode_analysis",
+          schema: maazResponseSchema,
+        });
+
+        sanitizeMaazReport(maazData, originalText);
+        const maazReport = maazData.maazReport || {};
+
+        return res.json({
+          _mode: "maaz",
+          analysisTrace: buildAnalysisTrace({
+            runtimeMs: Date.now() - analysisStartedAt,
+            metrics: analysisTraceCollector.snapshot(),
+          }),
+          maazReport,
+          suggestedComplaintOrResponse: maazReport.publicAdvocacyStatement || "",
+          limitations: maazReport.limitations || [],
+        });
+      }
+      // ── END MAAZ MODE ───────────────────────────────────────────────────────
 
       // ── ACCOUNTABILITY MODE: claims, evidence gaps, action steps ─────────────
       if (selectedMode === "accountability") {

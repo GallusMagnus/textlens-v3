@@ -201,7 +201,8 @@ export default function App() {
     jurisdiction: 'Global / Multi-Jurisdiction',
     analysisMode: 'consumer',
     communicationType: 'unspecified',
-    rhetoricalFunction: 'unspecified'
+    rhetoricalFunction: 'unspecified',
+    consumerReviewScope: 'broad'
   });
 
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -315,6 +316,16 @@ export default function App() {
         suggestedComplaintOrResponse: data.suggestedComplaintOrResponse || "",
         analysisTrace: data.analysisTrace,
         limitations: data.limitations || [],
+        consumerReviewSignals: (data.reviewSignals || []).map((signal: any, i: number) => ({
+          id: `c-rs-${i}`,
+          exactQuote: signal.exactQuote || "",
+          reviewReason: signal.reviewReason || "",
+          taxonomyItemId: signal.taxonomyItemId || "",
+          taxonomyCategoryTitle: signal.taxonomyCategoryTitle || "",
+          signalType: signal.signalType === "broad_scan" ? "broad_scan" : "needs_review",
+          confidence: signal.confidence || "moderate",
+          reviewerQuestion: signal.reviewerQuestion || "",
+        })),
         consumerScores: {
           antisemitismScore: data.antisemitismScore || 0,
           antisemitismNarrative: data.antisemitismNarrative || "",
@@ -354,6 +365,52 @@ export default function App() {
         limitations: accountabilityReport.limitsOfThisReport || [],
         accountabilityReport,
         stageTwoResponse: data.stageTwoResponse
+      };
+    }
+
+    if (data._mode === "maaz") {
+      const maazReport = data.maazReport || {};
+      const maazFindings = maazReport.findings || [];
+
+      return {
+        id: data.id || `ai-${Date.now()}`,
+        name: meta.title || 'MAAZ Antizionism Report',
+        metadata: { ...meta },
+        originalText: origText,
+        summaryJudgement: maazReport.summary || "No summary provided.",
+        flaggedPassages: maazFindings.map((finding: any, i: number) => ({
+          id: `maaz-f-${i}`,
+          textSnippet: finding.exactQuote || "",
+          layer: 2 as const,
+          taxonomyItemId: `MAAZ-${i + 1}`,
+          taxonomyCategoryTitle: finding.tactic || "MAAZ Antizionism Pattern",
+          taxonomySection: "MAAZ Tactical Matrix",
+          standardsApplied: [{
+            standardId: "maaz_protocol",
+            clauseId: `MAAZ-${String(finding.tactic || "TACTIC").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+            standardName: "Movement Against Antizionism Protocol",
+            clauseTitle: finding.tactic || "MAAZ Antizionism Pattern",
+          }],
+          explanation: `${finding.narrativeMechanism || ""}\n\n${finding.maazAnalyticalDeconstruction || ""}\n\nResponse protocol: ${finding.responseProtocol || ""}`,
+          uncertaintyLabel: finding.confidence === "high" ? "Confident" as const : "Probable" as const,
+          severity: finding.severity === "severe" ? "Severe / Direct" as const : "Moderate / Distorted" as const,
+        })),
+        evidentiaryIssues: [],
+        standardsMentioned: ["maaz_protocol"],
+        humanReviewPrompts: [],
+        suggestedComplaintLanguage: {
+          formalLetter: maazReport.authorDirectedResponse || maazReport.publicAdvocacyStatement || "",
+          pressReleaseSummary: maazReport.publicAdvocacyStatement || "",
+          publicCorrectionRequest: maazReport.authorDirectedResponse || maazReport.publicAdvocacyStatement || ""
+        },
+        suggestedComplaintOrResponse: maazReport.authorDirectedResponse || maazReport.publicAdvocacyStatement || "",
+        analysisTrace: data.analysisTrace,
+        overallConcernLevel: maazReport.overallConcernLevel || "moderate",
+        confidence: maazFindings.some((finding: any) => finding.confidence === "high") ? "high" : "moderate",
+        analysisMode: "maaz",
+        shortSummary: maazReport.summary || "",
+        limitations: maazReport.limitations || [],
+        maazReport
       };
     }
 

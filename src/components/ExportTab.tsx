@@ -88,6 +88,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   }
 
   const { metadata, flaggedPassages, evidentiaryIssues } = activeReport;
+  const consumerReviewSignals = activeReport.consumerReviewSignals || [];
   const analysisDateText = formatAnalysisTimestamp(activeReport.analysisTrace?.analyzedAt);
   const analysisModelText = activeReport.analysisTrace?.model || 'Not recorded';
   const sourceContextFields = getSourceContextFields(metadata);
@@ -110,7 +111,103 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     return 'General / Unlinked';
   };
 
+  const getConsumerReviewScopeLabel = () => {
+    const reviewScope = metadata.consumerReviewScope || 'broad';
+    if (reviewScope === 'broad') return 'Broad scan';
+    if (reviewScope === 'review') return 'Findings that need review';
+    return 'Only clear findings';
+  };
+
   const generatePlainTextReport = () => {
+    if (metadata.analysisMode === 'maaz' && activeReport.maazReport) {
+      const maaz = activeReport.maazReport;
+      let report = "";
+      report += "================================================================================\n";
+      report += "                         TEXTLENS MAAZ (ANTIZIONISM) MODE\n";
+      report += "                         Tactical Matrix and Public Response\n";
+      report += "================================================================================\n";
+      report += `Case Reference ID: #${activeReport.id.toUpperCase()}\n`;
+      report += `Analysis Date:     ${analysisDateText}\n`;
+      report += `Model:             ${analysisModelText}\n\n`;
+
+      report += "GOVERNING AXIOM\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${maaz.axiom}\n\n`;
+      report += "SOURCE NOTE\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${maaz.sourceNote}\n\n`;
+
+      report += "DOCUMENT METADATA\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `Title:        ${metadata.title}\n`;
+      report += `Author:       ${metadata.author || "Unknown Author"}\n`;
+      report += `Platform:     ${metadata.platform || "Uploaded Document"}\n`;
+      report += `Date:         ${metadata.date || "Unknown Date"}\n`;
+      report += `Text Type:    ${metadata.textType || "Not specified"}\n`;
+      report += `Concern:      ${maaz.overallConcernLevel.toUpperCase()}\n\n`;
+
+      report += "SUMMARY\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${maaz.summary}\n\n`;
+
+      report += "MAAZ TACTICAL MATRIX FINDINGS\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += "Finding header format: tactic | severity | confidence.\n\n";
+      if (maaz.findings.length === 0) {
+        report += "No MAAZ tactical matrix finding was identified in the submitted text.\n\n";
+      } else {
+        maaz.findings.forEach((finding, index) => {
+          report += `${index + 1}. ${finding.tactic}\n`;
+          report += `   Quote: "${finding.exactQuote}"\n`;
+          report += `   Severity: ${finding.severity}\n`;
+          report += `   Confidence: ${finding.confidence}\n`;
+          report += `   Narrative mechanism: ${finding.narrativeMechanism}\n`;
+          report += `   MAAZ analytical deconstruction: ${finding.maazAnalyticalDeconstruction}\n`;
+          report += `   Public response protocol: ${finding.responseProtocol}\n\n`;
+        });
+      }
+
+      report += "PUBLIC ADVOCACY STATEMENT\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${maaz.publicAdvocacyStatement || "No public advocacy statement was generated."}\n\n`;
+
+      report += "AUTHOR-DIRECTED RESPONSE DRAFT\n";
+      report += "--------------------------------------------------------------------------------\n";
+      report += `${maaz.authorDirectedResponse || "No author-directed response was generated."}\n\n`;
+
+      report += "SOURCES CITED\n";
+      report += "--------------------------------------------------------------------------------\n";
+      maaz.sourceCitations.forEach((citation) => {
+        report += `- ${citation.label}: ${citation.url}\n`;
+      });
+      report += "\n";
+
+      report += "MODE BOUNDARIES\n";
+      report += "--------------------------------------------------------------------------------\n";
+      maaz.limitations.forEach((limit) => {
+        report += `- ${limit}\n`;
+      });
+      report += "\n";
+
+      report += "SOURCE & CONTEXT RECORD\n";
+      report += "--------------------------------------------------------------------------------\n";
+      sourceContextFields.forEach((field) => {
+        report += `${field.label}: ${field.value}\n`;
+      });
+      report += "\n";
+
+      if (hasAnalysisTrace) {
+        report += "ANALYSIS METRICS\n";
+        report += "--------------------------------------------------------------------------------\n";
+        analysisMetricsRows.forEach(([label, value]) => {
+          report += `${label}: ${value}\n`;
+        });
+        report += "\n";
+      }
+
+      return report;
+    }
+
     if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
       const accountability = activeReport.accountabilityReport;
       const accountabilityConcern = accountability.overallConcernLevel || activeReport.overallConcernLevel || 'moderate';
@@ -232,6 +329,7 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       const cs = activeReport.consumerScores;
       report += "II.B. COMMUNITY / GENERAL REVIEW RADAR SCORING METRICS\n";
       report += "--------------------------------------------------------------------------------\n";
+      report += `Review Scope Used: ${getConsumerReviewScopeLabel()}\n\n`;
       report += `- Antisemitism Content Score:    [Score: ${cs.antisemitismScore}/100 - ${getConsumerTextLabel(cs.antisemitismScore)}]\n`;
       report += `  Assessment: ${cs.antisemitismNarrative}\n\n`;
       report += `- Anti-Zionist Intensity Score:  [Score: ${cs.antiZionistIntensityScore}/100 - ${getConsumerTextLabel(cs.antiZionistIntensityScore)}]\n`;
@@ -246,8 +344,13 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       report += "III. SYSTEMATIC LEXICAL & RHETORICAL EXAMINED PASSAGES\n";
       report += "--------------------------------------------------------------------------------\n";
       if (!flaggedPassages || flaggedPassages.length === 0) {
-        report += "No severe rhetorical bias or lexical triggers identified by the standard engine.\n\n";
+        report += metadata.analysisMode === 'consumer'
+          ? "No clear flagged findings identified by the Consumer / General threshold.\n\n"
+          : "No severe rhetorical bias or lexical triggers identified by the standard engine.\n\n";
       } else {
+        if (metadata.analysisMode === 'consumer') {
+          report += `CLEAR FLAGGED FINDINGS (${flaggedPassages.length})\n\n`;
+        }
         flaggedPassages.forEach((p, idx) => {
           report += `[FLAG 0${idx + 1}] — Layer ${p.layer}\n`;
           report += `  - Text Snippet: "${p.textSnippet}"\n`;
@@ -256,6 +359,26 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           const appliedStr = p.standardsApplied?.map(s => `${s.standardName} (${s.clauseTitle})`).join(', ') || "General Rule";
           report += `  - Applied Codes: ${appliedStr}\n`;
           report += `  - Analysis Explanation: ${p.explanation}\n\n`;
+        });
+      }
+
+      if (metadata.analysisMode === 'consumer' && consumerReviewSignals.length > 0) {
+        report += `SECONDARY REVIEW SIGNALS (${consumerReviewSignals.length})\n`;
+        report += "These are lower-priority passages surfaced for human review, not clear flagged findings.\n\n";
+        consumerReviewSignals.forEach((signal, idx) => {
+          const signalLabel = signal.signalType === 'broad_scan' ? 'Broad Scan Candidate' : 'Needs Review';
+          const taxonomyLabel = signal.taxonomyCategoryTitle
+            ? `${signal.taxonomyItemId ? `${signal.taxonomyItemId}: ` : ''}${signal.taxonomyCategoryTitle}`
+            : 'General review signal';
+          report += `[SIGNAL 0${idx + 1}] — ${signalLabel}\n`;
+          report += `  - Text Snippet: "${signal.exactQuote}"\n`;
+          report += `  - Confidence:   ${signal.confidence}\n`;
+          report += `  - Review Basis: ${taxonomyLabel}\n`;
+          report += `  - Review Reason: ${signal.reviewReason}\n`;
+          if (signal.reviewerQuestion) {
+            report += `  - Reviewer Question: ${signal.reviewerQuestion}\n`;
+          }
+          report += "\n";
         });
       }
 
@@ -326,6 +449,64 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
     const rows = [
       ["Analysis Item Type", "Document Clause/Ref", "Text Snippet or Flawed Claim", "Detected Category / Pattern", "Severity / Confident Metric", "Assessment & Reasoning Analysis"]
     ];
+
+    if (metadata.analysisMode === 'maaz' && activeReport.maazReport) {
+      const maaz = activeReport.maazReport;
+      rows.push([
+        "MAAZ METADATA",
+        "Case ID: " + activeReport.id,
+        activeReport.metadata.title,
+        activeReport.metadata.platform,
+        "Concern: " + maaz.overallConcernLevel,
+        maaz.axiom
+      ]);
+      rows.push([
+        "MAAZ SOURCE NOTE",
+        "Governing framework",
+        maaz.sourceNote,
+        "MAAZ Protocol",
+        "N/A",
+        "This is a MAAZ-protocol analysis, not a legal adjudication."
+      ]);
+      maaz.findings.forEach((finding) => {
+        rows.push([
+          "MAAZ Tactical Matrix Finding",
+          finding.tactic,
+          finding.exactQuote,
+          finding.narrativeMechanism,
+          `Severity: ${finding.severity} / Confidence: ${finding.confidence}`,
+          `${finding.maazAnalyticalDeconstruction} | Public response protocol: ${finding.responseProtocol}`
+        ]);
+      });
+      rows.push([
+        "Public Advocacy Statement",
+        "MAAZ response draft",
+        maaz.publicAdvocacyStatement,
+        "Advocacy response",
+        "N/A",
+        "Generated by default under MAAZ mode."
+      ]);
+      rows.push([
+        "Author-Directed Response Draft",
+        "MAAZ direct response",
+        maaz.authorDirectedResponse,
+        "Author response",
+        "N/A",
+        "Fuller response addressed to the author, editor, or publisher."
+      ]);
+      maaz.sourceCitations.forEach((citation) => {
+        rows.push([
+          "Source Citation",
+          citation.label,
+          citation.url,
+          "MAAZ source authority",
+          "N/A",
+          ""
+        ]);
+      });
+
+      return rows.map(r => r.map(escapeCsvCell).join(',')).join('\n');
+    }
 
     if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
       const accountability = activeReport.accountabilityReport;
@@ -427,6 +608,23 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
       ]);
     });
 
+    if (metadata.analysisMode === 'consumer') {
+      consumerReviewSignals.forEach((signal) => {
+        const signalLabel = signal.signalType === 'broad_scan' ? 'Broad Scan Candidate' : 'Needs Review';
+        const taxonomyLabel = signal.taxonomyCategoryTitle
+          ? `${signal.taxonomyItemId ? `${signal.taxonomyItemId}: ` : ''}${signal.taxonomyCategoryTitle}`
+          : 'General review signal';
+        rows.push([
+          "Secondary Review Signal",
+          taxonomyLabel,
+          signal.exactQuote,
+          signalLabel,
+          `${signal.confidence} confidence`,
+          `${signal.reviewReason}${signal.reviewerQuestion ? ` | Reviewer question: ${signal.reviewerQuestion}` : ''}`
+        ]);
+      });
+    }
+
     // Evidentiary Issues
     evidentiaryIssues.forEach((issue) => {
       rows.push([
@@ -513,15 +711,6 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
   const handleExportPdf = () => {
     setExportingType('pdf');
     setExportSuccess(prev => ({ ...prev, pdf: false }));
-    try {
-      window.print();
-      setExportSuccess(prev => ({ ...prev, pdf: true }));
-    } catch (err) {
-      console.error("PDF Print Dialog Error:", err);
-    } finally {
-      setExportingType(null);
-    }
-    return;
     setTimeout(() => {
       try {
         const doc = new jsPDF({
@@ -574,6 +763,119 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
 
         // Draw header on original first page
         drawHeader();
+
+        if (metadata.analysisMode === 'maaz' && activeReport.maazReport) {
+          const maaz = activeReport.maazReport;
+
+          const addHeading = (heading: string) => {
+            checkPageOverflow(12);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(heading, marginX, currentY);
+            currentY += 6;
+          };
+
+          const addParagraph = (text: string, options?: { italic?: boolean; indent?: number }) => {
+            const indent = options?.indent || 0;
+            const lines = doc.splitTextToSize(text || "Not recorded.", widthMax - indent);
+            doc.setFont('Helvetica', options?.italic ? 'italic' : 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(51, 65, 85);
+            lines.forEach((line: string) => {
+              checkPageOverflow(5);
+              doc.text(line, marginX + indent, currentY);
+              currentY += 4.8;
+            });
+          };
+
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(18);
+          doc.setTextColor(30, 41, 59);
+          doc.text(doc.splitTextToSize(metadata.title || "MAAZ Antizionism Report", widthMax), marginX, currentY);
+          currentY += 14;
+
+          doc.setFontSize(9);
+          doc.setTextColor(153, 27, 27);
+          doc.text("MAAZ (ANTIZIONISM) MODE", marginX, currentY);
+          currentY += 7;
+
+          doc.setFillColor(254, 242, 242);
+          doc.setDrawColor(254, 202, 202);
+          doc.rect(marginX, currentY, widthMax, 26, 'FD');
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(153, 27, 27);
+          doc.text("GOVERNING AXIOM", marginX + 4, currentY + 7);
+          doc.setFont('Helvetica', 'normal');
+          doc.setTextColor(30, 41, 59);
+          doc.text(maaz.axiom, marginX + 4, currentY + 15);
+          doc.text(`Concern: ${maaz.overallConcernLevel.toUpperCase()}`, pageWidth - marginX - 45, currentY + 15);
+          currentY += 36;
+
+          addHeading("Source Note");
+          addParagraph(maaz.sourceNote);
+          currentY += 5;
+
+          addHeading("Summary");
+          addParagraph(maaz.summary);
+          currentY += 5;
+
+          addHeading("MAAZ Tactical Matrix Findings");
+          addParagraph("Finding header format: tactic | severity | confidence.");
+          if (maaz.findings.length === 0) {
+            addParagraph("No MAAZ tactical matrix finding was identified in the submitted text.");
+          } else {
+            maaz.findings.forEach((finding, index) => {
+              checkPageOverflow(35);
+              doc.setFont('Helvetica', 'bold');
+              doc.setFontSize(9);
+              doc.setTextColor(153, 27, 27);
+              const headerText = `${index + 1}. ${finding.tactic} | Severity: ${finding.severity} | Confidence: ${finding.confidence}`;
+              const headerLines = doc.splitTextToSize(headerText, widthMax);
+              doc.text(headerLines, marginX, currentY);
+              currentY += Math.max(5, headerLines.length * 4.8);
+              addParagraph(`"${finding.exactQuote}"`, { italic: true, indent: 4 });
+              addParagraph(`Narrative mechanism: ${finding.narrativeMechanism}`, { indent: 4 });
+              addParagraph(`MAAZ analytical deconstruction: ${finding.maazAnalyticalDeconstruction}`, { indent: 4 });
+              addParagraph(`Public response protocol: ${finding.responseProtocol}`, { indent: 4 });
+              currentY += 3;
+            });
+          }
+
+          addHeading("Public Advocacy Statement");
+          addParagraph(maaz.publicAdvocacyStatement || "No public advocacy statement was generated.");
+          currentY += 5;
+
+          addHeading("Author-Directed Response Draft");
+          addParagraph(maaz.authorDirectedResponse || "No author-directed response was generated.");
+          currentY += 5;
+
+          addHeading("Sources Cited");
+          maaz.sourceCitations.forEach((citation) => {
+            addParagraph(`${citation.label}: ${citation.url}`);
+          });
+          currentY += 5;
+
+          addHeading("Mode Boundaries");
+          maaz.limitations.forEach((limit) => {
+            addParagraph(`- ${limit}`);
+          });
+
+          if (hasAnalysisTrace) {
+            currentY += 5;
+            addHeading("Analysis Metrics");
+            analysisMetricsRows.forEach(([label, value]) => {
+              addParagraph(`${label}: ${value}`);
+            });
+          }
+
+          drawFooter();
+          const normalizedTitle = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 40);
+          doc.save(`textlens_maaz_report_${normalizedTitle || 'brief'}.pdf`);
+          setExportSuccess(prev => ({ ...prev, pdf: true }));
+          return;
+        }
 
         if (metadata.analysisMode === 'accountability' && activeReport.accountabilityReport) {
           const accountability = activeReport.accountabilityReport;
@@ -794,12 +1096,18 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           doc.setFontSize(12);
           doc.setTextColor(15, 23, 42);
           doc.text("I.B. Community / General Review Scoring & Radar Graph", marginX, currentY);
-          currentY += 8;
+          currentY += 6;
+
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(8);
+          doc.setTextColor(91, 33, 182);
+          doc.text(`Review Scope Used: ${getConsumerReviewScopeLabel()}`, marginX, currentY);
+          currentY += 6;
 
           const startY = currentY;
 
           // Drawing radar geometric diagram:
-          const cX = marginX + 30;
+          const cX = marginX + 34;
           const cY = startY + 32;
           const rSize = 22; // radius in mm
 
@@ -809,24 +1117,41 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           const rd = cs.rhetoricalDistortionScore / 100;
           const wo = cs.worthyOfResponseScore / 100;
 
+          const drawRadarGrid = () => {
+            doc.setLineWidth(0.15);
+            doc.setDrawColor(203, 213, 225); // slate-300
+            for (const gridPercent of [25, 50, 75, 100]) {
+              const d = rSize * gridPercent / 100;
+              doc.line(cX, cY - d, cX + d, cY);
+              doc.line(cX + d, cY, cX, cY + d);
+              doc.line(cX, cY + d, cX - d, cY);
+              doc.line(cX - d, cY, cX, cY - d);
+            }
+          };
+
+          const drawRadarAxes = () => {
+            doc.setLineWidth(0.3);
+            doc.setDrawColor(148, 163, 184); // slate-400
+            doc.line(cX, cY, cX, cY - rSize); // Top (Antisemitism)
+            doc.line(cX, cY, cX + rSize, cY); // Right (Anti-Zionist Intensity)
+            doc.line(cX, cY, cX, cY + rSize); // Bottom (Rhetorical Distortion)
+            doc.line(cX, cY, cX - rSize, cY); // Left (Worthy of Response)
+          };
+
           // Concentric diamonds at 25%, 50%, 75%, 100%
-          doc.setLineWidth(0.15);
-          doc.setDrawColor(203, 213, 225); // slate-300
-          for (const gridPercent of [25, 50, 75, 100]) {
+          drawRadarGrid();
+
+          // Grid background numbers
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(5.5);
+          doc.setTextColor(148, 163, 184);
+          [25, 50, 75].forEach((gridPercent) => {
             const d = rSize * gridPercent / 100;
-            doc.line(cX, cY - d, cX + d, cY);
-            doc.line(cX + d, cY, cX, cY + d);
-            doc.line(cX, cY + d, cX - d, cY);
-            doc.line(cX - d, cY, cX, cY - d);
-          }
+            doc.text(String(gridPercent), cX + 1.4, cY - d + 1);
+          });
 
           // Principal Axes lines
-          doc.setLineWidth(0.3);
-          doc.setDrawColor(148, 163, 184); // slate-400
-          doc.line(cX, cY, cX, cY - rSize); // Top (Antisemitism)
-          doc.line(cX, cY, cX + rSize, cY); // Right (Anti-Zionist Intensity)
-          doc.line(cX, cY, cX, cY + rSize); // Bottom (Rhetorical Distortion)
-          doc.line(cX, cY, cX - rSize, cY); // Left (Worthy of Response)
+          drawRadarAxes();
 
           // Vertices
           const ptTop    = { x: cX,               y: cY - rSize * a  };
@@ -841,12 +1166,28 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           else if (avgScore > 35 && avgScore <= 60) fillRGB = [249, 115, 22]; // Orange
           else if (avgScore > 60) fillRGB = [239, 68, 68]; // Red
 
-          // Draw filled dual-triangle polygon representing the scores
-          doc.setFillColor(fillRGB[0], fillRGB[1], fillRGB[2]);
+          // Draw a pale fill, then redraw the grid/axes so scale lines stay visible.
+          const fillTint = fillRGB.map(channel => Math.round(255 - ((255 - channel) * 0.16)));
+          doc.setFillColor(fillTint[0], fillTint[1], fillTint[2]);
           doc.setDrawColor(fillRGB[0], fillRGB[1], fillRGB[2]);
           doc.setLineWidth(0.4);
           doc.triangle(ptTop.x, ptTop.y, ptRight.x, ptRight.y, ptBottom.x, ptBottom.y, 'FD');
           doc.triangle(ptTop.x, ptTop.y, ptBottom.x, ptBottom.y, ptLeft.x, ptLeft.y, 'FD');
+          drawRadarGrid();
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(5.5);
+          doc.setTextColor(148, 163, 184);
+          [25, 50, 75].forEach((gridPercent) => {
+            const d = rSize * gridPercent / 100;
+            doc.text(String(gridPercent), cX + 1.4, cY - d + 1);
+          });
+          drawRadarAxes();
+          doc.setDrawColor(fillRGB[0], fillRGB[1], fillRGB[2]);
+          doc.setLineWidth(0.45);
+          doc.line(ptTop.x, ptTop.y, ptRight.x, ptRight.y);
+          doc.line(ptRight.x, ptRight.y, ptBottom.x, ptBottom.y);
+          doc.line(ptBottom.x, ptBottom.y, ptLeft.x, ptLeft.y);
+          doc.line(ptLeft.x, ptLeft.y, ptTop.x, ptTop.y);
 
           // Draw vertex dots
           doc.setFillColor(239, 68, 68); // Red
@@ -876,7 +1217,8 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           doc.text("Rhetorical", cX, cY + rSize + 3, { align: 'center' });
 
           doc.setTextColor(124, 58, 237);
-          doc.text("Response Worthy", cX - rSize - 2, cY + 1.5, { align: 'right' });
+          doc.text("Response", cX - rSize - 3, cY - 1, { align: 'right' });
+          doc.text("Value", cX - rSize - 3, cY + 3, { align: 'right' });
 
           // Right side detailed textual representations
           const rightX = marginX + 75;
@@ -1002,6 +1344,131 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
             }
 
             currentY += flagCardHeight + 6;
+          });
+          currentY += 4;
+        }
+
+        if (includeEvidenceTable && metadata.analysisMode === 'consumer' && consumerReviewSignals.length > 0) {
+          checkPageOverflow(25);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.setTextColor(15, 23, 42);
+          const secondaryHeading = flaggedPassages && flaggedPassages.length > 0
+            ? "II.B. Secondary Review Signals"
+            : "II. Secondary Review Signals";
+          doc.text(secondaryHeading, marginX, currentY);
+          currentY += 5;
+
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(71, 85, 105);
+          const secondaryIntro = doc.splitTextToSize(
+            "Lower-priority passages surfaced for human review. These are not treated as clear flagged findings.",
+            widthMax
+          );
+          secondaryIntro.forEach((line: string) => {
+            checkPageOverflow(4.5);
+            doc.text(line, marginX, currentY);
+            currentY += 4;
+          });
+          currentY += 3;
+
+          consumerReviewSignals.forEach((signal, idx) => {
+            const signalLabel = signal.signalType === 'broad_scan' ? 'BROAD SCAN CANDIDATE' : 'NEEDS REVIEW';
+            const taxonomyLabel = signal.taxonomyCategoryTitle
+              ? `${signal.taxonomyItemId ? `${signal.taxonomyItemId}: ` : ''}${signal.taxonomyCategoryTitle}`
+              : 'General review signal';
+            const quoteLines = doc.splitTextToSize(`"${signal.exactQuote}"`, widthMax - 10);
+            const reasonLines = doc.splitTextToSize(signal.reviewReason || "", widthMax - 10);
+            const taxonomyLines = doc.splitTextToSize(taxonomyLabel, widthMax - 10);
+            const questionLines = signal.reviewerQuestion
+              ? doc.splitTextToSize(signal.reviewerQuestion, widthMax - 10)
+              : [];
+            const signalCardHeight =
+              18 +
+              (quoteLines.length * 4.5) +
+              (taxonomyLines.length * 4.2) +
+              (reasonLines.length * 4.4) +
+              (questionLines.length ? (questionLines.length * 4.2) + 7 : 0) +
+              16;
+
+            checkPageOverflow(signalCardHeight);
+
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(20, 184, 166);
+            doc.rect(marginX, currentY, widthMax, signalCardHeight, 'FD');
+
+            doc.setFillColor(240, 253, 250);
+            doc.rect(marginX + 0.1, currentY + 0.1, widthMax - 0.2, 8, 'F');
+
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(15, 118, 110);
+            doc.text(`SIGNAL [0${idx + 1}] • ${signalLabel}`, marginX + 4, currentY + 5.5);
+
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(7);
+            doc.setTextColor(71, 85, 105);
+            doc.text(`${signal.confidence.toUpperCase()} CONFIDENCE`, pageWidth - marginX - 38, currentY + 5.5);
+
+            let innerY = currentY + 13;
+
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text("SOURCE TEXT FOR HUMAN REVIEW:", marginX + 4, innerY);
+            innerY += 4;
+
+            doc.setFont('Helvetica', 'italic');
+            doc.setFontSize(9.5);
+            doc.setTextColor(15, 23, 42);
+            quoteLines.forEach((line: string) => {
+              doc.text(line, marginX + 5, innerY);
+              innerY += 4.5;
+            });
+            innerY += 3;
+
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text("REVIEW BASIS:", marginX + 4, innerY);
+            innerY += 4;
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(15, 118, 110);
+            taxonomyLines.forEach((line: string) => {
+              doc.text(line, marginX + 5, innerY);
+              innerY += 4.2;
+            });
+            innerY += 3;
+
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text("REVIEW REASON:", marginX + 4, innerY);
+            innerY += 4;
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(51, 65, 85);
+            reasonLines.forEach((line: string) => {
+              doc.text(line, marginX + 5, innerY);
+              innerY += 4.4;
+            });
+
+            if (questionLines.length > 0) {
+              innerY += 3;
+              doc.setFillColor(240, 253, 250);
+              doc.rect(marginX + 4, innerY - 3, widthMax - 8, (questionLines.length * 4.2) + 5, 'F');
+              doc.setTextColor(15, 118, 110);
+              questionLines.forEach((line: string) => {
+                doc.text(line, marginX + 6, innerY);
+                innerY += 4.2;
+              });
+            }
+
+            currentY += signalCardHeight + 6;
           });
           currentY += 4;
         }
@@ -1465,6 +1932,56 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
           </div>
         )}
 
+        {includeEvidenceTable && metadata.analysisMode === 'consumer' && consumerReviewSignals.length > 0 && (
+          <div className="mt-8 page-break">
+            <h2 className="text-base font-sans font-bold text-slate-900 uppercase border-b pb-1 mb-2">
+              {flaggedPassages && flaggedPassages.length > 0 ? '2B. Secondary Review Signals' : '2. Secondary Review Signals'}
+            </h2>
+            <p className="text-[11px] text-slate-600 font-sans mb-3">
+              Lower-priority passages surfaced for human review. These are not treated as clear flagged findings.
+            </p>
+            <div className="space-y-5">
+              {consumerReviewSignals.map((signal, idx) => (
+                <div key={signal.id} className="border border-teal-100 border-l-4 border-l-teal-500 p-4 rounded bg-white break-inside-avoid">
+                  <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 border-b pb-1.5 mb-2">
+                    <span className="font-bold uppercase text-teal-700">
+                      SIGNAL [0{idx + 1}] • {signal.signalType === 'broad_scan' ? 'Broad Scan Candidate' : 'Needs Review'}
+                    </span>
+                    <span className="bg-slate-50 text-slate-700 px-1.5 py-0.5 rounded font-bold uppercase">{signal.confidence} confidence</span>
+                  </div>
+
+                  <div className="mb-2.5">
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Source Text For Human Review:</span>
+                    <p dir="auto" className={`print-source-text text-xs font-serif italic text-slate-900 border-l-2 border-teal-400 pl-3 ${hasRtlText(signal.exactQuote) ? 'print-rtl-source' : ''}`}>
+                      "{signal.exactQuote}"
+                    </p>
+                  </div>
+
+                  {(signal.taxonomyCategoryTitle || signal.taxonomyItemId) && (
+                    <div className="mb-2.5">
+                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Review Basis:</span>
+                      <span className="font-mono text-[9px] text-teal-700">
+                        {signal.taxonomyItemId ? `${signal.taxonomyItemId}: ` : ''}{signal.taxonomyCategoryTitle || 'General review signal'}
+                      </span>
+                    </div>
+                  )}
+
+                  <div>
+                    <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">Review Reason:</span>
+                    <p className="text-xs text-slate-700 leading-normal font-sans">{signal.reviewReason}</p>
+                  </div>
+
+                  {signal.reviewerQuestion && (
+                    <p className="text-xs text-teal-900 bg-teal-50/70 border border-teal-100 rounded p-2 mt-2 font-sans">
+                      {signal.reviewerQuestion}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* SECTION 3: EVIDENTIARY OMISSIONS */}
         {includeEvidenceTable && evidentiaryIssues && evidentiaryIssues.length > 0 && (
           <div className="mt-8 page-break">
@@ -1654,12 +2171,12 @@ export default function ExportTab({ activeReport, onNavigateToAnalyse }: ExportT
                   ) : exportSuccess['pdf'] ? (
                     <>
                       <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                      <span className="text-green-700 font-semibold font-mono">PDF Export Opened</span>
+                      <span className="text-green-700 font-semibold font-mono">PDF Downloaded</span>
                     </>
                   ) : (
                     <>
                       <Download className="w-3.5 h-3.5 text-gray-500" />
-                      <span>Print / Save PDF</span>
+                      <span>Download .PDF Report</span>
                     </>
                   )}
                 </button>

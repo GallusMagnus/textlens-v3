@@ -159,6 +159,7 @@ export default function MetadataTab({ metadata, setMetadata }: MetadataTabProps)
                 >
                   <option value="consumer">Community / General Review Mode</option>
                   <option value="general">Consensus Standards Mode</option>
+                  <option value="maaz">MAAZ (Antizionism) Mode</option>
                   <option value="healthcare">Healthcare Publishing Mode</option>
                   <option value="academic">Academic/University Mode</option>
                   <option value="legal_profession">U.S. Legal (ABA)</option>
