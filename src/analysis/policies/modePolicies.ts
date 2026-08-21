@@ -12,7 +12,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
     label: "Consensus Standards Mode",
     purpose:
       "Apply the core antisemitism frameworks together with the shared TextLens taxonomy for a context-sensitive rhetorical audit.",
-    sourceRuleKeys: ["ihra", "jda", "nexus", "textlens_framework"],
+    sourceRuleKeys: ["ihra", "jda", "nexus", "decoding_antisemitism_2024", "textlens_framework"],
     boundaryNote:
       "[TextLens Boundary Note: This analysis was conducted in Consensus Standards Mode. It is an independent analytical assessment using compiled source rules and the TextLens taxonomy, not a legal or regulatory adjudication.]",
     reportPositioning:
@@ -21,6 +21,22 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "Default to restraint. If the text does not clearly support a claim, narrow it or abstain.",
     abstentionPolicy:
       "If a passage is harsh but still plausibly ordinary political criticism, BDS advocacy, or constitutional advocacy, protect it with guardrails unless additional triggering evidence is present.",
+    protectedGuardrailIds: [...PROTECTED_GUARDRAILS],
+  },
+  decoding_antisemitism: {
+    mode: "decoding_antisemitism",
+    label: "Decoding Antisemitism Mode",
+    purpose:
+      "Apply Decoding Antisemitism as a source-faithful ontology for identifying antisemitic concepts, expression forms, inference chains and conservative grey-area outcomes.",
+    sourceRuleKeys: ["decoding_antisemitism_2024"],
+    boundaryNote:
+      "[TextLens Boundary Note: This analysis was conducted in Decoding Antisemitism Mode. It uses Decoding Antisemitism: A Guide to Identifying Antisemitism Online as the sole governing source. It analyses communicated meaning, not speaker identity or intent, and classifies conservatively where coherent non-antisemitic readings remain.]",
+    reportPositioning:
+      "Frame findings as source-faithful applications of the Decoding Antisemitism ontology. Separate the concept detected, the form of expression, the inference chain and any non-antisemitic alternative reading.",
+    hallucinationPolicy:
+      "Do not import IHRA, JDA, Nexus, MAAZ, legal, media or TextLens-only standards into the finding. Use only the supplied Decoding source rule and mapped taxonomy items.",
+    abstentionPolicy:
+      "If the utterance is specific, concrete, time-bounded, spatially limited, excerpted, or plausibly non-antisemitic under at least one coherent reading, abstain or mark the boundary rather than forcing a finding.",
     protectedGuardrailIds: [...PROTECTED_GUARDRAILS],
   },
   healthcare: {
@@ -32,6 +48,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "ihra",
       "jda",
       "nexus",
+      "decoding_antisemitism_2024",
       "textlens_framework",
       "cope",
       "cse_publication_ethics_white_paper",
@@ -68,6 +85,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "ihra",
       "jda",
       "nexus",
+      "decoding_antisemitism_2024",
       "textlens_framework",
       "cope",
       "cse_publication_ethics_white_paper",
@@ -94,6 +112,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "ihra",
       "jda",
       "nexus",
+      "decoding_antisemitism_2024",
       "textlens_framework",
       "aba_resolution_514_antisemitism",
       "aba_resolutions_611_613_2025",
@@ -121,6 +140,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "ihra",
       "jda",
       "nexus",
+      "decoding_antisemitism_2024",
       "textlens_framework",
       "bccsa_fta",
       "bccsa_sub",
@@ -145,6 +165,7 @@ export const modePolicies: Record<ModePolicy["mode"], ModePolicy> = {
       "ihra",
       "jda",
       "nexus",
+      "decoding_antisemitism_2024",
       "textlens_framework",
       "press_code_sa",
     ],

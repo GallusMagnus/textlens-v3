@@ -6,7 +6,7 @@ export interface TextLensMetadata {
   url: string;
   textType: string;
   jurisdiction: string;
-  analysisMode: 'general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code' | 'consumer' | 'accountability' | 'maaz';
+  analysisMode: 'general' | 'decoding_antisemitism' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code' | 'consumer' | 'accountability' | 'maaz';
   communicationType?: string;
   rhetoricalFunction?: string;
 
@@ -47,7 +47,7 @@ export interface StandardDoc {
   id: string;
   name: string;
   shortName: string;
-  category: 'Antisemitism Definitions' | 'U.S. Legal & Bar Profession Sources' | 'Media & Broadcasting Codes' | 'Academic & Publishing Standards' | 'Rhetorical Frameworks';
+  category: 'Antisemitism Definitions' | 'Validated Antisemitism Ontologies' | 'U.S. Legal & Bar Profession Sources' | 'Media & Broadcasting Codes' | 'Academic & Publishing Standards' | 'Rhetorical Frameworks';
   description: string;
   clauses: StandardClause[];
   fullTextUrl?: string;

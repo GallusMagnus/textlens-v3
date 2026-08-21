@@ -11,8 +11,8 @@ export interface TaxonomyItem {
   primaryScoreImpact: 'High' | 'Moderate' | 'Low' | 'None';
   referenceKeys: string[];
   referenceNote: string;
-  relevantModes: ('general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code')[];
-  modeWeighting: Partial<Record<'general' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code', 'primary' | 'supporting' | 'advisory' | 'guardrail'>>;
+  relevantModes: ('general' | 'decoding_antisemitism' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code')[];
+  modeWeighting: Partial<Record<'general' | 'decoding_antisemitism' | 'healthcare' | 'academic' | 'legal_profession' | 'bccsa' | 'press_code', 'primary' | 'supporting' | 'advisory' | 'guardrail'>>;
   
   // Backward compatibility with generic rendering code
   name: string; // matches categoryTitle

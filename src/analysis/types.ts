@@ -3,6 +3,7 @@ import type { TaxonomyItem } from "../taxonomyData";
 
 export type CoreAnalysisMode =
   | "general"
+  | "decoding_antisemitism"
   | "healthcare"
   | "academic"
   | "legal_profession"
@@ -13,6 +14,7 @@ export type AnalysisMode = CoreAnalysisMode | "consumer";
 
 export type SourceRuleSection =
   | "Core Antisemitism Frameworks"
+  | "Validated Antisemitism Ontologies"
   | "U.S. Legal & Bar Profession Sources"
   | "Media & Regulatory Codes"
   | "Academic & Publication Standards"

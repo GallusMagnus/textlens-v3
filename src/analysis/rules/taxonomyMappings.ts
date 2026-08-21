@@ -1,4 +1,5 @@
 import { textLensTaxonomy } from "../../taxonomyData";
+import { decodingCrosswalkByTextLensId } from "./decodingAntisemitismCrosswalk";
 import type {
   CompiledTaxonomyMapping,
   CoreAnalysisMode,
@@ -9,6 +10,7 @@ import type {
 
 const CORE_MODES: CoreAnalysisMode[] = [
   "general",
+  "decoding_antisemitism",
   "healthcare",
   "academic",
   "legal_profession",
@@ -17,6 +19,7 @@ const CORE_MODES: CoreAnalysisMode[] = [
 ];
 
 const CONSENSUS_KEYS = new Set(["ihra", "jda", "nexus"]);
+const ONTOLOGY_KEYS = new Set(["decoding_antisemitism_2024"]);
 const INTEGRITY_KEYS = new Set([
   "bccsa_fta",
   "bccsa_sub",
@@ -50,6 +53,7 @@ const TERMINOLOGY_KEYS = new Set([
 
 function getSupportType(sourceKey: string, isGuardrailItem: boolean): SupportType {
   if (sourceKey === "textlens_framework") return "framework";
+  if (ONTOLOGY_KEYS.has(sourceKey)) return "framework";
   if (TERMINOLOGY_KEYS.has(sourceKey)) return "terminology";
   if (INTEGRITY_KEYS.has(sourceKey)) return "integrity";
   if (isGuardrailItem) return "guardrail";
@@ -59,13 +63,15 @@ function getSupportType(sourceKey: string, isGuardrailItem: boolean): SupportTyp
 function getOrigin(referenceKeys: string[]): TaxonomyOrigin {
   const nonFrameworkKeys = referenceKeys.filter((key) => key !== "textlens_framework");
   const hasConsensus = nonFrameworkKeys.some((key) => CONSENSUS_KEYS.has(key));
+  const hasOntology = nonFrameworkKeys.some((key) => ONTOLOGY_KEYS.has(key));
   const hasIntegrity = nonFrameworkKeys.some((key) => INTEGRITY_KEYS.has(key));
   const hasTerminology = nonFrameworkKeys.some((key) => TERMINOLOGY_KEYS.has(key));
   const onlyFramework = referenceKeys.length > 0 && nonFrameworkKeys.length === 0;
 
   if (onlyFramework) return "textlens-extension";
-  if (hasConsensus && !hasIntegrity && !hasTerminology) return "external-consensus";
-  if (!hasConsensus && (hasIntegrity || hasTerminology)) return "source-specific";
+  if (hasOntology && !hasConsensus && !hasIntegrity && !hasTerminology) return "source-specific";
+  if (hasConsensus && !hasOntology && !hasIntegrity && !hasTerminology) return "external-consensus";
+  if (!hasConsensus && !hasOntology && (hasIntegrity || hasTerminology)) return "source-specific";
   return "mixed";
 }
 
@@ -82,6 +88,14 @@ function toModeUsageRole(weight: string | undefined): ModeUsageRole {
 }
 
 function getModeWeight(item: (typeof textLensTaxonomy)[number], mode: CoreAnalysisMode) {
+  if (mode === "decoding_antisemitism") {
+    const crosswalkItems = decodingCrosswalkByTextLensId.get(item.id) || [];
+    const rankedRoles: ModeUsageRole[] = ["primary", "supporting", "advisory", "guardrail", "excluded"];
+    return crosswalkItems
+      .map((crosswalkItem) => crosswalkItem.sourceRoleByMode.decoding_antisemitism)
+      .filter(Boolean)
+      .sort((a, b) => rankedRoles.indexOf(a as ModeUsageRole) - rankedRoles.indexOf(b as ModeUsageRole))[0];
+  }
   if (item.modeWeighting?.[mode]) return item.modeWeighting[mode];
   if (mode === "legal_profession") return item.modeWeighting?.general;
   return undefined;
@@ -89,10 +103,20 @@ function getModeWeight(item: (typeof textLensTaxonomy)[number], mode: CoreAnalys
 
 export const taxonomyMappings: CompiledTaxonomyMapping[] = textLensTaxonomy.map((item) => {
   const isGuardrailItem = item.family === "Protected non-trigger";
+  const decodingCrosswalkItems = decodingCrosswalkByTextLensId.get(item.id) || [];
+  const referenceKeys = Array.from(
+    new Set([
+      ...item.referenceKeys,
+      ...decodingCrosswalkItems.map(() => "decoding_antisemitism_2024"),
+    ])
+  );
 
   const modeUsage = CORE_MODES.reduce(
     (acc, mode) => {
-      acc[mode] = toModeUsageRole(getModeWeight(item, mode));
+      const crosswalkRole = decodingCrosswalkItems
+        .map((crosswalkItem) => crosswalkItem.sourceRoleByMode[mode])
+        .filter(Boolean)[0];
+      acc[mode] = toModeUsageRole(crosswalkRole || getModeWeight(item, mode));
       return acc;
     },
     {} as Record<CoreAnalysisMode, ModeUsageRole>
@@ -102,13 +126,16 @@ export const taxonomyMappings: CompiledTaxonomyMapping[] = textLensTaxonomy.map(
     taxonomyItemId: item.id,
     taxonomyCategoryTitle: item.categoryTitle,
     taxonomySection: item.section,
-    origin: getOrigin(item.referenceKeys),
+    origin: getOrigin(referenceKeys),
     scoreImpact: item.primaryScoreImpact,
     referenceNote: item.referenceNote,
-    sourceSupports: item.referenceKeys.map((sourceKey) => ({
+    sourceSupports: referenceKeys.map((sourceKey) => ({
       sourceKey,
       supportType: getSupportType(sourceKey, isGuardrailItem),
-      rationale: item.referenceNote,
+      rationale:
+        sourceKey === "decoding_antisemitism_2024"
+          ? decodingCrosswalkItems.map((crosswalkItem) => crosswalkItem.note).join(" ")
+          : item.referenceNote,
     })),
     modeUsage,
   };

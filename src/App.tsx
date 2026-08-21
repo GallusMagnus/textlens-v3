@@ -242,7 +242,15 @@ export default function App() {
       }
 
       const standardsAppliedList = [];
-      if (taxItem && taxItem.referenceKeys && taxItem.referenceKeys.length > 0) {
+      if (meta.analysisMode === "decoding_antisemitism") {
+        const matchedStd = standardsList.find(s => s.id === "decoding_antisemitism_2024");
+        standardsAppliedList.push({
+          standardId: "decoding_antisemitism_2024",
+          clauseId: p.relevantStandardOrSource || `DA-${p.taxonomyItemId || "FINDING"}`,
+          standardName: matchedStd?.name || "Decoding Antisemitism",
+          clauseTitle: p.taxonomyCategoryTitle || "Decoding Antisemitism finding"
+        });
+      } else if (taxItem && taxItem.referenceKeys && taxItem.referenceKeys.length > 0) {
         const matchedStdKey = taxItem.referenceKeys[0];
         const matchedStd = standardsList.find(s => s.id === matchedStdKey);
         standardsAppliedList.push({

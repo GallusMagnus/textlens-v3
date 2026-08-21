@@ -41,6 +41,7 @@ const taxonomyLayerConfigs: Record<TaxonomySummaryLayerId, {
 
 const STANDARD_DISPLAY_ORDER = [
   'maaz_protocol',
+  'decoding_antisemitism_2024',
   'ihra',
   'jda',
   'nexus',
@@ -94,6 +95,12 @@ const STANDARD_SECTIONS: Array<{
     title: 'MAAZ Antizionism Protocol',
     summary: 'Standalone Movement Against Antizionism framework used only in MAAZ mode for antizionism classification and public advocacy response.',
     docIds: ['maaz_protocol'],
+  },
+  {
+    id: 'validated-ontologies',
+    title: 'Validated Antisemitism Ontologies',
+    summary: 'Source-faithful ontologies and classification guides available to TextLens through controlled mode policies and crosswalks.',
+    docIds: ['decoding_antisemitism_2024'],
   },
   {
     id: 'us-legal-bar',
@@ -230,7 +237,7 @@ export default function StandardsTab() {
     }));
   };
 
-  const categories = ['All', 'Antisemitism Definitions', 'U.S. Legal & Bar Profession Sources', 'Media & Broadcasting Codes', 'Academic & Publishing Standards', 'Rhetorical Frameworks'];
+  const categories = ['All', 'Antisemitism Definitions', 'Validated Antisemitism Ontologies', 'U.S. Legal & Bar Profession Sources', 'Media & Broadcasting Codes', 'Academic & Publishing Standards', 'Rhetorical Frameworks'];
 
   const filteredDocs = standardsList
     .filter((doc) => {

@@ -4,6 +4,8 @@ export function getAnalysisModeLabel(mode?: string) {
       return 'Community / General Review Mode';
     case 'general':
       return 'Consensus Standards Mode';
+    case 'decoding_antisemitism':
+      return 'Decoding Antisemitism Mode';
     case 'healthcare':
       return 'Healthcare Publishing Mode';
     case 'academic':

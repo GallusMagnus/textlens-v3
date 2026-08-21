@@ -609,7 +609,7 @@ export default function AnalyseTab({
             id: 'professional-family',
             title: 'Professional Modes',
             summary: 'For standards-based review in specialist, institutional, media and regulatory contexts.',
-            modes: ['general', 'maaz', 'healthcare', 'academic', 'legal_profession', 'bccsa', 'press_code', 'accountability'] as const
+            modes: ['general', 'decoding_antisemitism', 'maaz', 'healthcare', 'academic', 'legal_profession', 'bccsa', 'press_code', 'accountability'] as const
           }
         ] as const).map((family) => (
           <div key={family.id} className="space-y-3">
@@ -663,6 +663,15 @@ export default function AnalyseTab({
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
+            } else if (mode === 'decoding_antisemitism') {
+              modeDetails = {
+                title: 'Decoding Antisemitism',
+                desc: 'Becker/Troschke/Bolton/Chapelan - Technische Universität Berlin',
+                badgeColor: 'bg-violet-50 text-violet-800 border border-violet-200',
+                badgeLabel: 'Ontology',
+                activeBorderClass: sharedActiveBorderClass,
+                activeTextClass: sharedActiveTextClass
+              };
             } else if (mode === 'maaz') {
               modeDetails = {
                 title: 'MAAZ (Antizionism)',
@@ -695,7 +704,7 @@ export default function AnalyseTab({
                 title: 'U.S. Legal (ABA)',
                 desc: 'ABA-aligned legal screening, protected speech and response triage',
                 badgeColor: 'bg-slate-100 text-slate-850 border border-slate-200',
-                badgeLabel: 'MVP',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };
@@ -722,7 +731,7 @@ export default function AnalyseTab({
                 title: 'Accountability',
                 desc: 'Claims, evidence gaps, action steps',
                 badgeColor: 'bg-rose-50 text-rose-700 border border-rose-200',
-                badgeLabel: 'Beta',
+                badgeLabel: '',
                 activeBorderClass: sharedActiveBorderClass,
                 activeTextClass: sharedActiveTextClass
               };

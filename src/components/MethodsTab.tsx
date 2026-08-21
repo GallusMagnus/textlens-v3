@@ -92,24 +92,7 @@ export default function MethodsTab() {
             <h3 className="text-xs font-bold uppercase tracking-wider font-mono text-slate-900">Professional Modes</h3>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            The other modes are <strong className="text-slate-900">standards-based professional modes</strong>. They use more specific frameworks, codes and source boundaries for specialist review, such as consensus antisemitism definitions, ABA-aligned legal-profession sources, healthcare publication standards, academic norms, broadcast codes and the South African Press Code.
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-2xs flex flex-col lg:flex-row lg:items-start gap-4">
-        <div className="p-2 bg-slate-50 border border-slate-200 rounded text-slate-700 shrink-0">
-          <Scale className="w-5 h-5" />
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-xs font-bold font-mono text-slate-900 uppercase tracking-widest">
-            U.S. Legal (ABA)
-          </h3>
-          <p className="text-xs text-slate-700 leading-relaxed max-w-4xl">
-            U.S. Legal (ABA) applies the same staged TextLens method to legal-profession review: select mode-specific sources, apply protected-speech guardrails, classify exact passages, and surface missing facts for human review. The detailed ABA, civil-rights and workplace source list is maintained in the <strong className="text-slate-900">Standards</strong> tab under <strong className="text-slate-900">U.S. Legal & Bar Profession Sources</strong>.
-          </p>
-          <p className="text-[11px] text-slate-500 leading-relaxed max-w-4xl">
-            The mode is a screening and drafting aid, not legal advice or a liability determination.
+            The other modes are <strong className="text-slate-900">standards-based professional modes</strong>. They use more specific frameworks, ontologies, codes and source boundaries for specialist review, such as consensus antisemitism definitions, Decoding Antisemitism, ABA-aligned legal-profession sources, healthcare publication standards, academic norms, broadcast codes and the South African Press Code.
           </p>
         </div>
       </div>
@@ -121,7 +104,7 @@ export default function MethodsTab() {
             <h4 className="text-xs font-bold uppercase tracking-wider font-mono text-slate-900">Mode, Taxonomy and Sources</h4>
           </div>
           <p className="text-slate-705 text-xs leading-relaxed">
-            TextLens separates the <strong className="text-slate-900">mode of review</strong> from the <strong className="text-slate-900">taxonomy used for classification</strong>. The selected mode determines which standards, frameworks and source rules are active. The taxonomy is the shared structure used to organise findings.
+            TextLens separates the <strong className="text-slate-900">mode of review</strong> from the <strong className="text-slate-900">taxonomy used for classification</strong>. The selected mode determines which standards, ontologies, frameworks and source rules are active. The taxonomy is the shared structure used to organise findings.
           </p>
         </div>
 
@@ -435,6 +418,7 @@ export default function MethodsTab() {
                                 <div key={mode} className="bg-white border border-slate-200 rounded p-1.5 flex flex-col items-center text-center shadow-3xs">
                                   <span className="text-[9px] font-mono text-slate-400 uppercase font-bold tracking-tight">
                                     {mode === 'general' ? 'Consensus Stds' :
+                                     mode === 'decoding_antisemitism' ? 'Decoding' :
                                      mode === 'healthcare' ? 'Health Pub' :
                                      mode === 'academic' ? 'Acad/University' :
                                      mode === 'legal_profession' ? 'U.S. Legal (ABA)' :

@@ -36,6 +36,35 @@ export const sourceCatalogList: SourceCatalogItem[] = [
     limitations: "MAAZ mode applies the MAAZ protocol as its governing framework. It is not a legal adjudication, a regulatory finding, or a consensus antisemitism-definition analysis."
   },
   {
+    sourceKey: "decoding_antisemitism_2024",
+    sourceName: "Decoding Antisemitism: A Guide to Identifying Antisemitism Online",
+    sourceType: "Validated Ontology and Classification Guide",
+    shortLabel: "Decoding Antisemitism",
+    whyIncluded: "Open-access 2024 Palgrave/Springer guide from the Decoding Antisemitism research project, offering a structured ontology of antisemitic concepts, stereotypes, analogies, strategies and aggressive speech acts with identifying characteristics and non-antisemitic boundary examples.",
+    url: "https://doi.org/10.1007/978-3-031-49238-9",
+    doi: "10.1007/978-3-031-49238-9",
+    notes: "Used as the sole governing source in Decoding Antisemitism Mode. In other modes it is available as a validated reference source through an explicit crosswalk so it can support or refine existing TextLens categories without replacing the TextLens taxonomy.",
+    appliesToModes: [
+      "decoding_antisemitism",
+      "general",
+      "healthcare",
+      "academic",
+      "legal_profession",
+      "bccsa",
+      "press_code"
+    ],
+    role: "Source-faithful ontology for identifying communicated antisemitic meaning, separating concept content from expression form and preserving conservative grey-area handling.",
+    summary: "Use to identify the antisemitic concept communicated, the verbal, visual or multimodal form that carries it, the inference chain from utterance to meaning, and whether a coherent non-antisemitic reading requires abstention.",
+    keyCriteria: [
+      "Does the utterance communicate antisemitic meaning, regardless of the author's identity or inferred intent?",
+      "Which concept, stereotype, analogy, strategy or aggressive speech act is discernible?",
+      "What exact verbal, visual or contextual pattern carries the concept?",
+      "Is the claim generalised or essentialised rather than concrete, specific, time-bounded and spatially limited?",
+      "Is there at least one coherent non-antisemitic reading that requires a not-established or guardrail outcome?"
+    ],
+    limitations: "Use source-faithfully in Decoding Antisemitism Mode. In other modes, apply only through the crosswalk and mode policy. Several Israel-related categories are contested across antisemitism frameworks, so findings should disclose source-specificity and preserve protected-speech guardrails."
+  },
+  {
     sourceKey: "ihra",
     sourceName: "IHRA Working Definition of Antisemitism",
     sourceType: "Working Definition",

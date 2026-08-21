@@ -904,10 +904,16 @@ function chooseStandardForFinding(
     (clauseId) =>
       chosenSupport && getSourceKeyForClauseId(clauseId) === chosenSupport.sourceKey
   );
+  const chosenSourceRule = chosenSupport
+    ? getRelevantSourceRules(mode).find((rule) => rule.sourceKey === chosenSupport.sourceKey)
+    : null;
 
   return {
     relevantStandardOrSource:
       matchingLikelyStandard ||
+      (mode === "decoding_antisemitism" && chosenSourceRule?.clausePrefixes[0]
+        ? `${chosenSourceRule.clausePrefixes[0]}-${taxonomyItem.id}`
+        : "") ||
       taxonomyItem.likelyStandards?.[0] ||
       chosenSupport?.sourceKey.toUpperCase() ||
       "TEXTLENS",

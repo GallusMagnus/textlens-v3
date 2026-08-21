@@ -57,6 +57,46 @@ export const standardsList: StandardDoc[] = [
     ]
   },
   {
+    id: 'decoding_antisemitism_2024',
+    name: 'Decoding Antisemitism: A Guide to Identifying Antisemitism Online',
+    shortName: 'Decoding Antisemitism',
+    category: 'Validated Antisemitism Ontologies',
+    description: 'Open-access ontology and classification guide for identifying antisemitic concepts, stereotypes, analogies, strategies and aggressive speech acts in online discourse.',
+    fullTextUrl: 'https://doi.org/10.1007/978-3-031-49238-9',
+    clauses: [
+      {
+        id: 'DA-METHOD',
+        title: 'Meaning, Not Speaker Identity',
+        text: 'Analyse the communicated meaning of the utterance in context rather than deciding whether the speaker is an antisemite or inferring subjective intent.'
+      },
+      {
+        id: 'DA-CONTENT-FORM',
+        title: 'Concept and Form Separation',
+        text: 'Identify both the antisemitic concept or stereotype communicated and the verbal, visual, multimodal or speech-act form through which it is expressed.'
+      },
+      {
+        id: 'DA-GREY-AREA',
+        title: 'Conservative Grey-Area Handling',
+        text: 'If more than one coherent interpretation remains possible and at least one reading is non-antisemitic, classify conservatively rather than forcing a finding.'
+      },
+      {
+        id: 'DA-SPECIFICITY',
+        title: 'Specificity Boundary',
+        text: 'Concrete, time-bounded and spatially limited claims are less likely to be antisemitic than generalised or essentialised claims about Jews, Israel, Israelis, Zionists or Zionism.'
+      },
+      {
+        id: 'DA-CONCEPTS',
+        title: 'Conceptual Ontology',
+        text: 'The ontology covers classic antisemitism, concepts of power, secondary antisemitism, post-Holocaust categories, Israel-related antisemitism and aggressive speech acts.'
+      },
+      {
+        id: 'DA-CONTESTED-BOUNDARIES',
+        title: 'Contested Israel-Related Boundaries',
+        text: 'Several Israel-related categories require explicit source-specificity and close context review when used outside Decoding Antisemitism Mode.'
+      }
+    ]
+  },
+  {
     id: 'ihra',
     name: 'IHRA Working Definition of Antisemitism',
     shortName: 'IHRA Working Definition',

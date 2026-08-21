@@ -7,6 +7,7 @@ import type { CompiledRuleLayer, CoreAnalysisMode } from "./types";
 
 const CORE_MODES: CoreAnalysisMode[] = [
   "general",
+  "decoding_antisemitism",
   "healthcare",
   "academic",
   "legal_profession",
@@ -23,6 +24,7 @@ export const compiledRuleLayer: CompiledRuleLayer = {
     "src/analysis/policies/modePolicies.ts",
     "src/analysis/rules/sourceRules.ts",
     "src/analysis/rules/taxonomyMappings.ts",
+    "src/analysis/rules/decodingAntisemitismCrosswalk.ts",
   ],
   modePolicies: CORE_MODES.map((mode) => modePolicies[mode]),
   sourceRules,
@@ -49,6 +51,13 @@ export function getAllowedTaxonomyItems(mode: string) {
     return [];
   }
 
+  if (mode === "decoding_antisemitism") {
+    return textLensTaxonomy.filter((item) => {
+      if (item.family === "Protected non-trigger") return false;
+      return taxonomyMappingById.get(item.id)?.modeUsage.decoding_antisemitism !== "excluded";
+    });
+  }
+
   return textLensTaxonomy.filter((item) => {
     if (item.family === "Protected non-trigger") return false;
     if (item.relevantModes.includes(mode as CoreAnalysisMode)) return true;
@@ -69,6 +78,9 @@ export function isTaxonomyItemAllowedInMode(taxonomyItemId: string, mode: string
   }
   if (!CORE_MODES.includes(mode as CoreAnalysisMode)) {
     return false;
+  }
+  if (mode === "decoding_antisemitism") {
+    return taxonomyMappingById.get(item.id)?.modeUsage.decoding_antisemitism !== "excluded";
   }
   return (
     item.relevantModes.includes(mode as CoreAnalysisMode) ||
